@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101116">
+<meta name="description" content="SYNTRA Social — nơi chia sẻ video, hình ảnh, ý tưởng và cộng đồng.">
+<title>SYNTRA Social</title>
+<style>
+:root{--bg:#101116;--surface:#181820;--surface2:#20202a;--border:#2b2b36;--text:#f3f2f7;--muted:#9696a6;--accent:#8c7bff;--accent2:#b6aaff;--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer;color:inherit}a{color:inherit;text-decoration:none}
+.layout{max-width:1320px;margin:auto;display:grid;grid-template-columns:240px minmax(0,680px) 280px;gap:22px;padding:18px}
+.sidebar,.rightbar{position:sticky;top:18px;height:calc(100dvh - 36px);align-self:start}
+.brand{display:flex;align-items:center;gap:11px;font-weight:850;font-size:22px;letter-spacing:1px;padding:9px 10px 22px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#a99cff,#6954ef);display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;box-shadow:0 6px 22px #7160ff44}
+.nav{display:grid;gap:5px}.nav button{border:0;background:none;text-align:left;padding:12px 14px;border-radius:13px;color:var(--muted);display:flex;align-items:center;gap:13px;font-weight:650}.nav button:hover,.nav button.active{background:var(--surface2);color:var(--text)}.nav .icon{font-size:20px;width:24px;text-align:center}
+.sidebar .newpost{margin:18px 8px 0;width:calc(100% - 16px)}
+.primary{background:linear-gradient(120deg,#8271ff,#6955e9);border:0;border-radius:14px;padding:12px 16px;font-weight:750;color:white;box-shadow:0 6px 18px #7160ff2c}.primary:hover{filter:brightness(1.08)}.secondary{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 12px}
+main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15px}.search{flex:1;position:relative}.search input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;color:var(--text);outline:none}.search input:focus{border-color:var(--accent)}.mobile-brand{display:none}
+.tabs{display:flex;gap:6px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:14px;overflow:auto}.tabs button{white-space:nowrap;flex:1;background:none;border:0;padding:9px 12px;color:var(--muted);border-radius:10px;font-weight:650}.tabs button.active{background:var(--surface2);color:var(--text)}
+.composer,.post,.panel,.stories{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:14px}
+.compose-row{display:flex;gap:12px;align-items:center}.avatar{width:42px;height:42px;flex:none;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#9a8bff,#5645ca);font-weight:800;color:white}.compose-placeholder{flex:1;text-align:left;background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:11px 14px;border-radius:13px}.compose-tools{display:flex;gap:7px;margin-top:12px}.compose-tools button{flex:1;background:transparent;border:1px solid var(--border);border-radius:11px;padding:9px;color:var(--muted)}
+.stories{display:flex;gap:12px;overflow:auto;padding:13px}.story{min-width:62px;text-align:center;font-size:12px;color:var(--muted)}.story-ring{width:54px;height:54px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#a69aff,#ef8cba);margin:0 auto 5px}.story-ring>div{height:100%;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-weight:800}
+.post-head{display:flex;align-items:center;gap:10px}.user{font-weight:750}.meta{font-size:12px;color:var(--muted)}.more{margin-left:auto;border:0;background:none;color:var(--muted);font-size:20px}.post-text{white-space:pre-wrap;margin:12px 0}.post-media{border-radius:15px;min-height:180px;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,#25243a,#35324d);margin:10px 0;padding:20px;color:#c9c5ff}.post-actions{display:flex;justify-content:space-between;gap:5px;border-top:1px solid var(--border);padding-top:10px}.post-actions button{border:0;background:none;color:var(--muted);padding:6px 8px;border-radius:9px}.post-actions button:hover{background:var(--surface2);color:var(--text)}.liked{color:#ff7599!important}
+.rightbar .panel h3{margin:2px 0 12px}.trend{padding:10px 0;border-top:1px solid var(--border)}.trend small{color:var(--muted)}.trend b{display:block}.mini-profile{display:flex;gap:10px;align-items:center}
+.footer{font-size:12px;color:var(--muted);padding:10px}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:20;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.dialog{width:min(520px,100%);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 25px 70px #0007}.dialog h2{margin:0 0 14px}.dialog textarea{width:100%;min-height:130px;background:var(--bg);border:1px solid var(--border);border-radius:13px;color:var(--text);padding:12px;resize:vertical}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#282833;border:1px solid var(--border);border-radius:12px;padding:10px 15px;display:none;z-index:30}.toast.show{display:block}
+.empty{text-align:center;color:var(--muted);padding:28px}
+@media(max-width:1050px){.layout{grid-template-columns:200px minmax(0,680px);justify-content:center}.rightbar{display:none}}
+@media(max-width:700px){.layout{display:block;padding:10px 10px calc(80px + env(safe-area-inset-bottom))}.sidebar{display:none}.topbar{margin-top:2px}.mobile-brand{display:flex;align-items:center;gap:8px;font-weight:850;white-space:nowrap}.mobile-brand .logo{width:31px;height:31px;border-radius:10px}.search input{padding:10px}.stories,.composer,.post{border-radius:15px}.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#14141beF;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(15px)}.bottomnav button{border:0;background:none;color:var(--muted);font-size:20px;padding:6px 10px}.bottomnav button.active{color:var(--accent2)}.tabs button{font-size:13px}.compose-tools button{font-size:13px;padding:8px 4px}.post-actions button{font-size:13px}}
+@media(min-width:701px){.bottomnav{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand"><div class="logo">S</div>SYNTRA</div>
+<nav class="nav" id="desktopNav">
+<button class="active" data-filter="all"><span class="icon">⌂</span>Trang chủ</button>
+<button data-filter="video"><span class="icon">▷</span>Video</button>
+<button data-filter="photos"><span class="icon">▧</span>Ảnh</button>
+<button data-filter="communities"><span class="icon">♧</span>Cộng đồng</button>
+<button data-filter="following"><span class="icon">♡</span>Đang theo dõi</button>
+<button data-filter="saved"><span class="icon">▣</span>Đã lưu</button>
+</nav>
+<button class="primary newpost" id="openComposer">＋ Tạo bài viết</button>
+<div class="footer">SYNTRA Social · Prototype 0.1<br>Đang trong quá trình thử nghiệm</div>
+</aside>
+<main>
+<div class="topbar">
+<div class="mobile-brand"><div class="logo">S</div>SYNTRA</div>
+<div class="search"><input id="search" placeholder="Tìm kiếm SYNTRA..." aria-label="Tìm kiếm"></div>
+<button class="secondary" id="notify" title="Thông báo">♧</button>
+</div>
+<div class="tabs" id="tabs">
+<button class="active" data-filter="all">Dành cho bạn</button><button data-filter="following">Theo dõi</button><button data-filter="video">Video</button><button data-filter="photos">Ảnh</button><button data-filter="communities">Cộng đồng</button>
+</div>
+<div class="stories" id="stories">
+<div class="story"><div class="story-ring"><div>＋</div></div>Thêm tin</div>
+<div class="story"><div class="story-ring"><div>S</div></div>SYNTRA</div>
+<div class="story"><div class="story-ring"><div>💡</div></div>Ý tưởng</div>
+<div class="story"><div class="story-ring"><div>🎨</div></div>Sáng tạo</div>
+<div class="story"><div class="story-ring"><div>🎮</div></div>Gaming</div>
+<div class="story"><div class="story-ring"><div>💻</div></div>Công nghệ</div>
+</div>
+<section class="composer">
+<div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
+<div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
+</section>
+<div id="feed"></div>
+</main>
+<aside class="rightbar">
+<div class="panel">
+<div class="mini-profile"><div class="avatar">S</div><div><b>SYNTRA Social</b><div class="meta">Không gian kết nối</div></div></div>
+<p class="meta">Prototype đang thử nghiệm. Nội dung được lưu cục bộ trên thiết bị của bạn.</p>
+</div>
+<div class="panel"><h3>Khám phá</h3>
+<div class="trend"><small>Chủ đề · Công nghệ</small><b>#SYNTRA</b><small>Chủ đề thử nghiệm</small></div>
+<div class="trend"><small>Chủ đề · Sáng tạo</small><b>#ÝTưởng</b><small>Chia sẻ ý tưởng</small></div>
+<div class="trend"><small>Chủ đề · Lập trình</small><b>#Coding</b><small>Học hỏi mỗi ngày</small></div>
+</div>
+<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.1</div></div>
+</aside>
+</div>
+<nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all">⌂</button><button data-filter="video">▷</button><button id="bottomCreate">＋</button><button data-filter="communities">♧</button><button data-filter="profile">◉</button></nav>
+<div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><div class="meta" style="margin-top:8px">Prototype: bài viết lưu trên trình duyệt hiện tại, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='syntra_social_demo_posts_v1';
+const seed=[
+{id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
+{id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
+{id:'seed3',name:'Creative Studio',tag:'@creative · hôm qua',text:'Không gian dành cho sáng tạo — chia sẻ dự án, tác phẩm, những điều bạn đang học và ý tưởng mới.',type:'photos',likes:4,liked:false,saved:false}
+];
+let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
+let active='all';
+const feed=document.getElementById('feed');
+function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ const q=document.getElementById('search').value.trim().toLowerCase();
+ let list=posts.filter(p=>{
+  const matchFilter=active==='all'||active==='following'||active==='profile'||active==='saved'&&p.saved||active==='video'&&p.type==='video'||active==='photos'&&p.type==='photos'||active==='communities'&&p.type==='communities';
+  const matchSearch=!q||(p.text+' '+p.name).toLowerCase().includes(q);
+  return matchFilter&&matchSearch;
+ });
+ feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><div class="avatar">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><div class="user">'+esc(p.name)+'</div><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div></article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
+}
+function filter(f){active=f;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
+document.getElementById('search').addEventListener('input',render);
+const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function close(){modal.classList.remove('show')}
+['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
+document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
+document.getElementById('publish').onclick=()=>{let t=document.getElementById('postText').value.trim();if(!t){toast('Hãy nhập nội dung trước khi đăng.');return}posts.unshift({id:'p'+Date.now(),name:'Bạn',tag:'@local · vừa xong',text:t,type:'all',likes:0,liked:false,saved:false});save();document.getElementById('postText').value='';close();filter('all');toast('Đã tạo bài viết trên thiết bị!')};
+feed.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.like){let p=posts.find(x=>x.id===b.dataset.like);p.liked=!p.liked;p.likes+=p.liked?1:-1;save();render()}
+ if(b.dataset.save){let p=posts.find(x=>x.id===b.dataset.save);p.saved=!p.saved;save();render();toast(p.saved?'Đã lưu bài viết':'Đã bỏ lưu')}
+ if(b.dataset.comment)toast('Bình luận sẽ được triển khai ở phiên bản backend.');
+ if(b.dataset.share){navigator.clipboard?.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}
+ if(b.dataset.report)toast('Chức năng báo cáo sẽ được bổ sung cùng hệ thống kiểm duyệt.');
+});
+document.getElementById('photoBtn').onclick=()=>{document.getElementById('postText').value='[Ảnh] ';open();toast('Tải ảnh sẽ được tích hợp ở phiên bản tiếp theo.')};
+document.getElementById('videoBtn').onclick=()=>{document.getElementById('postText').value='[Video] ';open();toast('Tải video sẽ được tích hợp ở phiên bản tiếp theo.')};
+document.getElementById('communityBtn').onclick=()=>filter('communities');
+document.getElementById('notify').onclick=()=>toast('Thông báo đang được phát triển.');
+function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+render();
+</script>
+</body>
+</html>
