@@ -75,3 +75,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Trang hồ sơ hiển thị bài viết của chủ hồ sơ.
 - Giới hạn upload ảnh hồ sơ/cover 700 KB; dữ liệu vẫn local-only.
 - Chưa có đăng nhập, đồng bộ cloud, follower thật hoặc server.
+
+
+## Prototype 0.4 — Tin nhắn demo
+
+- Thêm mục Tin nhắn trên thanh điều hướng máy tính và điện thoại.
+- Hộp thư có danh sách các cuộc trò chuyện demo và tìm kiếm cuộc trò chuyện.
+- Giao diện chat một-một với bong bóng tin nhắn, thời gian và ô gửi tin.
+- Tin nhắn do người dùng gửi được lưu trong localStorage trên trình duyệt hiện tại.
+- Giao diện thích ứng: máy tính hiển thị danh sách và hội thoại cùng lúc; điện thoại chuyển giữa danh sách và màn hình chat.
+- Các liên hệ hiện tại là tài khoản mẫu; chưa có đăng nhập, đồng bộ giữa thiết bị, máy chủ hoặc realtime.
