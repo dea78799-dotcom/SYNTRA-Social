@@ -92,7 +92,10 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Prototype: lưu trên thiết bị này, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const KEY='syntra_social_demo_posts_v1';\nconst PROFILE_KEY='syntra_social_demo_profile_v1';\nconst FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');\nlet follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');\nlet viewedProfile=localProfile.name;
+const KEY='syntra_social_demo_posts_v1';
+const PROFILE_KEY='syntra_social_demo_profile_v1';\nconst FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
+let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
+let viewedProfile=localProfile.name;
 const seed=[
 {id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
@@ -100,7 +103,8 @@ const seed=[
 ];
 let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;\nposts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';
-const feed=document.getElementById('feed');\nconst profilePage=document.getElementById('profilePage');
+const feed=document.getElementById('feed');
+const profilePage=document.getElementById('profilePage');
 function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderProfile(name){
@@ -108,7 +112,8 @@ function renderProfile(name){
  const own=name===localProfile.name;
  const count=posts.filter(p=>p.name===name).length;
  profilePage.innerHTML='<div class="cover">'+(own&&localProfile.cover?'<img src="'+localProfile.cover+'">':'')+'</div><div class="profile-top"><div class="profile-avatar">'+(own&&localProfile.avatar?'<img src="'+localProfile.avatar+'">':esc(name.slice(0,1).toUpperCase()))+'</div><div class="profile-name">'+esc(name)+'</div><div class="profile-bio">'+esc(own?(localProfile.bio||'Chưa có giới thiệu.'): 'Hồ sơ người dùng demo.')+'</div><div class="profile-stats"><span><b>'+count+'</b> bài viết</span><span><b>'+(own?follows.length:0)+'</b> đang theo dõi</span><span><b>—</b> người theo dõi</span></div><div class="profile-actions">'+(own?'<button class="secondary" id="editProfile">✎ Chỉnh sửa hồ sơ</button>':'<button class="primary" data-follow="'+esc(name)+'">'+(follows.includes(name)?'✓ Đang theo dõi':'＋ Theo dõi')+'</button>')+'<button class="secondary" id="backFeed">← Về bảng tin</button></div>'+(own?'<div class="profile-edit" id="profileEdit" style="display:none"><input id="editName" maxlength="32" value="'+esc(localProfile.name)+'" placeholder="Tên hiển thị"><textarea id="editBio" maxlength="160" placeholder="Giới thiệu ngắn">'+esc(localProfile.bio||'')+'</textarea><label class="meta">Ảnh đại diện <input id="avatarFile" type="file" accept="image/*"></label><label class="meta">Ảnh bìa <input id="coverFile" type="file" accept="image/*"></label><button class="primary" id="saveProfile">Lưu hồ sơ</button><small class="meta">Ảnh lưu trên thiết bị, giới hạn 700 KB mỗi ảnh.</small></div>':'')+'</div>';
- profilePage.classList.add('show');feed.style.display='none';document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';\n const ownPosts=posts.filter(a=>a.name===name);profilePage.insertAdjacentHTML('beforeend',ownPosts.length?'<div style="padding:0 14px 14px"><h3>Bài viết</h3>'+ownPosts.map(a=>'<article class="post"><div class="post-text">'+esc(a.text)+'</div><div class="meta">'+(a.likes||0)+' lượt thích · '+(a.comments||[]).length+' bình luận</div></article>').join('')+'</div>':'<div class="empty">Chưa có bài viết.</div>');
+ profilePage.classList.add('show');feed.style.display='none';document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
+ const ownPosts=posts.filter(a=>a.name===name);profilePage.insertAdjacentHTML('beforeend',ownPosts.length?'<div style="padding:0 14px 14px"><h3>Bài viết</h3>'+ownPosts.map(a=>'<article class="post"><div class="post-text">'+esc(a.text)+'</div><div class="meta">'+(a.likes||0)+' lượt thích · '+(a.comments||[]).length+' bình luận</div></article>').join('')+'</div>':'<div class="empty">Chưa có bài viết.</div>');
  profilePage.querySelector('#backFeed').onclick=()=>filter('all');
  if(own){
   profilePage.querySelector('#editProfile').onclick=()=>profilePage.querySelector('#profileEdit').style.display='grid';
@@ -149,7 +154,8 @@ feed.addEventListener('click',e=>{
 document.getElementById('photoBtn').onclick=()=>{document.getElementById('postText').value='[Ảnh] ';open();toast('Tải ảnh sẽ được tích hợp ở phiên bản tiếp theo.')};
 document.getElementById('videoBtn').onclick=()=>{document.getElementById('postText').value='[Video] ';open();toast('Tải video sẽ được tích hợp ở phiên bản tiếp theo.')};
 document.getElementById('communityBtn').onclick=()=>filter('communities');
-document.getElementById('notify').onclick=()=>toast('Thông báo đang được phát triển.');\ndocument.querySelectorAll('[data-filter="profile"]').forEach(b=>b.addEventListener('click',()=>filter('profile')));
+document.getElementById('notify').onclick=()=>toast('Thông báo đang được phát triển.');
+document.querySelectorAll('[data-filter="profile"]').forEach(b=>b.addEventListener('click',()=>filter('profile')));
 function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 render();
 </script>
