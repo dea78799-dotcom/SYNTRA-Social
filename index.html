@@ -449,6 +449,7 @@ function render(){
  if(active==='settings'){renderSettings();return}
  settingsPage.classList.remove('show');settingsPage.style.display='none';
  if(active==='explore'){renderExplore();return}
+ document.getElementById('feedTools').style.display='flex';
  discoverPage.style.display='none';
  chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
  if(active==='profile'){renderProfile(localProfile.name);return}
@@ -466,7 +467,7 @@ function render(){
  hydratePostMedia(feed);
 }
 
-function filter(f){active=f;activeTopic=null;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
+function filter(f){active=f;if(f!=='explore')activeTopic=null;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
 function renderChat(){profilePage.classList.remove('show');profilePage.innerHTML='';feed.style.display='none';document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';chatPage.classList.add('show');
  const current=demoContacts.find(c=>c.id===activeChat)||demoContacts[0];const messages=chats[activeChat]||[];
  chatPage.innerHTML='<div class="chat-list"><div class="chat-list-head"><h2>Tin nhắn</h2><input class="chat-search" id="chatSearch" placeholder="Tìm cuộc trò chuyện..."></div><div id="chatContacts">'+demoContacts.map(c=>{const arr=chats[c.id]||[];const last=arr[arr.length-1];return '<button class="chat-contact '+(c.id===activeChat?'active':'')+'" data-chat="'+c.id+'"><div class="avatar">'+c.initial+'</div><div class="chat-contact-info"><b>'+c.name+'</b><small>'+esc(last?last.text:c.status)+'</small></div></button>'}).join('')+'</div></div><div class="chat-thread"><div class="chat-thread-head"><button class="secondary chat-mobile-back" id="chatBack">←</button><div class="avatar">'+current.initial+'</div><div><b>'+current.name+'</b><small>'+current.status+' · không trực tuyến</small></div></div><div class="chat-messages" id="chatMessages"><div class="chat-date">Hôm nay · Tin nhắn demo</div>'+(messages.length?messages.map(m=>'<div class="bubble '+(m.from==='me'?'mine':'')+'">'+esc(m.text)+'<span class="bubble-time">'+m.time+'</span></div>').join(''):'<div class="chat-empty">Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện.</div>')+'</div><form class="chat-compose" id="chatForm"><input id="chatInput" maxlength="1000" autocomplete="off" placeholder="Nhập tin nhắn..." aria-label="Nội dung tin nhắn"><button class="primary" type="submit">Gửi</button></form></div>';
