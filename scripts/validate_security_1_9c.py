@@ -32,7 +32,8 @@ def read(path: Path) -> str:
 sql = read(SQL_PATH)
 tests = read(TEST_PATH)
 matrix = read(MATRIX_PATH)
-sql_lower = re.sub(r"\s+", " ", sql.lower())
+sql_without_comments = re.sub(r"--[^\n]*", "", sql)
+sql_lower = re.sub(r"\s+", " ", sql_without_comments.lower())
 tests_lower = tests.lower()
 matrix_lower = matrix.lower()
 
