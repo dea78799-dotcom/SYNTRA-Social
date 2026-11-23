@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.2** — mobile-first local prototype with post detail, inline comments, and clickable hashtags. Core content remains local to the current browser. Core content remains local to the current browser.
+> Status: **Prototype 1.3** — mobile-first local prototype with post detail, inline comments, clickable hashtags, content filters, topic pages, and feed sorting. Core content remains local to the current browser.nline comments, and clickable hashtags. Core content remains local to the current browser. Core content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -210,4 +210,21 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã đọc lại index.html từ GitHub sau cập nhật.
 - JavaScript inline vượt qua kiểm tra cú pháp.
 - Đã xác minh hàm định dạng hashtag, hai vị trí hiển thị nội dung bài viết và xử lý nhấn hashtag.
+- Chưa thực hiện kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
+
+
+## Prototype 1.3 — Content Discovery
+
+- Thêm bộ lọc riêng cho bài viết văn bản; tiếp tục hỗ trợ Theo dõi, Video, Ảnh và Cộng đồng.
+- Bổ sung lựa chọn sắp xếp Mới nhất và Phổ biến trên bảng tin và trang Khám phá.
+- Mỗi chủ đề trong Khám phá mở thành trang chủ đề riêng, có tiêu đề và nút quay lại danh sách chủ đề.
+- Giữ tìm kiếm tiếng Việt không phân biệt dấu và tìm kiếm hashtag cục bộ.
+- Thứ tự Mới nhất sử dụng thứ tự bài viết hiện có trong dữ liệu cục bộ; Phổ biến sắp xếp theo lượt thích đang lưu.
+
+**Giới hạn:** chủ đề, tìm kiếm, bộ lọc và sắp xếp chỉ xử lý bài viết trong trình duyệt hiện tại. Chưa có dữ liệu thời gian thực, thuật toán đề xuất, chỉ mục máy chủ hoặc đồng bộ giữa người dùng.
+
+### Kiểm tra phiên bản 1.3
+- JavaScript inline đã vượt qua kiểm tra cú pháp.
+- Đã kiểm tra sự hiện diện của bộ lọc Văn bản, trang chủ đề, hai lựa chọn sắp xếp và bộ xử lý điều hướng chủ đề.
+- Đã sửa luồng giữ trang chủ đề khi mở từ thẻ chủ đề và khôi phục thanh sắp xếp khi quay về bảng tin.
 - Chưa thực hiện kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
