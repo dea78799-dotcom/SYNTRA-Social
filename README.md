@@ -340,5 +340,5 @@ GitHub Pages can host the static prototype. A real social network will require a
 
 - Added a dependency-free Python static validator at [scripts/validate_security_1_9c.py](scripts/validate_security_1_9c.py). It checks the reviewed 1.9C SQL contract, least-privilege grants, recipient-only policy predicates, database-controlled acceptance timestamp, and all 14 documented API test cases.
 - Added [GitHub Actions security static checks](.github/workflows/security-static-check.yml), triggered on relevant pushes and pull requests. The workflow uses the default read-only repository permission and requires no Supabase credentials or paid staging database.
-- The static validator was syntax-checked and its rule set was exercised locally against representative fixtures. The current committed artifacts also passed 22 content/contract checks in this review.
+- The static validator was syntax-checked and executed locally against representative fixtures: **36 static checks passed**. The current committed artifacts also passed 22 direct content/contract checks in this review.
 - These checks do not execute SQL, connect to Supabase, emulate Auth/JWT, or prove RLS behavior. The 1.9C migration remains unapplied; API-level verification still requires an isolated staging environment.
