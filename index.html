@@ -111,14 +111,19 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <input id="videoFile" type="file" accept="video/mp4,video/webm" hidden>
 </div><div id="mediaPreview" class="media-preview"><div id="mediaPreviewContent"></div><div class="media-preview-row"><span id="mediaInfo"></span><button type="button" class="secondary" id="removeMedia">Gỡ tệp</button></div></div>
 <div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
-<div class="toast" id="toast"></div>\n<section class="notice-panel" id="noticePanel" aria-label="Trung tâm thông báo"></section>
+<div class="toast" id="toast"></div>
+<section class="notice-panel" id="noticePanel" aria-label="Trung tâm thông báo"></section>
 <script>
 const KEY='syntra_social_demo_posts_v1';
 const PROFILE_KEY='syntra_social_demo_profile_v1';
 const FOLLOW_KEY='syntra_social_demo_follows_v1';
 const CHAT_KEY='syntra_social_demo_chats_v1';
 const NOTICE_KEY='syntra_social_demo_notifications_v1';
-let notices=JSON.parse(localStorage.getItem(NOTICE_KEY)||'null')||[\n {id:'welcome',kind:'system',title:'Chào mừng đến SYNTRA Social',body:'Đây là thông báo mẫu để bạn xem thử giao diện.',time:'Vừa xong',read:false,demo:true},\n {id:'sample-like',kind:'like',title:'Lượt thích mới (mô phỏng)',body:'Một tài khoản mẫu đã thích bài viết demo của bạn.',time:'Hôm nay',read:false,demo:true},\n {id:'sample-follow',kind:'follow',title:'Người theo dõi mới (mô phỏng)',body:'Một tài khoản mẫu đã theo dõi hồ sơ của bạn.',time:'Hôm nay',read:true,demo:true}\n];
+let notices=JSON.parse(localStorage.getItem(NOTICE_KEY)||'null')||[
+ {id:'welcome',kind:'system',title:'Chào mừng đến SYNTRA Social',body:'Đây là thông báo mẫu để bạn xem thử giao diện.',time:'Vừa xong',read:false,demo:true},
+ {id:'sample-like',kind:'like',title:'Lượt thích mới (mô phỏng)',body:'Một tài khoản mẫu đã thích bài viết demo của bạn.',time:'Hôm nay',read:false,demo:true},
+ {id:'sample-follow',kind:'follow',title:'Người theo dõi mới (mô phỏng)',body:'Một tài khoản mẫu đã theo dõi hồ sơ của bạn.',time:'Hôm nay',read:true,demo:true}
+];
 let localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
 let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
 let viewedProfile=localProfile.name;
@@ -210,7 +215,8 @@ document.getElementById('chooseImage').onclick=()=>document.getElementById('imag
 function handleMediaPick(file,kind){if(!file)return;const allowed=kind==='image'?['image/jpeg','image/png','image/webp','image/gif']:['video/mp4','video/webm'];const max=kind==='image'?4*1024*1024:12*1024*1024;if(!allowed.includes(file.type)){toast(kind==='image'?'Chỉ nhận JPG, PNG, WEBP hoặc GIF.':'Chỉ nhận MP4 hoặc WEBM.');return}if(file.size>max){toast(kind==='image'?'Ảnh tối đa 4 MB.':'Video tối đa 12 MB.');return}clearSelectedMedia();selectedMedia={file,kind,previewUrl:URL.createObjectURL(file)};const host=document.getElementById('mediaPreviewContent');if(kind==='image'){const img=document.createElement('img');img.src=selectedMedia.previewUrl;img.alt='Xem trước ảnh';host.appendChild(img)}else{const video=document.createElement('video');video.src=selectedMedia.previewUrl;video.controls=true;video.playsInline=true;video.preload='metadata';host.appendChild(video)}document.getElementById('mediaInfo').textContent=file.name+' · '+(file.size/1024/1024).toFixed(2)+' MB';document.getElementById('mediaPreview').classList.add('show');const type=document.getElementById('postType');type.value=kind==='image'?'photos':'video'}
 document.getElementById('imageFile').onchange=e=>handleMediaPick(e.target.files[0],'image');document.getElementById('videoFile').onchange=e=>handleMediaPick(e.target.files[0],'video');document.getElementById('removeMedia').onclick=clearSelectedMedia;
 document.getElementById('communityBtn').onclick=()=>filter('communities');
-document.getElementById('notify').onclick=()=>renderNotices();\ndocument.addEventListener('click',e=>{const panel=document.getElementById('noticePanel');if(panel.classList.contains('show')&&!panel.contains(e.target)&&!e.target.closest('#notify'))panel.classList.remove('show')});
+document.getElementById('notify').onclick=()=>renderNotices();
+document.addEventListener('click',e=>{const panel=document.getElementById('noticePanel');if(panel.classList.contains('show')&&!panel.contains(e.target)&&!e.target.closest('#notify'))panel.classList.remove('show')});
 document.querySelectorAll('[data-filter="profile"]').forEach(b=>b.addEventListener('click',()=>filter('profile')));
 function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 render();
