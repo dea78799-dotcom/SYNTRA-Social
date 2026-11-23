@@ -322,7 +322,7 @@ function renderProfile(name){
   const readImage=(input,old)=>new Promise(resolve=>{const file=input.files[0];if(!file){resolve(old||'');return}if(file.size>700*1024){toast('Ảnh vượt 700 KB; hãy chọn ảnh nhỏ hơn.');resolve(old||'');return}const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>resolve(old||'');reader.readAsDataURL(file)});
   profilePage.querySelector('#saveProfile').onclick=async()=>{const newName=profilePage.querySelector('#editName').value.trim();if(!newName){toast('Tên không được để trống.');return}localProfile.name=newName;localProfile.bio=profilePage.querySelector('#editBio').value.trim();localProfile.avatar=await readImage(profilePage.querySelector('#avatarFile'),localProfile.avatar);localProfile.cover=await readImage(profilePage.querySelector('#coverFile'),localProfile.cover);localStorage.setItem(PROFILE_KEY,JSON.stringify(localProfile));toast('Đã lưu hồ sơ cục bộ.');renderProfile(localProfile.name)};
  }else{
-  profilePage.querySelector('[data-follow]').onclick=()=>{const n=name;const wasFollowing=follows.includes(n);follows=wasFollowing?follows.filter(v=>v!==n):follows.concat(n);if(!wasFollowing)addNotice('follow','Bạn đã theo dõi hồ sơ', 'Bạn hiện đang theo dõi '+n+'.');localStorage.setItem(FOLLOW_KEY,JSON.stringify(follows));renderProfile(n)};
+  profilePage.querySelector('[data-follow]').onclick=()=>{if(!appSettings.allowDemoFollow){toast('Đã tắt theo dõi demo trong Cài đặt.');return}const n=name;const wasFollowing=follows.includes(n);follows=wasFollowing?follows.filter(v=>v!==n):follows.concat(n);if(!wasFollowing)addNotice('follow','Bạn đã theo dõi hồ sơ', 'Bạn hiện đang theo dõi '+n+'.');localStorage.setItem(FOLLOW_KEY,JSON.stringify(follows));renderProfile(n)};
  }
 }
 
@@ -354,7 +354,7 @@ function renderSettings(){
  settingsPage.querySelector('#followToggle').onchange=e=>{appSettings.allowDemoFollow=e.target.checked;saveAppSettings();toast('Đã lưu cài đặt demo.')};
  settingsPage.querySelector('#compactToggle').onchange=e=>{appSettings.compactMode=e.target.checked;saveAppSettings();document.body.classList.toggle('syntra-compact',e.target.checked);toast('Đã lưu cài đặt demo.')};
  settingsPage.querySelector('#exportData').onclick=()=>{
-  const payload={exportedAt:new Date().toISOString(),notice:'Demo data only; media blobs are not included.',profile:localProfile,posts,chats,notifications,follows,settings:appSettings};
+  const payload={exportedAt:new Date().toISOString(),notice:'Demo data only; media blobs are not included.',profile:localProfile,posts,chats,notices,follows,settings:appSettings};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='syntra-social-demo-export.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Đã tạo tệp xuất dữ liệu demo.');
  };
