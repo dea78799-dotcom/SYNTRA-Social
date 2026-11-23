@@ -349,3 +349,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added `scripts/test_security_validator.py`, a mutation self-test that runs the static validator in isolated temporary copies and checks that four unsafe regressions are rejected (broad UPDATE grant, missing timestamp trigger assignment, wrong recipient predicate, missing F03 regression case).
 - GitHub Actions runs both the baseline static validator and mutation self-tests.
 - These checks are local/static CI checks only. They do not connect to Supabase, execute migrations, test JWT/API behavior, or prove runtime RLS enforcement. The workflow run has not yet been verified.
+
+
+## Security static audit 1.9F
+
+- Deepened `scripts/validate_security_1_9c.py` to inspect transaction order, grants and protected columns, trigger function scope/search path, database timestamp transition, trigger event, policy role and both `USING`/`WITH CHECK` predicates, and unexpected extra policies.
+- Expanded mutation self-tests to seven unsafe changes: broad UPDATE, protected-column grant, missing timestamp assignment, wrong identity predicate, missing WITH CHECK, extra permissive policy, and SECURITY DEFINER escalation. The baseline must still pass.
+- Static checks remain a source-contract audit, not a PostgreSQL parser or runtime security test. No migration has been applied to production or a staging database.
