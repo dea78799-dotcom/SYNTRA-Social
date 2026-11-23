@@ -288,3 +288,20 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã kiểm tra sự hiện diện của các luồng thích, bình luận, trả lời, báo cáo và danh sách thành viên.
 - Đã xác minh cấu trúc lưu trữ riêng cho bình luận/trả lời và bản ghi báo cáo.
 - Chưa thực hiện kiểm thử tương tác trên trình duyệt thực tế hoặc Android.
+
+
+## Prototype 1.7 — Community Notifications & Moderation
+
+- Bổ sung thông báo cục bộ khi có lượt thích, bình luận hoặc câu trả lời mới trên bài viết/bình luận thuộc về một hồ sơ khác. Không tự tạo thông báo tương tác giả cho chính người đang thao tác.
+- Thêm Trung tâm quản trị cho người tạo cộng đồng cục bộ: xem báo cáo thuộc nhóm của mình, đánh dấu đã xem hoặc đã xử lý.
+- Chống gửi lặp báo cáo đang chờ trên cùng một bài viết trong cùng cộng đồng trên thiết bị hiện tại.
+- Ghi nhật ký hoạt động quản trị khi tạo/chỉnh sửa cộng đồng và khi cập nhật trạng thái báo cáo.
+- Giữ lại bản ghi báo cáo sau khi xử lý; không xóa lịch sử.
+
+**Giới hạn:** tất cả thông báo, báo cáo và nhật ký vẫn nằm trong localStorage của trình duyệt hiện tại. Quyền quản trị chỉ là kiểm tra giao diện cục bộ, không phải phân quyền bảo mật. Không có người kiểm duyệt máy chủ, push notification, realtime, đồng bộ nhiều tài khoản hoặc bảo đảm chống sửa dữ liệu từ DevTools. Các tương tác do cùng một hồ sơ cục bộ tạo ra không phát sinh thông báo cho chính hồ sơ đó.
+
+### Kiểm tra phiên bản 1.7
+- JavaScript inline đã vượt qua kiểm tra cú pháp.
+- Đã kiểm tra các luồng: báo cáo có mã định danh, chống báo cáo lặp, quyền truy cập khu vực quản trị theo chủ nhóm, chuyển trạng thái báo cáo, nhật ký quản trị và thông báo nhóm.
+- Đã kiểm tra CSS responsive cho màn hình hẹp.
+- Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop hoặc kiểm thử backend; đây vẫn là prototype local-only.
