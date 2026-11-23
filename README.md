@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.6** — mobile-first local prototype with discovery, creator dashboard, community groups, and local social interactions including likes, threaded replies, and content reports.
+> Status: **Prototype 1.8** — mobile-first local prototype with discovery, creator dashboard, community groups, local social interactions, and safety controls including block, community rules, and content warnings.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -51,6 +51,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 ## Backend preparation
 
 - The backend architecture is documented in [docs/BACKEND-ARCHITECTURE.md](docs/BACKEND-ARCHITECTURE.md).
+- The read-only Supabase schema/RLS review is recorded in [docs/BACKEND-AUDIT-1.9.md](docs/BACKEND-AUDIT-1.9.md).
 - Supabase project `SYNTRA-Social` is active in Singapore (`ap-southeast-1`). The initial nine-table PostgreSQL schema and RLS baseline are deployed. Email provider configuration, frontend authentication, Storage policies and end-to-end tests are still pending.
 - Keep the public prototype local-only until authentication, RLS, private media policies, block/report controls and age-appropriate safeguards pass verification.
 
