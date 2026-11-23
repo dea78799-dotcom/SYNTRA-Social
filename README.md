@@ -39,7 +39,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 
 ## Roadmap
 1. Responsive front-end prototype — in progress; local demo features are available.
-2. Backend, real authentication and database — not implemented.
+2. Backend foundation — initial Supabase database and RLS deployed; real authentication/client integration pending.
 3. Profiles and following — demo/local version implemented; server-side social graph pending.
 4. Posts, comments, reactions and notifications — local demo implemented; real moderation/report/block tools pending.
 5. Local image/video attachments and multi-image albums — prototype implemented; cloud media storage pending.
@@ -51,8 +51,14 @@ Demo posts created in this version are saved in browser local storage on the cur
 ## Backend preparation
 
 - The backend architecture is documented in [docs/BACKEND-ARCHITECTURE.md](docs/BACKEND-ARCHITECTURE.md).
-- This is a design document only. No live Supabase project is currently connected to the workspace; no database, authentication or storage service has been provisioned.
+- Supabase project `SYNTRA-Social` is active in Singapore (`ap-southeast-1`). The initial nine-table PostgreSQL schema and RLS baseline are deployed. Email provider configuration, frontend authentication, Storage policies and end-to-end tests are still pending.
 - Keep the public prototype local-only until authentication, RLS, private media policies, block/report controls and age-appropriate safeguards pass verification.
+
+## Authentication setup
+
+- Follow [docs/AUTH-SETUP.md](docs/AUTH-SETUP.md) to configure Email sign-in, confirmation and exact redirect URLs.
+- The profile creation trigger is deployed on `auth.users`; it creates a `public.profiles` row for new accounts.
+- Do not enable public registration or connect the public prototype to real user data until the Auth test matrix, RLS policies, media policies and moderation safeguards pass.
 
 ## Safety and privacy
 Before public launch, SYNTRA Social must have privacy settings, moderation/report/block controls, secure authentication, age-appropriate safeguards, and clear community rules.
