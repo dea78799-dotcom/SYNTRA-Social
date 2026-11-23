@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.5** — mobile-first local prototype with post detail, discovery, creator dashboard, and community/group creation, membership, and group posts. Content remains local to the current browser.
+> Status: **Prototype 1.6** — mobile-first local prototype with discovery, creator dashboard, community groups, and local social interactions including likes, threaded replies, and content reports.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -270,3 +270,21 @@ GitHub Pages can host the static prototype. A real social network will require a
 - JavaScript inline đã vượt qua kiểm tra cú pháp sau cập nhật.
 - Đã xác minh mã tạo nhóm, tham gia/rời nhóm, đăng bài trong nhóm và chỉnh sửa nhóm.
 - Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
+
+
+## Prototype 1.6 — Community Interaction
+
+- Thích/bỏ thích bài viết trong cộng đồng; bộ đếm được cập nhật và lưu cục bộ.
+- Bình luận trực tiếp dưới bài viết trong nhóm.
+- Trả lời bình luận theo luồng một cấp, hiển thị lồng bên dưới bình luận gốc.
+- Hiển thị thành viên cục bộ đã tham gia và người tạo nhóm; không tạo số liệu thành viên giả.
+- Báo cáo bài viết: lưu bản ghi báo cáo trên thiết bị với trạng thái chờ xem xét cục bộ.
+- Bài viết nhóm mới khởi tạo bộ đếm thích và danh sách bình luận riêng.
+
+**Giới hạn quan trọng:** chưa có máy chủ tiếp nhận báo cáo, quy trình kiểm duyệt thật, đồng bộ nhiều người dùng, tài khoản xác thực hoặc chống spam. Báo cáo chỉ được lưu trên trình duyệt hiện tại; không có nhân viên kiểm duyệt nào nhận được. Trả lời bình luận hiện hỗ trợ một cấp lồng nhau.
+
+### Kiểm tra phiên bản 1.6
+- JavaScript inline đã vượt qua kiểm tra cú pháp.
+- Đã kiểm tra sự hiện diện của các luồng thích, bình luận, trả lời, báo cáo và danh sách thành viên.
+- Đã xác minh cấu trúc lưu trữ riêng cho bình luận/trả lời và bản ghi báo cáo.
+- Chưa thực hiện kiểm thử tương tác trên trình duyệt thực tế hoặc Android.
