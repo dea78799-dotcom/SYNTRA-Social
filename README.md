@@ -54,3 +54,14 @@ Before public launch, SYNTRA Social must have privacy settings, moderation/repor
 GitHub Pages can host the static prototype. A real social network will require a backend and media storage.
 
 © SYNTRA — in development.
+
+
+## Prototype 0.2 (latest)
+
+- Chọn loại bài viết: bài thường, ảnh/video demo, cộng đồng.
+- Bình luận demo được lưu trên trình duyệt thiết bị.
+- Đổi tên hiển thị hồ sơ cục bộ; xem bài của mình.
+- Xóa bài demo của chính mình bằng menu bài viết.
+- Sửa điều kiện lọc để tab Đã lưu và loại nội dung hoạt động đúng.
+
+**Giới hạn:** dữ liệu vẫn chỉ nằm trên thiết bị/browser hiện tại; tab Theo dõi chưa có hệ thống follow nên chưa hiển thị feed riêng; chưa có đăng nhập, máy chủ, tải media thực, hay kiểm duyệt/report thật. Không đăng thông tin cá nhân nhạy cảm trong prototype.
