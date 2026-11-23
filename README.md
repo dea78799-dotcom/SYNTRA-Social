@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.0** — redesigned mobile-first interface with local Explore/search and multi-photo albums. Core content remains local to the current browser.
+> Status: **Prototype 1.1** — mobile-first local prototype with a dedicated post detail view and inline comments. Core content remains local to the current browser. Core content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -172,3 +172,19 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Trang thông tin phiên bản và đường dẫn GitHub.
 
 **Giới hạn quyền riêng tư:** tùy chọn hiển thị hồ sơ chỉ là trạng thái mô phỏng; chưa có tài khoản online, quyền truy cập máy chủ, xác minh hay đồng bộ. Dữ liệu trong browser có thể bị người dùng cùng thiết bị truy cập. Không dùng dữ liệu/mật khẩu nhạy cảm.
+
+
+## Prototype 1.1 — Chi tiết bài viết và bình luận
+
+- Mở trang chi tiết riêng khi nhấn vào khu vực nội dung bài viết hoặc số lượng bình luận trên bảng tin.
+- Hiển thị đầy đủ nội dung, ảnh/video đính kèm, trạng thái thích/lưu và danh sách bình luận.
+- Thêm bình luận ngay trong trang chi tiết; dữ liệu vẫn được lưu cục bộ trên thiết bị.
+- Có nút quay lại bảng tin; tiếp tục sử dụng cơ chế lưu dữ liệu demo hiện tại.
+
+**Giới hạn:** đây vẫn là tính năng frontend/local demo. Bình luận chưa đồng bộ qua máy chủ, chưa có tài khoản thật, phân quyền, kiểm duyệt hoặc thông báo thời gian thực.
+
+### Kiểm tra phiên bản 1.1
+- Đã đọc lại index.html từ GitHub sau khi cập nhật.
+- JavaScript inline vượt qua kiểm tra cú pháp bằng bộ phân tích JavaScript.
+- Đã xác minh các thành phần trang chi tiết, biểu mẫu bình luận, điểm mở trang chi tiết và bộ xử lý thao tác.
+- Chưa thực hiện kiểm thử trình duyệt thực tế trên Android/desktop; cần kiểm tra thao tác và bố cục trên thiết bị trước khi phát hành.
