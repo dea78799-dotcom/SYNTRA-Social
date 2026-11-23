@@ -334,3 +334,11 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Current follow acceptance remains blocked: authenticated has no UPDATE permission or UPDATE policy on follows. The candidate allows only the recipient to transition pending → accepted. The client updates status only; a database trigger sets accepted_at.
 - Notification read-state is already narrowly scoped: authenticated can update only read_at, with recipient-only UPDATE and SELECT policies. No notification permission change is proposed.
 - Only one Supabase project is connected; no separate staging project was found. The candidate SQL has not been applied to the active project. API-level tests and Security Advisor verification remain pending.
+
+
+## Free security checks — 1.9D
+
+- Added a dependency-free Python static validator at [scripts/validate_security_1_9c.py](scripts/validate_security_1_9c.py). It checks the reviewed 1.9C SQL contract, least-privilege grants, recipient-only policy predicates, database-controlled acceptance timestamp, and all 14 documented API test cases.
+- Added [GitHub Actions security static checks](.github/workflows/security-static-check.yml), triggered on relevant pushes and pull requests. The workflow uses the default read-only repository permission and requires no Supabase credentials or paid staging database.
+- The static validator was syntax-checked and its rule set was exercised locally against representative fixtures. The current committed artifacts also passed 22 content/contract checks in this review.
+- These checks do not execute SQL, connect to Supabase, emulate Auth/JWT, or prove RLS behavior. The 1.9C migration remains unapplied; API-level verification still requires an isolated staging environment.
