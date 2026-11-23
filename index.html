@@ -44,7 +44,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <button data-filter="saved"><span class="icon">▣</span>Đã lưu</button>
 </nav>
 <button class="primary newpost" id="openComposer">＋ Tạo bài viết</button>
-<div class="footer">SYNTRA Social · Prototype 0.1<br>Đang trong quá trình thử nghiệm</div>
+<div class="footer">SYNTRA Social · Prototype 0.2<br>Đang trong quá trình thử nghiệm</div>
 </aside>
 <main>
 <div class="topbar">
@@ -79,20 +79,20 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="trend"><small>Chủ đề · Sáng tạo</small><b>#ÝTưởng</b><small>Chia sẻ ý tưởng</small></div>
 <div class="trend"><small>Chủ đề · Lập trình</small><b>#Coding</b><small>Học hỏi mỗi ngày</small></div>
 </div>
-<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.1</div></div>
+<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.2</div></div>
 </aside>
 </div>
 <nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all">⌂</button><button data-filter="video">▷</button><button id="bottomCreate">＋</button><button data-filter="communities">♧</button><button data-filter="profile">◉</button></nav>
-<div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><div class="meta" style="margin-top:8px">Prototype: bài viết lưu trên trình duyệt hiện tại, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
+<div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Prototype: lưu trên thiết bị này, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const KEY='syntra_social_demo_posts_v1';
+const KEY='syntra_social_demo_posts_v1';\nconst PROFILE_KEY='syntra_social_demo_profile_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn"}');
 const seed=[
 {id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
 {id:'seed3',name:'Creative Studio',tag:'@creative · hôm qua',text:'Không gian dành cho sáng tạo — chia sẻ dự án, tác phẩm, những điều bạn đang học và ý tưởng mới.',type:'photos',likes:4,liked:false,saved:false}
 ];
-let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
+let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;\nposts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';
 const feed=document.getElementById('feed');
 function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
@@ -100,11 +100,11 @@ function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 function render(){
  const q=document.getElementById('search').value.trim().toLowerCase();
  let list=posts.filter(p=>{
-  const matchFilter=active==='all'||active==='following'||active==='profile'||active==='saved'&&p.saved||active==='video'&&p.type==='video'||active==='photos'&&p.type==='photos'||active==='communities'&&p.type==='communities';
+  const matchFilter=active==='all'||(active==='saved'&&p.saved)||(active==='profile'&&p.name===localProfile.name)||(active==='following'&&false)||(active==='video'&&p.type==='video')||(active==='photos'&&p.type==='photos')||(active==='communities'&&p.type==='communities');
   const matchSearch=!q||(p.text+' '+p.name).toLowerCase().includes(q);
   return matchFilter&&matchSearch;
  });
- feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><div class="avatar">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><div class="user">'+esc(p.name)+'</div><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div></article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
+ feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><div class="avatar">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><div class="user">'+esc(p.name)+'</div><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
 }
 function filter(f){active=f;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
@@ -112,19 +112,19 @@ document.getElementById('search').addEventListener('input',render);
 const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function close(){modal.classList.remove('show')}
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
 document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
-document.getElementById('publish').onclick=()=>{let t=document.getElementById('postText').value.trim();if(!t){toast('Hãy nhập nội dung trước khi đăng.');return}posts.unshift({id:'p'+Date.now(),name:'Bạn',tag:'@local · vừa xong',text:t,type:'all',likes:0,liked:false,saved:false});save();document.getElementById('postText').value='';close();filter('all');toast('Đã tạo bài viết trên thiết bị!')};
+document.getElementById('publish').onclick=()=>{let t=document.getElementById('postText').value.trim();if(!t){toast('Hãy nhập nội dung trước khi đăng.');return}posts.unshift({id:'p'+Date.now(),name:localProfile.name,tag:'@local · vừa xong',text:t,type:document.getElementById('postType').value,likes:0,liked:false,saved:false,comments:[]});save();document.getElementById('postText').value='';close();filter('all');toast('Đã tạo bài viết trên thiết bị!')};
 feed.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.like){let p=posts.find(x=>x.id===b.dataset.like);p.liked=!p.liked;p.likes+=p.liked?1:-1;save();render()}
  if(b.dataset.save){let p=posts.find(x=>x.id===b.dataset.save);p.saved=!p.saved;save();render();toast(p.saved?'Đã lưu bài viết':'Đã bỏ lưu')}
- if(b.dataset.comment)toast('Bình luận sẽ được triển khai ở phiên bản backend.');
+ if(b.dataset.comment){let p=posts.find(x=>x.id===b.dataset.comment);let c=prompt('Nhập bình luận (demo lưu trên thiết bị):');if(c&&c.trim()){p.comments.push({name:localProfile.name,text:c.trim()});save();render();toast('Đã thêm bình luận trên thiết bị.')}}
  if(b.dataset.share){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}else toast('Chia sẻ sẽ có trong bản sau.')}
- if(b.dataset.report)toast('Chức năng báo cáo sẽ được bổ sung cùng hệ thống kiểm duyệt.');
+ if(b.dataset.report){let p=posts.find(x=>x.id===b.dataset.report);if(p&&p.name===localProfile.name){if(confirm('Xóa bài viết này khỏi thiết bị?')){posts=posts.filter(x=>x.id!==p.id);save();render();toast('Đã xóa bài viết demo.')}}else toast('Báo cáo nội dung sẽ được triển khai khi có hệ thống kiểm duyệt.');}
 });
 document.getElementById('photoBtn').onclick=()=>{document.getElementById('postText').value='[Ảnh] ';open();toast('Tải ảnh sẽ được tích hợp ở phiên bản tiếp theo.')};
 document.getElementById('videoBtn').onclick=()=>{document.getElementById('postText').value='[Video] ';open();toast('Tải video sẽ được tích hợp ở phiên bản tiếp theo.')};
 document.getElementById('communityBtn').onclick=()=>filter('communities');
-document.getElementById('notify').onclick=()=>toast('Thông báo đang được phát triển.');
+document.getElementById('notify').onclick=()=>toast('Thông báo đang được phát triển.');\n// Profile tab: local-only profile settings and own posts.\ndocument.querySelectorAll('[data-filter="profile"]').forEach(b=>b.addEventListener('click',()=>{let n=prompt('Tên hiển thị của bạn:',localProfile.name);if(n&&n.trim()){localProfile.name=n.trim();localStorage.setItem(PROFILE_KEY,JSON.stringify(localProfile));toast('Đã cập nhật tên hiển thị trên thiết bị.');filter('profile')}}));
 function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 render();
 </script>
