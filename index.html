@@ -93,7 +93,8 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="toast" id="toast"></div>
 <script>
 const KEY='syntra_social_demo_posts_v1';
-const PROFILE_KEY='syntra_social_demo_profile_v1';\nconst FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
+const PROFILE_KEY='syntra_social_demo_profile_v1';
+const FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
 let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
 let viewedProfile=localProfile.name;
 const seed=[
