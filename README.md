@@ -48,6 +48,12 @@ Demo posts created in this version are saved in browser local storage on the cur
 8. Security, privacy controls, accessibility and deployment testing — required before public launch.
 9. Explore/discovery and search — local prototype implemented; real recommendations and server-side indexing pending.
 
+## Backend preparation
+
+- The backend architecture is documented in [docs/BACKEND-ARCHITECTURE.md](docs/BACKEND-ARCHITECTURE.md).
+- This is a design document only. No live Supabase project is currently connected to the workspace; no database, authentication or storage service has been provisioned.
+- Keep the public prototype local-only until authentication, RLS, private media policies, block/report controls and age-appropriate safeguards pass verification.
+
 ## Safety and privacy
 Before public launch, SYNTRA Social must have privacy settings, moderation/report/block controls, secure authentication, age-appropriate safeguards, and clear community rules.
 
