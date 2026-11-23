@@ -328,7 +328,7 @@ function renderNotices(){const panel=document.getElementById('noticePanel');cons
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function formatPostText(value){
  const safe=esc(String(value||''));
- return safe.replace(/(^|[\\s([{])#([\\p{L}\\p{N}_]{1,40})/gu,(match,prefix,tag)=>prefix+'<button type="button" class="hashtag-link" data-hashtag="'+esc(tag)+'">#'+tag+'</button>');
+ return safe.replace(/(^|[\s([{])#([\p{L}\p{N}_]{1,40})/gu,(match,prefix,tag)=>prefix+'<button type="button" class="hashtag-link" data-hashtag="'+esc(tag)+'">#'+tag+'</button>');
 }
 
 function renderProfile(name){
