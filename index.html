@@ -378,10 +378,10 @@ function renderSettings(){
  settingsPage.querySelector('#clearDemo').onclick=async()=>{
   if(!confirm('Xóa toàn bộ dữ liệu demo trên trình duyệt này? Hành động không thể hoàn tác.'))return;
   const ids=posts.flatMap(p=>getPostMediaIds(p));
-  posts=[];chats={};notifications=[];follows=[];localProfile={name:'Bạn',bio:'',avatar:'',cover:''};appSettings={profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false};
-  [POST_KEY,CHAT_KEY,NOTICE_KEY,FOLLOW_KEY,PROFILE_KEY,SETTINGS_KEY].forEach(k=>localStorage.removeItem(k));
-  await Promise.all(ids.map(deleteMedia));mediaUrls.forEach(url=>URL.revokeObjectURL(url));mediaUrls.clear();
-  document.body.classList.remove('syntra-compact');render();updateAuthStatus();toast('Đã xóa dữ liệu demo cục bộ.');
+  posts=[];chats={};notices=[];follows=[];localProfile={name:'Bạn',bio:'',avatar:'',cover:''};appSettings={profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false};
+  [KEY,CHAT_KEY,NOTICE_KEY,FOLLOW_KEY,PROFILE_KEY,SETTINGS_KEY].forEach(k=>localStorage.removeItem(k));
+  await Promise.all(ids.map(deleteMedia));mediaUrls.forEach(url=>URL.revokeObjectURL(url));mediaUrls.clear();mediaItems.clear();
+  document.body.classList.remove('syntra-compact');render();toast('Đã xóa dữ liệu demo cục bộ.');
  };
 }
 
