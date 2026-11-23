@@ -118,7 +118,7 @@ feed.addEventListener('click',e=>{
  if(b.dataset.like){let p=posts.find(x=>x.id===b.dataset.like);p.liked=!p.liked;p.likes+=p.liked?1:-1;save();render()}
  if(b.dataset.save){let p=posts.find(x=>x.id===b.dataset.save);p.saved=!p.saved;save();render();toast(p.saved?'Đã lưu bài viết':'Đã bỏ lưu')}
  if(b.dataset.comment)toast('Bình luận sẽ được triển khai ở phiên bản backend.');
- if(b.dataset.share){navigator.clipboard?.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}
+ if(b.dataset.share){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}else toast('Chia sẻ sẽ có trong bản sau.')}
  if(b.dataset.report)toast('Chức năng báo cáo sẽ được bổ sung cùng hệ thống kiểm duyệt.');
 });
 document.getElementById('photoBtn').onclick=()=>{document.getElementById('postText').value='[Ảnh] ';open();toast('Tải ảnh sẽ được tích hợp ở phiên bản tiếp theo.')};
