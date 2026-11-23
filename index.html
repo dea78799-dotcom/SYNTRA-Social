@@ -76,7 +76,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 .viewer-nav:disabled{opacity:.35;cursor:default}
 @media(max-width:700px){.media-viewer{padding:12px}.viewer-stage{height:68dvh}.viewer-nav{top:auto;bottom:76px;transform:none;padding:8px 13px}#viewerPrev{left:calc(50% - 88px)}#viewerNext{right:calc(50% - 88px)}.viewer-tools{margin-bottom:env(safe-area-inset-bottom)}}.media-viewer{display:none;position:fixed;inset:0;z-index:80;background:#050507f5;padding:14px;align-items:center;justify-content:center;flex-direction:column}.media-viewer.show{display:flex}.media-viewer img{max-width:100%;max-height:calc(100dvh - 130px);object-fit:contain}.viewer-tools{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:12px}.viewer-tools button,.viewer-tools a{background:#24242e;border:1px solid #41414e;border-radius:12px;padding:10px 14px;color:#f3f2f7}.viewer-close{position:absolute;top:12px;right:12px;font-size:24px}
 
-/* Prototype 0.9 — refined visual system */
+/* Prototype 1.0 — refined visual system */
 :root{--bg:#0c0d12;--surface:#14151c;--surface2:#1b1c25;--border:#292a35;--text:#f4f3f8;--muted:#9293a2;--accent:#8c7bff;--accent2:#b6aaff;--radius:16px}
 body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em}
 .layout{max-width:1380px;grid-template-columns:218px minmax(0,690px) 260px;gap:22px;padding:22px}
@@ -156,6 +156,24 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 }
 @media(min-width:701px){.bottomnav{display:none}}
 
+
+/* Prototype 1.0 — settings & privacy */
+.settings-page{display:none;background:#14151c;border:1px solid #292a35;border-radius:16px;padding:16px;margin-bottom:16px}
+.settings-page.show{display:block}.settings-head{display:flex;align-items:center;gap:10px;margin-bottom:15px}
+.settings-head h2{font-size:20px;margin:0}.settings-head p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.settings-section{margin:15px 0;padding:14px;border:1px solid #2a2b36;border-radius:13px;background:#171821}
+.settings-section h3{font-size:14px;margin:0 0 10px}.settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #ffffff0a}
+.settings-row:first-of-type{border-top:0}.settings-row b{display:block;font-size:13px}.settings-row small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:3px}
+.settings-row select,.settings-row input[type=text]{background:#101116;border:1px solid #30313c;border-radius:9px;color:#f4f3f8;padding:8px;max-width:150px}
+.settings-row input[type=checkbox]{width:19px;height:19px;accent-color:#8c7bff;flex:none}
+.settings-button{border:1px solid #353641;background:#22232c;border-radius:10px;padding:9px 11px;font-size:12px}
+.settings-button.danger{border-color:#693344;background:#2b1820;color:#ffb2c5}
+.settings-note{font-size:11px;color:#9696a6;line-height:1.65;margin:8px 0 0}
+.settings-danger{border-color:#633343}.settings-danger h3{color:#ffb2c5}
+body.syntra-compact .post,body.syntra-compact .composer{padding:9px;margin-bottom:8px}
+body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
+@media(max-width:700px){.settings-page{padding:12px}.settings-section{padding:12px}.settings-row{align-items:flex-start}.settings-row select{max-width:130px}}
+
 </style>
 </head>
 <body>
@@ -171,9 +189,10 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 <button data-filter="following"><span class="icon">♡</span>Đang theo dõi</button>
 <button data-filter="saved"><span class="icon">▣</span>Đã lưu</button>
 <button data-filter="chat"><span class="icon">✉</span>Tin nhắn</button>
+<button data-filter="settings"><span class="icon">⚙</span>Cài đặt</button>
 </nav>
 <button class="primary newpost" id="openComposer">＋ Tạo bài viết</button>
-<div class="footer">SYNTRA Social · Prototype 0.9<br>Đang trong quá trình thử nghiệm</div>
+<div class="footer">SYNTRA Social · Prototype 1.0<br>Đang trong quá trình thử nghiệm</div>
 </aside>
 <main>
 <div class="topbar">
@@ -196,7 +215,7 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 <div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
 <div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
 </section>
-<div id="feed"></div><section id="explorePage" class="explore-page" aria-label="Khám phá SYNTRA" style="display:none"></section><section id="profilePage" class="profile-page"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
+<div id="feed"></div><section id="explorePage" class="explore-page" aria-label="Khám phá SYNTRA" style="display:none"></section><section id="profilePage" class="profile-page"></section><section id="settingsPage" class="settings-page" aria-label="Cài đặt"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
 </main>
 <aside class="rightbar">
 <div class="panel">
@@ -208,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 <div class="trend"><small>Chủ đề · Sáng tạo</small><b>#ÝTưởng</b><small>Chia sẻ ý tưởng</small></div>
 <div class="trend"><small>Chủ đề · Lập trình</small><b>#Coding</b><small>Học hỏi mỗi ngày</small></div>
 </div>
-<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.9</div></div>
+<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v1.0</div></div>
 </aside>
 </div>
 <nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all" aria-label="Trang chủ">⌂</button><button data-filter="explore" aria-label="Khám phá">⌕</button><button id="bottomCreate" aria-label="Tạo bài viết">＋</button><button data-filter="chat" aria-label="Tin nhắn">✉</button><button data-filter="profile" aria-label="Hồ sơ">◉</button></nav>
@@ -279,6 +298,7 @@ mediaViewer.addEventListener('touchend',e=>{if(viewerTouchStartX===null)return;c
 document.addEventListener('keydown',e=>{if(!mediaViewer.classList.contains('show'))return;if(e.key==='Escape')closeImageViewer();if(e.key==='ArrowLeft')stepViewer(-1);if(e.key==='ArrowRight')stepViewer(1)});
 
 const feed=document.getElementById('feed');
+const settingsPage=document.getElementById('settingsPage');
 const discoverPage=document.getElementById('explorePage');
 const profilePage=document.getElementById('profilePage');
 const chatPage=document.getElementById('chatPage');
@@ -304,6 +324,49 @@ function renderProfile(name){
  }else{
   profilePage.querySelector('[data-follow]').onclick=()=>{const n=name;const wasFollowing=follows.includes(n);follows=wasFollowing?follows.filter(v=>v!==n):follows.concat(n);if(!wasFollowing)addNotice('follow','Bạn đã theo dõi hồ sơ', 'Bạn hiện đang theo dõi '+n+'.');localStorage.setItem(FOLLOW_KEY,JSON.stringify(follows));renderProfile(n)};
  }
+}
+
+
+const SETTINGS_KEY='syntra_social_settings_demo_v1';
+let appSettings=Object.assign({profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false},JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'));
+function saveAppSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(appSettings))}
+function renderSettings(){
+ chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
+ profilePage.classList.remove('show');profilePage.innerHTML='';
+ feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='block';settingsPage.classList.add('show');
+ document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
+ settingsPage.innerHTML='<div class="settings-head"><button class="secondary" id="settingsBack">←</button><div><h2>Cài đặt</h2><p>SYNTRA Social · Demo trên thiết bị</p></div></div>'+
+ '<section class="settings-section"><h3>Quyền riêng tư</h3>'+
+ '<div class="settings-row"><div><b>Hiển thị hồ sơ</b><small>Điều khiển mô phỏng quyền xem hồ sơ</small></div><select id="visibility"><option value="public">Công khai</option><option value="followers">Người theo dõi</option><option value="private">Riêng tư</option></select></div>'+
+ '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
+ '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
+ '</section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
+ '<section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Xuất bản sao dữ liệu demo</b><small>JSON chứa hồ sơ, bài viết, tin nhắn và cài đặt (không gồm media)</small></div><button class="settings-button" id="exportData">Xuất</button></div><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Dữ liệu hiện chỉ lưu trên trình duyệt này. Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật.</p></section>'+
+ '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 1.0</small></div><span class="meta">1.0</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Frontend demo · Local storage</small></div><span class="meta">Offline demo</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
+ settingsPage.querySelector('#visibility').value=appSettings.profileVisibility;
+ settingsPage.querySelector('#activityToggle').checked=appSettings.showActivity;
+ settingsPage.querySelector('#followToggle').checked=appSettings.allowDemoFollow;
+ settingsPage.querySelector('#compactToggle').checked=appSettings.compactMode;
+ settingsPage.querySelector('#visibility').onchange=e=>{appSettings.profileVisibility=e.target.value;saveAppSettings();toast('Đã lưu cài đặt demo.')};
+ settingsPage.querySelector('#activityToggle').onchange=e=>{appSettings.showActivity=e.target.checked;saveAppSettings();toast('Đã lưu cài đặt demo.')};
+ settingsPage.querySelector('#followToggle').onchange=e=>{appSettings.allowDemoFollow=e.target.checked;saveAppSettings();toast('Đã lưu cài đặt demo.')};
+ settingsPage.querySelector('#compactToggle').onchange=e=>{appSettings.compactMode=e.target.checked;saveAppSettings();document.body.classList.toggle('syntra-compact',e.target.checked);toast('Đã lưu cài đặt demo.')};
+ settingsPage.querySelector('#exportData').onclick=()=>{
+  const payload={exportedAt:new Date().toISOString(),notice:'Demo data only; media blobs are not included.',profile:localProfile,posts,chats,notifications,follows,settings:appSettings};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='syntra-social-demo-export.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Đã tạo tệp xuất dữ liệu demo.');
+ };
+ settingsPage.querySelector('#resetSettings').onclick=()=>{if(!confirm('Khôi phục các tùy chọn cài đặt về mặc định?'))return;appSettings={profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false};saveAppSettings();document.body.classList.remove('syntra-compact');renderSettings();toast('Đã đặt lại cài đặt.')};
+ settingsPage.querySelector('#clearDemo').onclick=async()=>{
+  if(!confirm('Xóa toàn bộ dữ liệu demo trên trình duyệt này? Hành động không thể hoàn tác.'))return;
+  const ids=posts.flatMap(p=>getPostMediaIds(p));
+  posts=[];chats={};notifications=[];follows=[];localProfile={name:'Bạn',bio:'',avatar:'',cover:''};appSettings={profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false};
+  [POST_KEY,CHAT_KEY,NOTICE_KEY,FOLLOW_KEY,PROFILE_KEY,SETTINGS_KEY].forEach(k=>localStorage.removeItem(k));
+  await Promise.all(ids.map(deleteMedia));mediaUrls.forEach(url=>URL.revokeObjectURL(url));mediaUrls.clear();
+  document.body.classList.remove('syntra-compact');render();updateAuthStatus();toast('Đã xóa dữ liệu demo cục bộ.');
+ };
 }
 
 function normalizeSearch(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d')}
@@ -337,7 +400,9 @@ function renderExplore(){
  hydratePostMedia(discoverPage);
 }
 function render(){
- if(active==='chat'){discoverPage.style.display='none';renderChat();return}
+ if(active==='chat'){discoverPage.style.display='none';settingsPage.classList.remove('show');settingsPage.style.display='none';renderChat();return}
+ if(active==='settings'){renderSettings();return}
+ settingsPage.classList.remove('show');settingsPage.style.display='none';
  if(active==='explore'){renderExplore();return}
  discoverPage.style.display='none';
  chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
@@ -368,6 +433,7 @@ feed.addEventListener('click',handleMediaGalleryClick);
 profilePage.addEventListener('click',handleMediaGalleryClick);
 discoverPage.addEventListener('click',handleMediaGalleryClick);
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
+document.body.classList.toggle('syntra-compact',appSettings.compactMode);
 document.getElementById('search').addEventListener('input',()=>{if(document.getElementById('search').value.trim())filter('explore');else render()});
 const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');clearSelectedMedia()}
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
