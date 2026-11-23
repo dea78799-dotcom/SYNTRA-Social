@@ -65,3 +65,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Sửa điều kiện lọc để tab Đã lưu và loại nội dung hoạt động đúng.
 
 **Giới hạn:** dữ liệu vẫn chỉ nằm trên thiết bị/browser hiện tại; tab Theo dõi chưa có hệ thống follow nên chưa hiển thị feed riêng; chưa có đăng nhập, máy chủ, tải media thực, hay kiểm duyệt/report thật. Không đăng thông tin cá nhân nhạy cảm trong prototype.
+
+
+## Prototype 0.3
+
+- Hồ sơ cá nhân có tên, bio, avatar và cover (lưu local trên trình duyệt).
+- Mở trang demo người dùng bằng cách bấm tên hoặc avatar trên bài viết.
+- Theo dõi/bỏ theo dõi hồ sơ demo; tab Theo dõi lọc bài từ hồ sơ đã theo dõi.
+- Trang hồ sơ hiển thị bài viết của chủ hồ sơ.
+- Giới hạn upload ảnh hồ sơ/cover 700 KB; dữ liệu vẫn local-only.
+- Chưa có đăng nhập, đồng bộ cloud, follower thật hoặc server.
