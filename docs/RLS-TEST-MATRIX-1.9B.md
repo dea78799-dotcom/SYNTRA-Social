@@ -90,7 +90,7 @@ The table below describes the intended product contract after the required polic
 - Deletion may be initiated by either participant if product behavior explicitly allows unfollow/removal.
 - Both accounts' block relationship must prevent follow creation and acceptance.
 
-**Known blocker:** current schema has no UPDATE privilege or UPDATE RLS policy for `follows`. The acceptance flow is not implemented. The 1.9C candidate grants UPDATE only on `status` and `accepted_at`, and allows only the recipient to transition a pending row to accepted. The requester cannot accept their own request or modify participant IDs.
+**Known blocker:** current schema has no UPDATE privilege or UPDATE RLS policy for `follows`. The acceptance flow is not implemented. The 1.9C candidate grants UPDATE only on `status`; a database trigger sets `accepted_at` when the recipient transitions a pending row to accepted. The requester cannot accept their own request or modify participant IDs.
 
 ### comments and likes
 - Users can insert/delete only their own rows.
@@ -164,6 +164,6 @@ The table below describes the intended product contract after the required polic
 
 ## 1.9C implementation notes
 
-- Candidate SQL: [docs/sql/LEAST-PRIVILEGE-1.9C.sql](./sql/LEAST-PRIVILEGE-1.9C.sql).
+- Candidate SQL: [docs/sql/LEAST-PRIVILEGE-1.9C.sql](./sql/LEAST-PRIVILEGE-1.9C.sql). The database trigger sets `accepted_at`; clients cannot update that timestamp directly.
 - Regression plan: [docs/LEAST-PRIVILEGE-TESTS-1.9C.md](./LEAST-PRIVILEGE-TESTS-1.9C.md).
 - No staging project was found in the connected Supabase account. The candidate has not been applied to the live project.
