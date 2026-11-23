@@ -135,13 +135,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã kiểm tra cú pháp JavaScript bằng cách biên dịch script sau khi cập nhật.
 - Đã đọc lại index.html và README.md từ GitHub để xác nhận nội dung đã lưu.
 - Chưa thực hiện kiểm thử tương tác trực tiếp trên nhiều trình duyệt hoặc thiết bị Android. Cần kiểm tra thực tế việc chọn nhiều ảnh, tải ảnh và lưu trữ IndexedDB trước khi phát hành rộng rãi.
+- GitHub Actions sẽ kiểm tra cú pháp JavaScript inline và các điều kiện an toàn cơ bản của luồng xóa dữ liệu demo.
 
 
 ## Prototype 1.0 — Thiết kế lại giao diện và Khám phá
 
 ### Thiết kế giao diện
 - Chuyển logo trên thanh điều hướng sang wordmark chữ SYNTRA, không thêm biểu tượng thương hiệu mới.
-- Tinh chỉnh bảng màu tối: nền charcoal, bề mặt xám than, chữ trắng ấm và điểm nhấn tím #8C7BFF / lavender #B6AAFF.
+- Đồng bộ bảng màu tối theo nhận diện SYNTRA: nền charcoal, bề mặt xám than, chữ trắng ấm và điểm nhấn vàng kim #D8B56D / vàng sáng #F0D59A.
 - Chuẩn hóa khoảng cách, viền, bo góc, kích thước chữ và trạng thái điều hướng; giảm độ lớn của một số khung nội dung.
 - Làm mới thanh tìm kiếm, nút thông báo, menu bên trái và thanh điều hướng dưới cho điện thoại.
 - Giữ các màn hình hồ sơ, tin nhắn, album và trình xem ảnh tương thích với giao diện mới.
