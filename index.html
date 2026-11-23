@@ -201,7 +201,7 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 @media(max-width:520px){.group-admin-row{align-items:flex-start;flex-direction:column}.group-admin-actions{justify-content:flex-start}.group-admin-heading{align-items:center}}
 
 /* Prototype 1.8 — user protection */
-.blocked-profile,.group-rules{margin:16px 0;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}.blocked-profile p,.group-rules p{color:var(--muted);line-height:1.6}.group-rules h3{margin:0 0 8px}.group-rules p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.content-warning-label{display:inline-block;margin-right:8px;padding:4px 8px;border-radius:8px;background:#473922;color:#f1d59b;font-size:11px}.warning-content{display:block;margin-top:8px;white-space:pre-wrap}.group-warning-toggle{display:flex;align-items:center;gap:8px;margin:5px 0 12px;color:var(--muted);font-size:12px}
+.blocked-profile,.group-rules{margin:16px 0;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}.blocked-profile p,.group-rules p{color:var(--muted);line-height:1.6}.group-rules h3{margin:0 0 8px}.group-rules p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.content-warning-label{display:inline-block;margin-right:8px;padding:4px 8px;border-radius:8px;background:#473922;color:#f1d59b;font-size:11px}.warning-content{display:block;margin-top:8px;white-space:pre-wrap}.warning-content[hidden]{display:none}.group-warning-toggle{display:flex;align-items:center;gap:8px;margin:5px 0 12px;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
@@ -388,7 +388,7 @@ function formatPostText(value){
 function renderProfile(name){
  viewedProfile=name;
  const own=name===localProfile.name;
- if(!own&&isBlocked(name)){profilePage.classList.add('show');feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='none';postDetailPage.classList.remove('show');profilePage.innerHTML='<section class="blocked-profile"><h2>Hồ sơ đã bị chặn</h2><p>Bạn đã chặn hồ sơ này trên thiết bị hiện tại. Nội dung và tương tác của hồ sơ sẽ được ẩn trong bản demo.</p><button class="secondary" data-unblock-profile="'+esc(name)+'">Bỏ chặn</button><button class="secondary" id="backFeed">Về bảng tin</button></section>';profilePage.querySelector('#backFeed').onclick=()=>filter('all');return}
+ if(!own&&isBlocked(name)){profilePage.classList.add('show');feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='none';postDetailPage.classList.remove('show');document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';chatPage.classList.remove('show','thread-open');profilePage.innerHTML='<section class="blocked-profile"><h2>Hồ sơ đã bị chặn</h2><p>Bạn đã chặn hồ sơ này trên thiết bị hiện tại. Nội dung và tương tác của hồ sơ sẽ được ẩn trong bản demo.</p><button class="secondary" data-unblock-profile="'+esc(name)+'">Bỏ chặn</button><button class="secondary" id="backFeed">Về bảng tin</button></section>';profilePage.querySelector('#backFeed').onclick=()=>filter('all');return}
  const ownPosts=posts.filter(p=>p.name===name);
  const totalLikes=ownPosts.reduce((sum,p)=>sum+(Number(p.likes)||0),0);
  const totalComments=ownPosts.reduce((sum,p)=>sum+(Array.isArray(p.comments)?p.comments.length:0),0);
