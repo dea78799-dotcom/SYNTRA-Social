@@ -3,19 +3,20 @@
 **Supabase project:** SYNTRA-Social  
 **Project ref:** qmrhlbovksrspmauijrz  
 **Region:** ap-southeast-1 (Singapore)  
-**Status:** Database schema and profile-creation trigger are deployed. Auth provider configuration and end-to-end account tests remain pending.
+**Status:** Database schema and profile-creation trigger are deployed. The project owner reports that the Email provider has been enabled; this setting is not independently readable through the current connector. URL configuration, email-delivery verification, frontend integration and end-to-end account tests remain pending.
 
 This guide is for the project owner configuring the Supabase Dashboard. Do not paste passwords, access tokens, service-role keys, or recovery codes into GitHub issues, chat, or frontend code.
 
-## 1. Configure the email provider
+## 1. Email provider
 
-In Supabase Dashboard, open the SYNTRA-Social project, then Authentication → Sign In / Providers (the exact menu label may vary).
+The project owner reports that Email sign-in is enabled in Supabase Authentication → Sign In / Providers.
 
-- Enable Email sign-in.
-- Keep password-based sign-in enabled.
-- Keep email confirmation enabled for real users.
-- Do not enable anonymous sign-in for the first release.
-- Do not enable third-party providers until their redirect and account-linking behavior has been reviewed.
+Before testing real accounts, verify in the Dashboard:
+
+- Password-based sign-in is enabled.
+- Email confirmation is enabled.
+- Anonymous sign-in remains disabled for the first release.
+- Third-party providers remain disabled until redirect and account-linking behavior has been reviewed.
 
 If SMTP is not configured, Supabase's default email service may have delivery limits. Do not launch registration publicly until email delivery and rate limits are understood and tested.
 
@@ -79,6 +80,6 @@ Use dedicated test accounts; do not use the project owner's personal account as 
 
 ## 6. Current implementation boundary
 
-The database currently has nine application tables with RLS enabled. The profile trigger has been deployed and checked. This does **not** mean registration, email delivery, profile discovery, or the web client integration has been tested.
+The database currently has nine application tables with RLS enabled. The profile trigger has been deployed and checked. Email provider enablement is owner-reported, not connector-verified. This does **not** mean registration, email delivery, profile discovery, or the web client integration has been tested.
 
 Keep the public prototype local-only until the test matrix and the later post/media authorization policies pass.
