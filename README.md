@@ -324,3 +324,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - JavaScript inline đã vượt qua kiểm tra cú pháp.
 - Đã kiểm tra sự hiện diện của luồng chặn/bỏ chặn, lọc bài viết và bình luận, quản lý danh sách chặn, quy tắc nhóm, cảnh báo nội dung và xóa dữ liệu chặn.
 - Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop; chưa kết nối backend.
+
+
+## Backend security preparation — 1.9C
+
+- Added a reviewed SQL candidate for least-privilege follow acceptance: [docs/sql/LEAST-PRIVILEGE-1.9C.sql](docs/sql/LEAST-PRIVILEGE-1.9C.sql).
+- Added catalog and API regression tests: [docs/LEAST-PRIVILEGE-TESTS-1.9C.md](docs/LEAST-PRIVILEGE-TESTS-1.9C.md).
+- Updated the [RLS test matrix](docs/RLS-TEST-MATRIX-1.9B.md) with verified grants and policies.
+- Current follow acceptance remains blocked: authenticated has no UPDATE permission or UPDATE policy on follows. The candidate allows only the recipient to transition pending → accepted and only updates status/accepted_at.
+- Notification read-state is already narrowly scoped: authenticated can update only read_at, with recipient-only UPDATE and SELECT policies. No notification permission change is proposed.
+- Only one Supabase project is connected; no separate staging project was found. The candidate SQL has not been applied to the active project. API-level tests and Security Advisor verification remain pending.
