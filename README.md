@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.4** — mobile-first local prototype with post detail, clickable hashtags, discovery filters, topic pages, feed sorting, and a creator dashboard. Content and analytics remain local to the current browser.
+> Status: **Prototype 1.5** — mobile-first local prototype with post detail, discovery, creator dashboard, and community/group creation, membership, and group posts. Content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -252,3 +252,21 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Verified creator dashboard metrics, content filter controls, responsive metric layout, and profile edit flow are present.
 - Removed an unfinished control rather than leaving a button without an action.
 - Live browser interaction testing on Android and desktop remains pending.
+
+
+## Prototype 1.5 — SYNTRA Communities
+
+- Thêm trang Cộng đồng riêng trong điều hướng desktop.
+- Khởi tạo ba nhóm mẫu: Góc Công nghệ, Góc Học tập và Xưởng Sáng tạo.
+- Tạo cộng đồng mới với tên, mô tả và danh mục; kiểm tra tên tối thiểu và trùng lặp.
+- Mở trang chi tiết nhóm, xem mô tả, số thành viên và số bài viết.
+- Tham gia/rời nhóm mẫu; thành viên có thể đăng bài trong nhóm.
+- Người tạo có thể chỉnh sửa tên và mô tả cộng đồng của mình.
+- Dữ liệu nhóm và bài viết nhóm lưu riêng trong localStorage, không trộn vào bảng tin chung.
+
+**Giới hạn:** đây là mô phỏng cục bộ trên một trình duyệt/thiết bị. Thành viên chỉ đại diện cho người dùng cục bộ đã tham gia; chưa có tài khoản thật, thành viên từ nhiều thiết bị, phân quyền máy chủ, tìm kiếm nhóm toàn hệ thống, thông báo nhóm hoặc kiểm duyệt nội dung. Không xem số thành viên cục bộ là người dùng thật.
+
+### Kiểm tra phiên bản 1.5
+- JavaScript inline đã vượt qua kiểm tra cú pháp sau cập nhật.
+- Đã xác minh mã tạo nhóm, tham gia/rời nhóm, đăng bài trong nhóm và chỉnh sửa nhóm.
+- Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
