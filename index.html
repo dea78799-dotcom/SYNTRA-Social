@@ -94,7 +94,8 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <script>
 const KEY='syntra_social_demo_posts_v1';
 const PROFILE_KEY='syntra_social_demo_profile_v1';
-const FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
+const FOLLOW_KEY='syntra_social_demo_follows_v1';
+let localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
 let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
 let viewedProfile=localProfile.name;
 const seed=[
@@ -102,7 +103,8 @@ const seed=[
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
 {id:'seed3',name:'Creative Studio',tag:'@creative · hôm qua',text:'Không gian dành cho sáng tạo — chia sẻ dự án, tác phẩm, những điều bạn đang học và ý tưởng mới.',type:'photos',likes:4,liked:false,saved:false}
 ];
-let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;\nposts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
+let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
+posts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';
 const feed=document.getElementById('feed');
 const profilePage=document.getElementById('profilePage');
