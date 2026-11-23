@@ -29,8 +29,8 @@ Do not use a real personal account as the only test identity. Do not create test
 - Nine public application tables have RLS enabled.
 - Current policies are owner/participant scoped; there is no shared feed/profile read policy.
 - Authenticated grants are present on most tables.
-- `follows` has SELECT, INSERT and DELETE table grants, but no UPDATE grant and no UPDATE RLS policy.
-- `notifications` has SELECT table grant only. Its recipient UPDATE RLS policy cannot be used by the client without a deliberately scoped SQL UPDATE grant.
+- `follows` has SELECT, INSERT and DELETE table grants, but no UPDATE grant and no UPDATE RLS policy. Its status constraint permits only `pending` and `accepted`; the consistency constraint requires `accepted_at` to be null/non-null accordingly.
+- `notifications` has table-level SELECT only, plus a column-level UPDATE grant on `read_at` only. Its existing UPDATE RLS policy is recipient-only with matching `USING` and `WITH CHECK`; no UPDATE privilege exists for `payload` or other columns. This read-state permission is already narrowly scoped and must not be broadened.
 - Notification creation has no client INSERT policy.
 - No community tables were found in the current application schema.
 - Storage bucket and object policies were not verified as part of this matrix.
@@ -90,7 +90,7 @@ The table below describes the intended product contract after the required polic
 - Deletion may be initiated by either participant if product behavior explicitly allows unfollow/removal.
 - Both accounts' block relationship must prevent follow creation and acceptance.
 
-**Known blocker:** current schema has no UPDATE table grant and no UPDATE RLS policy for `follows`. The acceptance flow is therefore not implemented. A future migration must add a narrowly constrained update path, not a broad participant UPDATE policy.
+**Known blocker:** current schema has no UPDATE privilege or UPDATE RLS policy for `follows`. The acceptance flow is not implemented. The 1.9C candidate grants UPDATE only on `status` and `accepted_at`, and allows only the recipient to transition a pending row to accepted. The requester cannot accept their own request or modify participant IDs.
 
 ### comments and likes
 - Users can insert/delete only their own rows.
@@ -106,7 +106,7 @@ The table below describes the intended product contract after the required polic
 - Client can update only `read_at`, not `recipient_id`, `actor_id`, `notification_type`, `entity_id`, or `payload`.
 - Notification generation is performed by a trusted server-side function/trigger with a reviewed privilege boundary.
 
-**Known blocker:** current authenticated role has SELECT only on `notifications`. The current UPDATE policy does not grant the SQL privilege needed to mark a notification read. Prefer a column-level UPDATE grant on `read_at` plus matching recipient-only USING and WITH CHECK policies, or a narrowly scoped server function. Do not grant unrestricted UPDATE.
+**Verified state:** authenticated has table-level SELECT and a column-level UPDATE grant on `read_at` only. The existing UPDATE policy is recipient-only with matching USING and WITH CHECK. No notification migration is needed in 1.9C; regression-test the real API path and preserve this narrow grant. Do not grant unrestricted UPDATE.
 
 ### reports and moderation
 - Reporter can insert a report only as self.
@@ -153,10 +153,17 @@ The table below describes the intended product contract after the required polic
 
 ## 8. Next implementation order
 
-1. Resolve the follow-acceptance state transition and its grants/policies.
-2. Resolve recipient-only notification read-state update.
+1. Add the reviewed least-privilege follow-acceptance migration in staging and run the API tests.
+2. Regression-test notification read-state through the API; its column grant and recipient policy already exist.
 3. Design a reusable, block-aware post visibility rule.
 4. Add shared profile/post/comment/like reads only after the above rules are tested.
 5. Design community tables and Storage policies as separate reviewed migrations.
 
 **Safety boundary:** do not paste or execute an unreviewed policy bundle on the live project. This matrix is a test specification, not a migration.
+
+
+## 1.9C implementation notes
+
+- Candidate SQL: [docs/sql/LEAST-PRIVILEGE-1.9C.sql](./sql/LEAST-PRIVILEGE-1.9C.sql).
+- Regression plan: [docs/LEAST-PRIVILEGE-TESTS-1.9C.md](./LEAST-PRIVILEGE-TESTS-1.9C.md).
+- No staging project was found in the connected Supabase account. The candidate has not been applied to the live project.
