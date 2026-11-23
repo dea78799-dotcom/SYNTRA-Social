@@ -75,14 +75,96 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 .viewer-tools button{background:#24242e;border:1px solid #41414e;border-radius:12px;padding:10px 14px;color:#f3f2f7}
 .viewer-nav:disabled{opacity:.35;cursor:default}
 @media(max-width:700px){.media-viewer{padding:12px}.viewer-stage{height:68dvh}.viewer-nav{top:auto;bottom:76px;transform:none;padding:8px 13px}#viewerPrev{left:calc(50% - 88px)}#viewerNext{right:calc(50% - 88px)}.viewer-tools{margin-bottom:env(safe-area-inset-bottom)}}.media-viewer{display:none;position:fixed;inset:0;z-index:80;background:#050507f5;padding:14px;align-items:center;justify-content:center;flex-direction:column}.media-viewer.show{display:flex}.media-viewer img{max-width:100%;max-height:calc(100dvh - 130px);object-fit:contain}.viewer-tools{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:12px}.viewer-tools button,.viewer-tools a{background:#24242e;border:1px solid #41414e;border-radius:12px;padding:10px 14px;color:#f3f2f7}.viewer-close{position:absolute;top:12px;right:12px;font-size:24px}
+
+/* Prototype 0.9 — refined visual system */
+:root{--bg:#0c0d12;--surface:#14151c;--surface2:#1b1c25;--border:#292a35;--text:#f4f3f8;--muted:#9293a2;--accent:#8c7bff;--accent2:#b6aaff;--radius:16px}
+body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em}
+.layout{max-width:1380px;grid-template-columns:218px minmax(0,690px) 260px;gap:22px;padding:22px}
+.sidebar,.rightbar{top:20px;height:calc(100dvh - 40px)}
+.brand{height:62px;display:flex;align-items:center;gap:10px;padding:7px 12px 20px;font-size:unset;letter-spacing:0}
+.wordmark{font-size:23px;font-weight:900;letter-spacing:.16em;color:#f4f3f8}
+.brand-beta{font-size:9px;letter-spacing:.18em;font-weight:800;color:var(--accent2);padding-top:7px}
+.nav{gap:4px}.nav button{font-size:13px;padding:11px 13px;border-radius:12px;gap:12px}
+.nav button .icon{font-size:17px;width:22px;color:#a6a5b3}
+.nav button.active{background:#242333;color:#fff;box-shadow:inset 2px 0 0 var(--accent)}
+.nav button.active .icon{color:var(--accent2)}
+.sidebar .newpost{margin:18px 4px 0;width:calc(100% - 8px);padding:12px 14px;border-radius:12px}
+.primary{background:#7968f2;box-shadow:none;border-radius:12px;font-size:13px}
+.primary:hover{background:#897afa;filter:none}
+.secondary{background:#1a1b24;border-color:#30313e;border-radius:11px;font-size:13px}
+.footer{padding:16px 10px;color:#737482;line-height:1.7}
+.topbar{gap:12px;margin:0 0 17px}
+.search input{height:44px;background:#14151c;border-color:#292a35;border-radius:13px;padding:0 15px;font-size:13px}
+.search input:focus{border-color:#7968f2;box-shadow:0 0 0 3px #8c7bff18}
+.top-action{width:44px;height:44px;display:grid;place-items:center;position:relative;padding:0}
+.top-action #noticeCount{position:absolute;top:-5px;right:-5px}
+.tabs{gap:5px;padding:4px;background:#13141b;border-color:#252630;border-radius:13px;margin-bottom:14px}
+.tabs button{font-size:12px;padding:9px 11px;border-radius:9px}
+.tabs button.active{background:#272538;color:#fff}
+.stories{background:transparent;border:0;padding:8px 1px 13px;gap:15px;margin-bottom:3px}
+.story{min-width:58px;font-size:11px;color:#a3a3b0}
+.story-ring{width:52px;height:52px;padding:2px;background:linear-gradient(145deg,#8c7bff,#49405f);margin-bottom:6px}
+.story-ring>div{background:#181922}
+.composer,.post,.panel{background:#14151c;border-color:#272832;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 7px 24px #00000012}
+.composer{padding:13px 14px}.avatar{width:38px;height:38px;background:#6657cc;font-size:14px}
+.compose-row{gap:10px}.compose-placeholder{background:#1b1c25;border-color:#2b2c37;font-size:13px;padding:10px 13px;border-radius:11px}
+.compose-tools{gap:7px;margin-top:10px}.compose-tools button{border-color:#2b2c37;border-radius:10px;padding:8px;font-size:12px}
+.post{padding:15px}.post-head{gap:10px}.post-head .avatar{width:38px;height:38px}
+.user{font-size:13px;font-weight:750}.meta{font-size:11px;color:#9293a2}
+.post-text{font-size:13px;line-height:1.65;margin:11px 0}.post-actions{padding-top:8px}
+.post-actions button{font-size:12px;padding:7px 9px}.media-post,.media-post-video{border-radius:12px;max-height:480px}
+.rightbar .panel{padding:15px}.rightbar .panel h3{font-size:14px}.trend{padding:9px 0}
+.chat-page{border-color:#292a35;border-radius:16px;background:#14151c}
+.chat-list-head,.chat-thread-head,.chat-compose{border-color:#292a35}
+.chat-contact{padding:11px;border-color:#ffffff08}.bubble{font-size:13px}
+.profile-page{background:#14151c;border-color:#292a35;border-radius:16px}
+.cover{height:132px;background:linear-gradient(115deg,#29243f,#171822 65%,#38305a)}
+.profile-top{padding:0 17px 17px}.profile-avatar{width:76px;height:76px}
+.profile-name{font-size:20px}.modal .dialog{border-radius:18px}.dialog h2{font-size:19px}
+.toast{border-radius:11px;font-size:12px}
+.bottomnav{background:#111219f2;border-top-color:#282934;backdrop-filter:blur(18px)}
+.bottomnav button{font-size:19px;min-width:42px}.bottomnav button.active{color:#b6aaff}
+.explore-page{padding:3px 0 24px}.explore-hero{margin:4px 0 18px}
+.explore-kicker{color:var(--accent2);font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.explore-title{font-size:25px;letter-spacing:-.035em;margin:4px 0 5px;font-weight:850}
+.explore-subtitle{font-size:12px;color:var(--muted);margin:0}
+.explore-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px}
+.explore-section-head h3{font-size:14px;margin:0;font-weight:760}
+.explore-section-head span{font-size:11px;color:var(--muted)}
+.topic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.topic-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;background:#151620;border:1px solid #2b2c38;padding:12px 13px;border-radius:12px;text-align:left}
+.topic-chip b{display:block;font-size:12px}.topic-chip small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.topic-chip .topic-mark{font-size:16px;color:var(--accent2)}.topic-chip:active{border-color:var(--accent)}
+.explore-results{margin-top:20px}.explore-results .post{margin-bottom:11px}
+.explore-results .post-media{min-height:125px}
+.explore-empty{padding:25px 14px;border:1px dashed #343541;border-radius:14px;text-align:center;color:var(--muted);font-size:12px}
+.explore-query{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:13px;padding:10px 12px;background:#171822;border:1px solid #292a35;border-radius:11px;font-size:12px}
+.explore-query strong{color:var(--accent2);overflow-wrap:anywhere}
+@media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,680px);gap:17px;padding:16px}.rightbar{display:none}}
+@media(max-width:700px){
+ .layout{display:block;padding:9px 10px calc(84px + env(safe-area-inset-bottom))}
+ .sidebar{display:none}.topbar{margin:0 0 12px;gap:8px}
+ .mobile-brand{display:flex;align-items:center;padding:0 2px 4px}
+ .mobile-brand .wordmark{font-size:18px;letter-spacing:.14em}
+ .search input{height:41px;padding:0 12px}.top-action{width:40px;height:40px;flex:none}
+ .tabs{margin-bottom:11px}.stories{padding:5px 0 12px;gap:13px}
+ .story{min-width:53px}.story-ring{width:48px;height:48px}
+ .composer,.post{border-radius:14px;padding:12px}.compose-tools button{font-size:11px}
+ .post-actions{flex-wrap:wrap;justify-content:space-between}.post-actions button{font-size:11px;padding:6px 5px}
+ .explore-title{font-size:23px}.topic-grid{gap:7px}.topic-chip{padding:10px}
+ .bottomnav{padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
+}
+@media(min-width:701px){.bottomnav{display:none}}
+
 </style>
 </head>
 <body>
 <div class="layout">
 <aside class="sidebar">
-<div class="brand"><div class="logo">S</div>SYNTRA</div>
+<div class="brand"><span class="wordmark">SYNTRA</span><span class="brand-beta">SOCIAL</span></div>
 <nav class="nav" id="desktopNav">
 <button class="active" data-filter="all"><span class="icon">⌂</span>Trang chủ</button>
+<button data-filter="explore"><span class="icon">⌕</span>Khám phá</button>
 <button data-filter="video"><span class="icon">▷</span>Video</button>
 <button data-filter="photos"><span class="icon">▧</span>Ảnh</button>
 <button data-filter="communities"><span class="icon">♧</span>Cộng đồng</button>
@@ -91,13 +173,13 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <button data-filter="chat"><span class="icon">✉</span>Tin nhắn</button>
 </nav>
 <button class="primary newpost" id="openComposer">＋ Tạo bài viết</button>
-<div class="footer">SYNTRA Social · Prototype 0.8<br>Đang trong quá trình thử nghiệm</div>
+<div class="footer">SYNTRA Social · Prototype 0.9<br>Đang trong quá trình thử nghiệm</div>
 </aside>
 <main>
 <div class="topbar">
-<div class="mobile-brand"><div class="logo">S</div>SYNTRA</div>
-<div class="search"><input id="search" placeholder="Tìm kiếm SYNTRA..." aria-label="Tìm kiếm"></div>
-<button class="secondary" id="notify" title="Thông báo" aria-label="Thông báo">♧ <span id="noticeCount" class="chat-unread" style="display:none">0</span></button>
+<div class="mobile-brand"><span class="wordmark">SYNTRA</span></div>
+<div class="search"><input id="search" placeholder="Tìm người, bài viết, hashtag..." aria-label="Tìm kiếm SYNTRA"></div>
+<button class="secondary top-action" id="notify" title="Thông báo" aria-label="Thông báo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="noticeCount" class="chat-unread" style="display:none">0</span></button>
 </div>
 <div class="tabs" id="tabs">
 <button class="active" data-filter="all">Dành cho bạn</button><button data-filter="following">Theo dõi</button><button data-filter="video">Video</button><button data-filter="photos">Ảnh</button><button data-filter="communities">Cộng đồng</button>
@@ -114,7 +196,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
 <div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
 </section>
-<div id="feed"></div><section id="profilePage" class="profile-page"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
+<div id="feed"></div><section id="explorePage" class="explore-page" aria-label="Khám phá SYNTRA" style="display:none"></section><section id="profilePage" class="profile-page"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
 </main>
 <aside class="rightbar">
 <div class="panel">
@@ -126,10 +208,10 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="trend"><small>Chủ đề · Sáng tạo</small><b>#ÝTưởng</b><small>Chia sẻ ý tưởng</small></div>
 <div class="trend"><small>Chủ đề · Lập trình</small><b>#Coding</b><small>Học hỏi mỗi ngày</small></div>
 </div>
-<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.8</div></div>
+<div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.9</div></div>
 </aside>
 </div>
-<nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all">⌂</button><button data-filter="video">▷</button><button id="bottomCreate">＋</button><button data-filter="chat" aria-label="Tin nhắn">✉</button><button data-filter="profile">◉</button></nav>
+<nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all" aria-label="Trang chủ">⌂</button><button data-filter="explore" aria-label="Khám phá">⌕</button><button id="bottomCreate" aria-label="Tạo bài viết">＋</button><button data-filter="chat" aria-label="Tin nhắn">✉</button><button data-filter="profile" aria-label="Hồ sơ">◉</button></nav>
 <div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Tối đa 8 ảnh (4 MB/ảnh, tổng 20 MB) hoặc 1 video (12 MB). Tệp chỉ lưu trên thiết bị này.</div><div class="media-pick-row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
 <button type="button" class="secondary" id="chooseImage">▧ Chọn nhiều ảnh</button><button type="button" class="secondary" id="chooseVideo">▷ Chọn video</button>
 <input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
@@ -197,6 +279,7 @@ mediaViewer.addEventListener('touchend',e=>{if(viewerTouchStartX===null)return;c
 document.addEventListener('keydown',e=>{if(!mediaViewer.classList.contains('show'))return;if(e.key==='Escape')closeImageViewer();if(e.key==='ArrowLeft')stepViewer(-1);if(e.key==='ArrowRight')stepViewer(1)});
 
 const feed=document.getElementById('feed');
+const discoverPage=document.getElementById('explorePage');
 const profilePage=document.getElementById('profilePage');
 const chatPage=document.getElementById('chatPage');
 const demoContacts=[{id:'syntra-team',name:'SYNTRA Team',initial:'S',status:'Tài khoản demo chính thức'},{id:'creative-studio',name:'Creative Studio',initial:'C',status:'Nhà sáng tạo demo'},{id:'tech-corner',name:'Góc Công nghệ',initial:'G',status:'Cộng đồng demo'}];
@@ -223,15 +306,49 @@ function renderProfile(name){
  }
 }
 
+function normalizeSearch(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d')}
+function renderExplore(){
+ chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
+ profilePage.classList.remove('show');profilePage.innerHTML='';
+ feed.style.display='none';discoverPage.style.display='block';
+ document.querySelector('.composer').style.display='none';
+ document.querySelector('.stories').style.display='none';
+ document.querySelector('.tabs').style.display='none';
+ const q=document.getElementById('search').value.trim();
+ const normalized=normalizeSearch(q.replace(/^#/,''));
+ const topics=[
+  {title:'SYNTRA',desc:'Cập nhật và cộng đồng',query:'syntra'},
+  {title:'Công nghệ',desc:'Thiết bị, ứng dụng và xu hướng',query:'cong nghe'},
+  {title:'Sáng tạo',desc:'Ý tưởng và tác phẩm mới',query:'sang tao'},
+  {title:'Cộng đồng',desc:'Thảo luận và kết nối',query:'cong dong'},
+  {title:'Ảnh',desc:'Chia sẻ hình ảnh',query:'anh'},
+  {title:'Video',desc:'Nội dung video',query:'video'}
+ ];
+ let list=posts.filter(p=>{
+  const typeText=p.type==='photos'?' anh hinh anh photo':p.type==='video'?' video clip':'';
+  const haystack=normalizeSearch([p.text,p.name,p.tag,(p.comments||[]).map(c=>c.text).join(' '),typeText].join(' '));
+  return !normalized||haystack.includes(normalized);
+ });
+ if(!q)list=[...list].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,6);
+ const queryLine=q?'<div class="explore-query"><span>Đang tìm kiếm</span><strong>'+esc(q)+'</strong></div>':'';
+ const topicHtml=topics.map(t=>'<button class="topic-chip" type="button" data-search-term="'+esc(t.query)+'"><span><b>'+esc(t.title)+'</b><small>'+esc(t.desc)+'</small></span><span class="topic-mark">#</span></button>').join('');
+ const cardHtml=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button></div></article>').join(''):'<div class="explore-empty">Không tìm thấy nội dung phù hợp. Thử tên khác, hashtag hoặc chủ đề khác.</div>';
+ discoverPage.innerHTML='<div class="explore-hero"><div class="explore-kicker">SYNTRA / EXPLORE</div><h1 class="explore-title">Khám phá</h1><p class="explore-subtitle">Tìm người, bài viết và những chủ đề bạn quan tâm.</p>'+queryLine+'</div><div class="explore-section-head"><h3>Chủ đề nổi bật</h3><span>Gợi ý khám phá</span></div><div class="topic-grid">'+topicHtml+'</div><div class="explore-results"><div class="explore-section-head"><h3>'+(q?'Kết quả tìm kiếm':'Bài viết được quan tâm')+'</h3><span>'+list.length+' bài viết</span></div>'+cardHtml+'</div>';
+ hydratePostMedia(discoverPage);
+}
 function render(){
- if(active==='chat'){renderChat();return}
+ if(active==='chat'){discoverPage.style.display='none';renderChat();return}
+ if(active==='explore'){renderExplore();return}
+ discoverPage.style.display='none';
  chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
  if(active==='profile'){renderProfile(localProfile.name);return}
  profilePage.classList.remove('show');profilePage.innerHTML='';feed.style.display='block';document.querySelector('.composer').style.display='';document.querySelector('.stories').style.display='';document.querySelector('.tabs').style.display='';
- const q=document.getElementById('search').value.trim().toLowerCase();
+ const q=document.getElementById('search').value.trim();
+ const normalizedQuery=normalizeSearch(q.replace(/^#/,''));
  let list=posts.filter(p=>{
   const matchFilter=active==='all'||(active==='saved'&&p.saved)||(active==='following'&&follows.includes(p.name))||(active==='video'&&p.type==='video')||(active==='photos'&&p.type==='photos')||(active==='communities'&&p.type==='communities');
-  const matchSearch=!q||((p.text+' '+p.name).toLowerCase().includes(q));
+  const haystack=normalizeSearch([p.text,p.name,p.tag,(p.comments||[]).map(c=>c.text).join(' '),p.type].join(' '));
+  const matchSearch=!normalizedQuery||haystack.includes(normalizedQuery);
   return matchFilter&&matchSearch;
  });
  feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+esc(p.id)+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+esc(p.id)+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
@@ -249,19 +366,26 @@ function renderChat(){profilePage.classList.remove('show');profilePage.innerHTML
 function handleMediaGalleryClick(e){const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile);return}const galleryButton=e.target.closest('[data-gallery-post]');if(galleryButton){openImageViewer(galleryButton.dataset.galleryPost,Number(galleryButton.dataset.galleryIndex));}}
 feed.addEventListener('click',handleMediaGalleryClick);
 profilePage.addEventListener('click',handleMediaGalleryClick);
+discoverPage.addEventListener('click',handleMediaGalleryClick);
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
-document.getElementById('search').addEventListener('input',render);
+document.getElementById('search').addEventListener('input',()=>{if(document.getElementById('search').value.trim())filter('explore');else render()});
 const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');clearSelectedMedia()}
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
 document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.getElementById('publish').onclick=async()=>{const button=document.getElementById('publish');if(button.disabled)return;const textValue=document.getElementById('postText').value.trim();if(!textValue&&!selectedMedia.length){toast('Hãy nhập nội dung hoặc chọn tệp.');return}button.disabled=true;const mediaIds=[];try{for(const item of selectedMedia){const id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);await storeMedia(id,item.file);mediaIds.push(id)}const post={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),name:localProfile.name,tag:'@local · vừa xong',text:textValue,type:selectedMedia.length?(selectedMedia[0].kind==='image'?'photos':'video'):document.getElementById('postType').value,mediaIds,mediaId:mediaIds.length===1?mediaIds[0]:null,likes:0,liked:false,saved:false,comments:[]};posts.unshift(post);try{save()}catch(err){posts.shift();throw new Error('Bộ nhớ bài viết đã đầy.')}document.getElementById('postText').value='';close();filter('all');toast(mediaIds.length?'Đã lưu bài viết và '+mediaIds.length+' tệp trên thiết bị.':'Đã lưu bài viết trên thiết bị.')}catch(err){await Promise.all(mediaIds.map(deleteMedia));toast(err.message==='Bộ nhớ bài viết đã đầy.'?err.message:'Không lưu được tệp. Hãy kiểm tra dung lượng trình duyệt.')}finally{button.disabled=false}};
-feed.addEventListener('click',async e=>{
+async function handlePostActionClick(e){
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.like){let p=posts.find(x=>x.id===b.dataset.like);p.liked=!p.liked;p.likes+=p.liked?1:-1;if(p.liked)addNotice('like','Bạn đã thích một bài viết','Bạn vừa thích bài viết của '+p.name+'.');save();render()}
  if(b.dataset.save){let p=posts.find(x=>x.id===b.dataset.save);p.saved=!p.saved;save();render();toast(p.saved?'Đã lưu bài viết':'Đã bỏ lưu')}
  if(b.dataset.comment){let p=posts.find(x=>x.id===b.dataset.comment);let c=prompt('Nhập bình luận (demo lưu trên thiết bị):');if(c&&c.trim()){p.comments.push({name:localProfile.name,text:c.trim()});addNotice('comment','Bạn đã bình luận', 'Bình luận của bạn đã được lưu trên thiết bị.');save();render();toast('Đã thêm bình luận trên thiết bị.')}}
  if(b.dataset.share){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}else toast('Chia sẻ sẽ có trong bản sau.')}
  if(b.dataset.report){let p=posts.find(x=>x.id===b.dataset.report);if(p&&p.name===localProfile.name){if(confirm('Xóa bài viết này và toàn bộ ảnh/video đính kèm khỏi thiết bị?')){const mediaIds=getPostMediaIds(p);if(viewerPostId===p.id)closeImageViewer();const oldPosts=posts;posts=posts.filter(x=>x.id!==p.id);try{save()}catch(err){posts=oldPosts;toast('Không thể cập nhật bộ nhớ bài viết.');return}await Promise.all(mediaIds.map(deleteMedia));render();toast('Đã xóa bài viết và tệp đính kèm (nếu có).')}}else toast('Báo cáo nội dung sẽ được triển khai khi có hệ thống kiểm duyệt.');}
+}
+feed.addEventListener('click',handlePostActionClick);
+discoverPage.addEventListener('click',async e=>{
+ const topic=e.target.closest('[data-search-term]');
+ if(topic){document.getElementById('search').value=topic.dataset.searchTerm;filter('explore');return}
+ await handlePostActionClick(e);
 });
 document.getElementById('photoBtn').onclick=()=>{open();document.getElementById('imageFile').click()};
 document.getElementById('videoBtn').onclick=()=>{open();document.getElementById('videoFile').click()};
