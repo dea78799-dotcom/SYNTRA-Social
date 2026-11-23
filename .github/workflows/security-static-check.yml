@@ -1,0 +1,35 @@
+name: SYNTRA Social security static checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/sql/LEAST-PRIVILEGE-1.9C.sql"
+      - "docs/LEAST-PRIVILEGE-TESTS-1.9C.md"
+      - "docs/RLS-TEST-MATRIX-1.9B.md"
+      - "scripts/validate_security_1_9c.py"
+      - ".github/workflows/security-static-check.yml"
+  pull_request:
+    paths:
+      - "docs/sql/LEAST-PRIVILEGE-1.9C.sql"
+      - "docs/LEAST-PRIVILEGE-TESTS-1.9C.md"
+      - "docs/RLS-TEST-MATRIX-1.9B.md"
+      - "scripts/validate_security_1_9c.py"
+      - ".github/workflows/security-static-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-security-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate 1.9C SQL and test documentation
+        run: python scripts/validate_security_1_9c.py
