@@ -31,6 +31,10 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 .profile-top{padding:0 16px 16px}.profile-avatar{width:82px;height:82px;border-radius:50%;border:4px solid var(--surface);margin-top:-42px;background:linear-gradient(140deg,#998bff,#5140bc);display:grid;place-items:center;font-size:28px;font-weight:800;overflow:hidden;position:relative}
 .profile-avatar img,.cover img{width:100%;height:100%;object-fit:cover}.profile-avatar img{border-radius:50%}
 .profile-name{font-size:22px;font-weight:800;margin:8px 0 0}.profile-bio{color:var(--muted);white-space:pre-wrap;margin:8px 0}.profile-stats{display:flex;gap:18px;color:var(--muted);font-size:13px;margin:10px 0}.profile-actions{display:flex;gap:8px;flex-wrap:wrap}.profile-actions button{padding:8px 12px}.profile-edit{display:grid;gap:9px;margin-top:12px}.profile-edit input,.profile-edit textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;width:100%}.profile-edit textarea{min-height:70px}.follow-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.follow-chip{font-size:12px;background:var(--surface2);border-radius:30px;padding:5px 9px;color:var(--muted)}
+.chat-page{display:none;grid-template-columns:minmax(210px,280px) minmax(0,1fr);height:min(690px,calc(100dvh - 150px));min-height:480px;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.chat-page.show{display:grid}.chat-list{border-right:1px solid var(--border);min-width:0;display:flex;flex-direction:column}.chat-list-head{padding:15px;border-bottom:1px solid var(--border)}.chat-list-head h2{margin:0 0 10px;font-size:20px}.chat-search{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;color:var(--text);padding:10px}.chat-contact{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border:0;border-bottom:1px solid #ffffff0b;background:none;text-align:left}.chat-contact.active,.chat-contact:hover{background:var(--surface2)}.chat-contact .avatar{width:42px;height:42px}.chat-contact-info{min-width:0;flex:1}.chat-contact-info b,.chat-contact-info small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-contact-info small{color:var(--muted);font-size:12px}.chat-thread{min-width:0;display:flex;flex-direction:column}.chat-thread-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}.chat-thread-head b{display:block}.chat-thread-head small{color:var(--muted)}.chat-messages{padding:16px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:9px}.chat-date{text-align:center;color:var(--muted);font-size:11px;margin:5px}.bubble{max-width:min(78%,430px);padding:10px 13px;border-radius:15px;background:var(--surface2);white-space:pre-wrap;overflow-wrap:anywhere}.bubble.mine{align-self:flex-end;background:#5142a8}.bubble-time{font-size:10px;color:#d1caff;display:block;text-align:right;margin-top:4px}.chat-compose{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}.chat-compose input{min-width:0;flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px;color:var(--text)}.chat-compose button{flex:none}.chat-empty{margin:auto;text-align:center;color:var(--muted);padding:24px}.chat-unread{background:var(--accent);color:white;border-radius:20px;padding:1px 7px;font-size:10px}.chat-mobile-back{display:none}
+@media(max-width:700px){.chat-page{height:calc(100dvh - 105px);min-height:500px;grid-template-columns:1fr}.chat-list{border:0}.chat-thread{display:none}.chat-page.thread-open .chat-list{display:none}.chat-page.thread-open .chat-thread{display:flex}.chat-mobile-back{display:inline-flex}.chat-list-head{padding:12px}.chat-messages{padding:12px}.chat-compose{padding:9px}}
+
 
 @media(max-width:1050px){.layout{grid-template-columns:200px minmax(0,680px);justify-content:center}.rightbar{display:none}}
 @media(max-width:700px){.layout{display:block;padding:10px 10px calc(80px + env(safe-area-inset-bottom))}.sidebar{display:none}.topbar{margin-top:2px}.mobile-brand{display:flex;align-items:center;gap:8px;font-weight:850;white-space:nowrap}.mobile-brand .logo{width:31px;height:31px;border-radius:10px}.search input{padding:10px}.stories,.composer,.post{border-radius:15px}.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#14141beF;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(15px)}.bottomnav button{border:0;background:none;color:var(--muted);font-size:20px;padding:6px 10px}.bottomnav button.active{color:var(--accent2)}.tabs button{font-size:13px}.compose-tools button{font-size:13px;padding:8px 4px}.post-actions button{font-size:13px}}
@@ -48,6 +52,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <button data-filter="communities"><span class="icon">♧</span>Cộng đồng</button>
 <button data-filter="following"><span class="icon">♡</span>Đang theo dõi</button>
 <button data-filter="saved"><span class="icon">▣</span>Đã lưu</button>
+<button data-filter="chat"><span class="icon">✉</span>Tin nhắn</button>
 </nav>
 <button class="primary newpost" id="openComposer">＋ Tạo bài viết</button>
 <div class="footer">SYNTRA Social · Prototype 0.3<br>Đang trong quá trình thử nghiệm</div>
@@ -73,7 +78,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
 <div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
 </section>
-<div id="feed"></div><section id="profilePage" class="profile-page"></section>
+<div id="feed"></div><section id="profilePage" class="profile-page"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
 </main>
 <aside class="rightbar">
 <div class="panel">
@@ -88,16 +93,19 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="panel"><h3>Giới thiệu</h3><p class="meta">Một nền tảng chia sẻ bài viết, hình ảnh, video và kết nối cộng đồng — thuộc hệ sinh thái SYNTRA.</p><div class="meta">© SYNTRA · Prototype v0.3</div></div>
 </aside>
 </div>
-<nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all">⌂</button><button data-filter="video">▷</button><button id="bottomCreate">＋</button><button data-filter="communities">♧</button><button data-filter="profile">◉</button></nav>
+<nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all">⌂</button><button data-filter="video">▷</button><button id="bottomCreate">＋</button><button data-filter="chat" aria-label="Tin nhắn">✉</button><button data-filter="profile">◉</button></nav>
 <div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Prototype: lưu trên thiết bị này, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
 const KEY='syntra_social_demo_posts_v1';
 const PROFILE_KEY='syntra_social_demo_profile_v1';
 const FOLLOW_KEY='syntra_social_demo_follows_v1';
+const CHAT_KEY='syntra_social_demo_chats_v1';
 let localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
 let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
 let viewedProfile=localProfile.name;
+let chats=JSON.parse(localStorage.getItem(CHAT_KEY)||'null')||{'syntra-team':[{from:'them',text:'Chào mừng bạn đến với hộp thư SYNTRA Social. Đây là cuộc trò chuyện demo.',time:'09:30'}]};
+let activeChat='syntra-team';
 const seed=[
 {id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
@@ -108,6 +116,8 @@ posts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';
 const feed=document.getElementById('feed');
 const profilePage=document.getElementById('profilePage');
+const chatPage=document.getElementById('chatPage');
+const demoContacts=[{id:'syntra-team',name:'SYNTRA Team',initial:'S',status:'Tài khoản demo chính thức'},{id:'creative-studio',name:'Creative Studio',initial:'C',status:'Nhà sáng tạo demo'},{id:'tech-corner',name:'Góc Công nghệ',initial:'G',status:'Cộng đồng demo'}];
 function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderProfile(name){
@@ -128,6 +138,8 @@ function renderProfile(name){
 }
 
 function render(){
+ if(active==='chat'){renderChat();return}
+ chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
  if(active==='profile'){renderProfile(localProfile.name);return}
  profilePage.classList.remove('show');profilePage.innerHTML='';feed.style.display='block';document.querySelector('.composer').style.display='';document.querySelector('.stories').style.display='';document.querySelector('.tabs').style.display='';
  const q=document.getElementById('search').value.trim().toLowerCase();
@@ -139,6 +151,13 @@ function render(){
  feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
 }
 function filter(f){active=f;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
+function renderChat(){profilePage.classList.remove('show');profilePage.innerHTML='';feed.style.display='none';document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';chatPage.classList.add('show');
+ const current=demoContacts.find(c=>c.id===activeChat)||demoContacts[0];const messages=chats[activeChat]||[];
+ chatPage.innerHTML='<div class="chat-list"><div class="chat-list-head"><h2>Tin nhắn</h2><input class="chat-search" id="chatSearch" placeholder="Tìm cuộc trò chuyện..."></div><div id="chatContacts">'+demoContacts.map(c=>{const arr=chats[c.id]||[];const last=arr[arr.length-1];return '<button class="chat-contact '+(c.id===activeChat?'active':'')+'" data-chat="'+c.id+'"><div class="avatar">'+c.initial+'</div><div class="chat-contact-info"><b>'+c.name+'</b><small>'+esc(last?last.text:c.status)+'</small></div></button>'}).join('')+'</div></div><div class="chat-thread"><div class="chat-thread-head"><button class="secondary chat-mobile-back" id="chatBack">←</button><div class="avatar">'+current.initial+'</div><div><b>'+current.name+'</b><small>'+current.status+' · không trực tuyến</small></div></div><div class="chat-messages" id="chatMessages"><div class="chat-date">Hôm nay · Tin nhắn demo</div>'+(messages.length?messages.map(m=>'<div class="bubble '+(m.from==='me'?'mine':'')+'">'+esc(m.text)+'<span class="bubble-time">'+m.time+'</span></div>').join(''):'<div class="chat-empty">Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện.</div>')+'</div><form class="chat-compose" id="chatForm"><input id="chatInput" maxlength="1000" autocomplete="off" placeholder="Nhập tin nhắn..." aria-label="Nội dung tin nhắn"><button class="primary" type="submit">Gửi</button></form></div>';
+ chatPage.querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>{activeChat=b.dataset.chat;chatPage.classList.add('thread-open');renderChat()});
+ chatPage.querySelector('#chatForm').onsubmit=e=>{e.preventDefault();const input=chatPage.querySelector('#chatInput');const value=input.value.trim();if(!value)return;if(!chats[activeChat])chats[activeChat]=[];chats[activeChat].push({from:'me',text:value,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem(CHAT_KEY,JSON.stringify(chats));renderChat();const box=chatPage.querySelector('#chatMessages');box.scrollTop=box.scrollHeight};
+ chatPage.querySelector('#chatBack').onclick=()=>chatPage.classList.remove('thread-open');chatPage.querySelector('#chatSearch').oninput=e=>{const q=e.target.value.toLowerCase();chatPage.querySelectorAll('[data-chat]').forEach(b=>b.style.display=b.textContent.toLowerCase().includes(q)?'flex':'none')};
+}
 feed.addEventListener('click',e=>{const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile)}});
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
 document.getElementById('search').addEventListener('input',render);
