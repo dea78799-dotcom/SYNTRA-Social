@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 0.9** — redesigned mobile-first interface with local Explore/search and multi-photo albums. Core content remains local to the current browser.
+> Status: **Prototype 1.0** — redesigned mobile-first interface with local Explore/search and multi-photo albums. Core content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -137,7 +137,7 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Chưa thực hiện kiểm thử tương tác trực tiếp trên nhiều trình duyệt hoặc thiết bị Android. Cần kiểm tra thực tế việc chọn nhiều ảnh, tải ảnh và lưu trữ IndexedDB trước khi phát hành rộng rãi.
 
 
-## Prototype 0.9 — Thiết kế lại giao diện và Khám phá
+## Prototype 1.0 — Thiết kế lại giao diện và Khám phá
 
 ### Thiết kế giao diện
 - Chuyển logo trên thanh điều hướng sang wordmark chữ SYNTRA, không thêm biểu tượng thương hiệu mới.
@@ -159,3 +159,16 @@ GitHub Pages can host the static prototype. A real social network will require a
 - JavaScript inline đã được kiểm tra cú pháp sau khi cập nhật.
 - Đã xác minh lại nội dung index.html từ GitHub.
 - Cần tiếp tục kiểm thử tương tác thực tế trên trình duyệt Android và desktop trước khi phát hành công khai.
+
+
+## Prototype 1.0 — Cài đặt, quyền riêng tư và dữ liệu
+
+- Thêm trang Cài đặt riêng và mục điều hướng desktop.
+- Các tùy chọn demo gồm chế độ hiển thị hồ sơ (mô phỏng), bật/tắt hoạt động demo, bật/tắt thao tác theo dõi demo và giao diện gọn.
+- Giao diện gọn áp dụng trực tiếp cho bài viết và composer.
+- Xuất bản sao JSON gồm hồ sơ, bài viết, cuộc trò chuyện, thông báo, danh sách theo dõi và cài đặt. File xuất không gồm media blobs.
+- Đặt lại tùy chọn về mặc định.
+- Xóa dữ liệu demo trên thiết bị, gồm media đã lưu trong IndexedDB, sau xác nhận.
+- Trang thông tin phiên bản và đường dẫn GitHub.
+
+**Giới hạn quyền riêng tư:** tùy chọn hiển thị hồ sơ chỉ là trạng thái mô phỏng; chưa có tài khoản online, quyền truy cập máy chủ, xác minh hay đồng bộ. Dữ liệu trong browser có thể bị người dùng cùng thiết bị truy cập. Không dùng dữ liệu/mật khẩu nhạy cảm.
