@@ -331,6 +331,6 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added a reviewed SQL candidate for least-privilege follow acceptance: [docs/sql/LEAST-PRIVILEGE-1.9C.sql](docs/sql/LEAST-PRIVILEGE-1.9C.sql).
 - Added catalog and API regression tests: [docs/LEAST-PRIVILEGE-TESTS-1.9C.md](docs/LEAST-PRIVILEGE-TESTS-1.9C.md).
 - Updated the [RLS test matrix](docs/RLS-TEST-MATRIX-1.9B.md) with verified grants and policies.
-- Current follow acceptance remains blocked: authenticated has no UPDATE permission or UPDATE policy on follows. The candidate allows only the recipient to transition pending → accepted and only updates status/accepted_at.
+- Current follow acceptance remains blocked: authenticated has no UPDATE permission or UPDATE policy on follows. The candidate allows only the recipient to transition pending → accepted. The client updates status only; a database trigger sets accepted_at.
 - Notification read-state is already narrowly scoped: authenticated can update only read_at, with recipient-only UPDATE and SELECT policies. No notification permission change is proposed.
 - Only one Supabase project is connected; no separate staging project was found. The candidate SQL has not been applied to the active project. API-level tests and Security Advisor verification remain pending.
