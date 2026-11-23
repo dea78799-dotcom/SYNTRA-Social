@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: Prototype 0.1 — under active development and testing.
+> Status: **Prototype 0.8** — mobile-first front-end demo; media and interactions are stored locally in the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -38,14 +38,14 @@ Mobile-first responsive front-end prototype.
 Demo posts created in this version are saved in browser local storage on the current device. They are not published or visible to other people.
 
 ## Roadmap
-1. UI prototype and mobile testing
-2. Backend + authentication
-3. Profiles and follow system
-4. Posts, comments, reactions, report/block tools and moderation
-5. Image upload
-6. Short-video feed
-7. Communities
-8. Security, accessibility and deployment testing
+1. Responsive front-end prototype — in progress; local demo features are available.
+2. Backend, real authentication and database — not implemented.
+3. Profiles and following — demo/local version implemented; server-side social graph pending.
+4. Posts, comments, reactions and notifications — local demo implemented; real moderation/report/block tools pending.
+5. Local image/video attachments and multi-image albums — prototype implemented; cloud media storage pending.
+6. Short-video feed, recommendations and streaming — pending.
+7. Real communities and group membership — pending.
+8. Security, privacy controls, accessibility and deployment testing — required before public launch.
 
 ## Safety and privacy
 Before public launch, SYNTRA Social must have privacy settings, moderation/report/block controls, secure authentication, age-appropriate safeguards, and clear community rules.
@@ -116,3 +116,21 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Video vẫn dùng trình phát tích hợp với các điều khiển chuẩn.
 
 **Giới hạn:** trình xem/tải chỉ làm việc với media đã lưu cục bộ trong trình duyệt; chưa có media server, liên kết công khai hoặc đồng bộ thiết bị.
+
+
+## Prototype 0.8 — Album nhiều ảnh và trình xem ảnh
+
+- Một bài viết có thể đính kèm tối đa **8 ảnh**. Hỗ trợ JPG, PNG, WEBP và GIF; tối đa 4 MB mỗi ảnh và 20 MB cho cả album.
+- Hộp thoại tạo bài viết hiển thị bản xem trước dạng lưới và số lượng/dung lượng ảnh đã chọn. Video vẫn chọn riêng, tối đa 1 video mỗi bài, 12 MB.
+- Bài viết hiển thị album dạng lưới. Khi có trên 4 ảnh, ô cuối hiển thị số ảnh còn lại; bấm vào bất kỳ ảnh nào để mở toàn bộ album.
+- Trình xem ảnh toàn màn hình có nút ảnh trước/tiếp, bộ đếm vị trí, tải ảnh về thiết bị; trên điện thoại có thể vuốt trái/phải. Máy tính hỗ trợ phím mũi tên và Escape.
+- Album cũng hiển thị trong trang hồ sơ. Bài viết cũ chỉ có một trường mediaId vẫn được đọc để giữ tương thích.
+- Khi xóa bài viết của chính mình, ứng dụng xóa tất cả tệp thuộc album khỏi IndexedDB và thu hồi URL media đang dùng.
+
+**Giới hạn:** đây vẫn là prototype cục bộ. Tệp ảnh/video được lưu trong IndexedDB của trình duyệt hiện tại; nội dung bài viết lưu trong localStorage. Tệp không được tải lên máy chủ, không tự đồng bộ sang điện thoại khác và người khác không thể xem. Giới hạn dung lượng thực tế còn phụ thuộc trình duyệt và bộ nhớ thiết bị. Không dùng prototype này để lưu trữ dữ liệu quan trọng.
+
+## Trạng thái kiểm thử
+
+- Đã kiểm tra cú pháp JavaScript bằng cách biên dịch script sau khi cập nhật.
+- Đã đọc lại index.html và README.md từ GitHub để xác nhận nội dung đã lưu.
+- Chưa thực hiện kiểm thử tương tác trực tiếp trên nhiều trình duyệt hoặc thiết bị Android. Cần kiểm tra thực tế việc chọn nhiều ảnh, tải ảnh và lưu trữ IndexedDB trước khi phát hành rộng rãi.
