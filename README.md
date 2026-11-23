@@ -106,3 +106,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Nếu trình duyệt không hỗ trợ IndexedDB, bộ nhớ hết dung lượng hoặc tệp không đọc được, ứng dụng sẽ báo lỗi/hiển thị thông báo thay vì giả vờ tải lên máy chủ.
 
 **Giới hạn:** tệp chỉ nằm trên trình duyệt/thiết bị hiện tại, không được tải lên máy chủ và người khác không thể xem. Đây chưa phải hệ thống lưu trữ đám mây, xử lý video, quét tệp hoặc kiểm duyệt nội dung. Hãy chỉ chọn tệp bạn có quyền chia sẻ.
+
+
+## Prototype 0.7 — Trình xem media và quản lý tệp
+
+- Bấm ảnh trong bài viết để mở trình xem ảnh toàn màn hình.
+- Có nút tải ảnh về thiết bị từ trình xem.
+- Khi xóa bài viết của chính mình, ứng dụng cũng xóa tệp đính kèm trong IndexedDB và thu hồi URL media đang mở.
+- Video vẫn dùng trình phát tích hợp với các điều khiển chuẩn.
+
+**Giới hạn:** trình xem/tải chỉ làm việc với media đã lưu cục bộ trong trình duyệt; chưa có media server, liên kết công khai hoặc đồng bộ thiết bị.
