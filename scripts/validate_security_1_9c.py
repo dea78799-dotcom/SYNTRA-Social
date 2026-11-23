@@ -70,7 +70,7 @@ require("revoke all on function public.set_follow_accepted_at() from public, ano
         "Trigger function direct EXECUTE grants must be revoked from API roles.")
 require("drop policy if exists follows_accept_pending_request" in sql_lower,
         "Migration must be repeatable for the named policy.")
-require("notifications" in sql_lower and "read_at" in sql_lower,
+require("notifications" in sql.lower() and "read_at" in sql.lower(),
         "Migration must document the unchanged notification permission boundary.")
 
 # Regression-plan coverage.
