@@ -52,6 +52,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 
 - The backend architecture is documented in [docs/BACKEND-ARCHITECTURE.md](docs/BACKEND-ARCHITECTURE.md).
 - The read-only Supabase schema/RLS review is recorded in [docs/BACKEND-AUDIT-1.9.md](docs/BACKEND-AUDIT-1.9.md).
+- The authorization scenarios and acceptance criteria are documented in [docs/RLS-TEST-MATRIX-1.9B.md](docs/RLS-TEST-MATRIX-1.9B.md).
 - Supabase project `SYNTRA-Social` is active in Singapore (`ap-southeast-1`). The initial nine-table PostgreSQL schema and RLS baseline are deployed. Email provider configuration, frontend authentication, Storage policies and end-to-end tests are still pending.
 - Keep the public prototype local-only until authentication, RLS, private media policies, block/report controls and age-appropriate safeguards pass verification.
 
