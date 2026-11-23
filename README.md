@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.3** — mobile-first local prototype with post detail, inline comments, clickable hashtags, content filters, topic pages, and feed sorting. Core content remains local to the current browser.nline comments, and clickable hashtags. Core content remains local to the current browser. Core content remains local to the current browser.
+> Status: **Prototype 1.4** — mobile-first local prototype with post detail, clickable hashtags, discovery filters, topic pages, feed sorting, and a creator dashboard. Content and analytics remain local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -228,3 +228,21 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã kiểm tra sự hiện diện của bộ lọc Văn bản, trang chủ đề, hai lựa chọn sắp xếp và bộ xử lý điều hướng chủ đề.
 - Đã sửa luồng giữ trang chủ đề khi mở từ thẻ chủ đề và khôi phục thanh sắp xếp khi quay về bảng tin.
 - Chưa thực hiện kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
+
+
+## Prototype 1.4 — Creator System
+
+- Creator dashboard appears on the local account's profile.
+- Summary metrics show published posts, likes, comments, and posts containing media.
+- Creator content filters: All, Text, Photos, Video, and Communities.
+- Profile post cards open the existing post detail view.
+- Editing the local profile name also updates the author name on that profile's existing local posts.
+- Settings version label updated to 1.4.
+
+**Analytics limitations:** all metrics are calculated from posts saved in this browser. There are no verified views, reach, audience demographics, revenue, cross-device synchronization, or server analytics. Follower totals remain unavailable rather than being fabricated.
+
+### Prototype 1.4 verification
+- JavaScript inline syntax check passed.
+- Verified creator dashboard metrics, content filter controls, responsive metric layout, and profile edit flow are present.
+- Removed an unfinished control rather than leaving a button without an action.
+- Live browser interaction testing on Android and desktop remains pending.
