@@ -415,7 +415,23 @@ function renderExplore(){
  discoverPage.innerHTML='<div class="explore-hero"><div class="explore-kicker">SYNTRA / EXPLORE</div><h1 class="explore-title">Khám phá</h1><p class="explore-subtitle">Tìm người, bài viết và những chủ đề bạn quan tâm.</p>'+queryLine+'</div><div class="explore-section-head"><h3>Chủ đề nổi bật</h3><span>Gợi ý khám phá</span></div><div class="topic-grid">'+topicHtml+'</div><div class="explore-results"><div class="explore-section-head"><h3>'+(q?'Kết quả tìm kiếm':'Bài viết được quan tâm')+'</h3><span>'+list.length+' bài viết</span></div>'+cardHtml+'</div>';
  hydratePostMedia(discoverPage);
 }
+
+function openPostDetail(id){activePostId=id;active='post-detail';render()}
+function renderPostDetail(){
+ const p=posts.find(x=>x.id===activePostId);
+ if(!p){active='all';render();return}
+ discoverPage.style.display='none';settingsPage.style.display='none';settingsPage.classList.remove('show');chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';profilePage.classList.remove('show');profilePage.innerHTML='';feed.style.display='none';document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';postDetailPage.classList.add('show');
+ const comments=p.comments||[];
+ const commentHtml=comments.length?comments.map(c=>'<div class="detail-comment"><b>'+esc(c.name)+'</b><div>'+esc(c.text)+'</div></div>').join(''):'<p class="meta">Chưa có bình luận. Hãy bắt đầu cuộc trò chuyện.</p>';
+ postDetailPage.innerHTML='<button class="secondary detail-back" type="button" id="detailBack">← Quay lại bảng tin</button><article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button></div></article><section class="detail-comments"><h3>Bình luận · '+comments.length+'</h3>'+commentHtml+'<form class="detail-comment-form" id="detailCommentForm"><input id="detailCommentInput" maxlength="500" placeholder="Viết bình luận..." autocomplete="off" aria-label="Viết bình luận"><button class="primary" type="submit">Gửi</button></form></section>';
+ hydratePostMedia(postDetailPage);
+ postDetailPage.querySelector('#detailBack').onclick=()=>{active='all';render()};
+ postDetailPage.querySelector('#detailCommentForm').onsubmit=e=>{e.preventDefault();const input=postDetailPage.querySelector('#detailCommentInput');const value=input.value.trim();if(!value)return;p.comments=p.comments||[];p.comments.push({name:localProfile.name,text:value});addNotice('comment','Bạn đã bình luận','Bình luận của bạn đã được lưu trên thiết bị.');save();renderPostDetail();toast('Đã thêm bình luận trên thiết bị.')};
+}
+
 function render(){
+ postDetailPage.classList.remove('show');
+ if(active==='post-detail'){renderPostDetail();return}
  if(active==='chat'){discoverPage.style.display='none';settingsPage.classList.remove('show');settingsPage.style.display='none';renderChat();return}
  if(active==='settings'){renderSettings();return}
  settingsPage.classList.remove('show');settingsPage.style.display='none';
@@ -432,7 +448,7 @@ function render(){
   const matchSearch=!normalizedQuery||haystack.includes(normalizedQuery);
   return matchFilter&&matchSearch;
  });
- feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+esc(p.id)+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+esc(p.id)+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
+ feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+esc(p.id)+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-open-post="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+esc(p.id)+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
  hydratePostMedia(feed);
 }
 
@@ -463,6 +479,7 @@ async function handlePostActionClick(e){
  if(b.dataset.share){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(location.href).then(()=>toast('Đã sao chép liên kết (demo).')).catch(()=>toast('Chia sẻ sẽ có trong bản sau.'))}else toast('Chia sẻ sẽ có trong bản sau.')}
  if(b.dataset.report){let p=posts.find(x=>x.id===b.dataset.report);if(p&&p.name===localProfile.name){if(confirm('Xóa bài viết này và toàn bộ ảnh/video đính kèm khỏi thiết bị?')){const mediaIds=getPostMediaIds(p);if(viewerPostId===p.id)closeImageViewer();const oldPosts=posts;posts=posts.filter(x=>x.id!==p.id);try{save()}catch(err){posts=oldPosts;toast('Không thể cập nhật bộ nhớ bài viết.');return}await Promise.all(mediaIds.map(deleteMedia));render();toast('Đã xóa bài viết và tệp đính kèm (nếu có).')}}else toast('Báo cáo nội dung sẽ được triển khai khi có hệ thống kiểm duyệt.');}
 }
+postDetailPage.addEventListener('click',handlePostActionClick);
 feed.addEventListener('click',handlePostActionClick);
 discoverPage.addEventListener('click',async e=>{
  const topic=e.target.closest('[data-search-term]');
