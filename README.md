@@ -305,3 +305,20 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã kiểm tra các luồng: báo cáo có mã định danh, chống báo cáo lặp, quyền truy cập khu vực quản trị theo chủ nhóm, chuyển trạng thái báo cáo, nhật ký quản trị và thông báo nhóm.
 - Đã kiểm tra CSS responsive cho màn hình hẹp.
 - Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop hoặc kiểm thử backend; đây vẫn là prototype local-only.
+
+
+## Prototype 1.8 — Safety & User Protection
+
+- Chặn hồ sơ theo tên hiển thị trên thiết bị; thao tác chặn cũng bỏ theo dõi hồ sơ đó.
+- Ẩn bài viết trong bảng tin/Khám phá, bài viết cộng đồng, bình luận và câu trả lời từ hồ sơ đã chặn.
+- Có trang trạng thái hồ sơ bị chặn và thao tác bỏ chặn; quản lý danh sách chặn trong Cài đặt.
+- Cộng đồng có phần quy tắc; người tạo nhóm có thể chỉnh sửa quy tắc cùng tên và mô tả.
+- Người đăng bài trong cộng đồng có thể đánh dấu bài có nội dung cần cân nhắc; người xem phải chủ động chọn xem nội dung.
+- Xóa dữ liệu demo cũng xóa danh sách chặn.
+
+**Giới hạn quan trọng:** danh sách chặn dùng tên hiển thị, không phải ID tài khoản; có thể nhầm lẫn nếu tên bị đổi/trùng. Đây chỉ là lọc giao diện cục bộ, không ngăn người bị chặn truy cập nội dung qua máy chủ hoặc thiết bị khác. Quy tắc cộng đồng và cảnh báo nội dung chưa được kiểm duyệt tự động. Chưa có xác thực, quyền riêng tư hoặc bảo vệ thực sự phía server.
+
+### Kiểm tra phiên bản 1.8
+- JavaScript inline đã vượt qua kiểm tra cú pháp.
+- Đã kiểm tra sự hiện diện của luồng chặn/bỏ chặn, lọc bài viết và bình luận, quản lý danh sách chặn, quy tắc nhóm, cảnh báo nội dung và xóa dữ liệu chặn.
+- Chưa kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop; chưa kết nối backend.
