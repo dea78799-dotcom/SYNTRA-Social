@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 0.8** — mobile-first front-end demo; media and interactions are stored locally in the current browser.
+> Status: **Prototype 0.9** — redesigned mobile-first interface with local Explore/search and multi-photo albums. Core content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -46,6 +46,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 6. Short-video feed, recommendations and streaming — pending.
 7. Real communities and group membership — pending.
 8. Security, privacy controls, accessibility and deployment testing — required before public launch.
+9. Explore/discovery and search — local prototype implemented; real recommendations and server-side indexing pending.
 
 ## Safety and privacy
 Before public launch, SYNTRA Social must have privacy settings, moderation/report/block controls, secure authentication, age-appropriate safeguards, and clear community rules.
@@ -134,3 +135,27 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Đã kiểm tra cú pháp JavaScript bằng cách biên dịch script sau khi cập nhật.
 - Đã đọc lại index.html và README.md từ GitHub để xác nhận nội dung đã lưu.
 - Chưa thực hiện kiểm thử tương tác trực tiếp trên nhiều trình duyệt hoặc thiết bị Android. Cần kiểm tra thực tế việc chọn nhiều ảnh, tải ảnh và lưu trữ IndexedDB trước khi phát hành rộng rãi.
+
+
+## Prototype 0.9 — Thiết kế lại giao diện và Khám phá
+
+### Thiết kế giao diện
+- Chuyển logo trên thanh điều hướng sang wordmark chữ SYNTRA, không thêm biểu tượng thương hiệu mới.
+- Tinh chỉnh bảng màu tối: nền charcoal, bề mặt xám than, chữ trắng ấm và điểm nhấn tím #8C7BFF / lavender #B6AAFF.
+- Chuẩn hóa khoảng cách, viền, bo góc, kích thước chữ và trạng thái điều hướng; giảm độ lớn của một số khung nội dung.
+- Làm mới thanh tìm kiếm, nút thông báo, menu bên trái và thanh điều hướng dưới cho điện thoại.
+- Giữ các màn hình hồ sơ, tin nhắn, album và trình xem ảnh tương thích với giao diện mới.
+
+### Khám phá và tìm kiếm
+- Thêm mục Khám phá vào menu desktop và thanh điều hướng mobile.
+- Tìm kiếm nội dung bài viết, tên hiển thị, nhãn tài khoản và bình luận cục bộ.
+- Tìm kiếm tiếng Việt không phân biệt dấu, ví dụ “cong nghe” có thể khớp “Công nghệ”.
+- Thêm các lối tắt chủ đề SYNTRA, Công nghệ, Sáng tạo, Cộng đồng, Ảnh và Video.
+- Hiển thị nội dung phù hợp với truy vấn; khi chưa nhập truy vấn, hiển thị các bài demo được sắp xếp theo lượt thích mẫu.
+
+**Giới hạn:** tìm kiếm chỉ hoạt động trên dữ liệu demo đang lưu trong trình duyệt. Chưa có tìm kiếm người dùng thật, hashtag server-side, xu hướng thời gian thực, thuật toán đề xuất, tài khoản thật hoặc đồng bộ giữa thiết bị.
+
+### Kiểm tra phiên bản
+- JavaScript inline đã được kiểm tra cú pháp sau khi cập nhật.
+- Đã xác minh lại nội dung index.html từ GitHub.
+- Cần tiếp tục kiểm thử tương tác thực tế trên trình duyệt Android và desktop trước khi phát hành công khai.
