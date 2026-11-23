@@ -1,6 +1,6 @@
 # SYNTRA SOCIAL — Backend Architecture v1
 
-**Status:** Design only. No live Supabase project is currently connected to this workspace.
+**Status:** B0 foundation and initial B1 profile trigger are deployed to the SYNTRA-Social Supabase project. Email provider configuration, client integration and end-to-end tests remain pending.
 **Applies to:** SYNTRA Social Prototype 1.0 and the planned first multi-user release.
 **Principle:** Do not connect the public prototype to real user data until authentication, authorization, moderation, privacy and recovery have been reviewed.
 
@@ -54,17 +54,19 @@ Do not create a direct-message table in the first backend milestone. First estab
 
 ## 5. First implementation milestones
 
-### B0 — Foundation
-- Connect an existing Supabase project or explicitly create a new one after reviewing its cost and region.
-- Confirm project health, region, API settings and current schema.
-- Add versioned database migrations in the repository.
-- Establish staging and production separation.
+### B0 — Foundation (initial deployment complete; staging separation pending)
+- Supabase project SYNTRA-Social is active in ap-southeast-1 (Singapore).
+- Initial nine-table schema and RLS baseline are deployed as versioned database migrations.
+- Security and performance advisors were checked after migration; continue rechecking after each schema change.
+- Establish a separate staging environment before public launch.
 
-### B1 — Identity and profiles
-- Email verification and secure session lifecycle.
-- Username uniqueness and profile ownership.
-- Private-by-default visibility and profile deletion/export flow.
+### B1 — Identity and profiles (database trigger deployed; provider/client work pending)
+- Configure Email provider, confirmation, Site URL and exact Redirect URLs in Supabase Dashboard.
+- Profile creation trigger is deployed on auth.users; username uniqueness is case-insensitive.
+- Implement secure client session lifecycle, email verification and password recovery.
+- Add profile deletion/export flow.
 - RLS tests for owner, another signed-in user and anonymous visitor.
+- Follow docs/AUTH-SETUP.md before enabling registration.
 
 ### B2 — Posts and media
 - Create/edit/delete posts.
@@ -100,4 +102,4 @@ Do not create a direct-message table in the first backend milestone. First estab
 - Supabase Storage access control: https://supabase.com/docs/guides/storage/security/access-control
 - Supabase API keys: https://supabase.com/docs/guides/getting-started/api-keys
 
-**Release rule:** Prototype 1.0 remains a local demo. Do not label it a real social network or enable public user registration until B0–B4 security and product gates are complete.
+**Release rule:** The current Prototype 1.4 remains a local demo. Do not label it a real social network or enable public user registration until B0–B4 security and product gates are complete.
