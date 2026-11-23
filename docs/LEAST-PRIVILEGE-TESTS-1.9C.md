@@ -18,9 +18,9 @@
 
 See [LEAST-PRIVILEGE-1.9C.sql](./sql/LEAST-PRIVILEGE-1.9C.sql).
 
-The migration grants UPDATE on only follows.status and follows.accepted_at. Its UPDATE policy permits the target (following_id = auth.uid()) to update only a currently pending row, and requires the resulting row to be accepted with a non-null acceptance timestamp.
+The migration grants authenticated UPDATE on follows.status only. A PostgreSQL BEFORE UPDATE trigger sets accepted_at to the database timestamp when status transitions from pending to accepted. The trigger function is SECURITY INVOKER (the default), has an empty search_path, and has direct EXECUTE grants revoked from API roles. The UPDATE policy permits only the target (following_id = auth.uid()) to update a currently pending row, and requires the resulting row to be accepted with a non-null accepted_at.
 
-The current CHECK constraint does not include rejected; rejection is intentionally out of scope. If rejection is required later, design and test a separate state-transition migration rather than silently widening this one.
+The client cannot directly update accepted_at, participant IDs, created_at, or other columns. The current CHECK constraint does not include rejected; rejection is intentionally out of scope. If rejection is required later, design and test a separate state-transition migration rather than silently widening this one.
 
 ## 3. Catalog verification (read-only)
 
@@ -38,9 +38,9 @@ select
   has_column_privilege('authenticated', 'public.notifications', 'payload', 'UPDATE') as notifications_payload_update;
 ```
 
-Expected: follows_table_update=false; follows_status_update=true; follows_accepted_at_update=true; both participant-ID update privileges false; notifications_table_update=false; notifications_read_at_update=true; notifications_payload_update=false.
+Expected: follows_table_update=false; follows_status_update=true; follows_accepted_at_update=false; both participant-ID update privileges false; notifications_table_update=false; notifications_read_at_update=true; notifications_payload_update=false.
 
-Inspect the effective policies:
+Inspect the effective policies and trigger:
 
 ```sql
 select tablename, policyname, cmd, roles, qual, with_check
@@ -48,9 +48,14 @@ from pg_policies
 where schemaname = 'public'
   and tablename in ('follows', 'notifications')
 order by tablename, policyname;
+
+select trigger_name, event_manipulation, action_timing, action_statement
+from information_schema.triggers
+where event_object_schema = 'public'
+  and event_object_table = 'follows';
 ```
 
-Expected: follows_accept_pending_request is an UPDATE policy for authenticated, with recipient/pending predicate in USING and recipient/accepted/non-null predicate in WITH CHECK. Existing notification recipient policies remain unchanged.
+Expected: follows_accept_pending_request is an UPDATE policy for authenticated, with recipient/pending predicate in USING and recipient/accepted/non-null predicate in WITH CHECK. The follows_set_accepted_at trigger runs BEFORE UPDATE OF status. Existing notification recipient policies remain unchanged.
 
 ## 4. API-level test matrix
 
@@ -60,13 +65,13 @@ Use synthetic identities A (requester), B (recipient), and C (unrelated user), w
 |---|---|---|---|
 | F01 | A | Create follow row with follower_id=A, following_id=B, status=pending | Allowed if other constraints pass |
 | F02 | A | Create follow row with follower_id=C | Denied by INSERT policy |
-| F03 | B | Update A→B row to status=accepted, accepted_at=now() | Allowed |
+| F03 | B | Update A→B row with status=accepted only | Allowed; database trigger sets accepted_at |
 | F04 | A | Update own A→B row to accepted | Denied / zero rows affected |
 | F05 | C | Update A→B row | Denied / zero rows affected |
 | F06 | B | Change follower_id or following_id | Rejected by column privileges |
-| F07 | B | Change created_at | Rejected by column privileges |
+| F07 | B | Change created_at or accepted_at directly | Rejected by column privileges |
 | F08 | B | Update an already accepted row through this policy | Denied / zero rows affected |
-| F09 | B | Accept pending row but leave accepted_at null | Rejected by row CHECK / policy |
+| F09 | B | Set status=accepted but attempt to provide a client timestamp | Client cannot target accepted_at; database sets its own timestamp |
 | F10 | A | Delete own follow relationship, if current product behavior is retained | Allowed |
 | N01 | Notification recipient | Update own read_at | Allowed |
 | N02 | Unrelated user | Update another recipient's read_at | Denied / zero rows affected |
