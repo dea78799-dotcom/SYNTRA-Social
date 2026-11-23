@@ -26,6 +26,12 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 .footer{font-size:12px;color:var(--muted);padding:10px}
 .modal{display:none;position:fixed;inset:0;background:#0009;z-index:20;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.dialog{width:min(520px,100%);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 25px 70px #0007}.dialog h2{margin:0 0 14px}.dialog textarea{width:100%;min-height:130px;background:var(--bg);border:1px solid var(--border);border-radius:13px;color:var(--text);padding:12px;resize:vertical}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#282833;border:1px solid var(--border);border-radius:12px;padding:10px 15px;display:none;z-index:30}.toast.show{display:block}
 .empty{text-align:center;color:var(--muted);padding:28px}
+.profile-page{display:none;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:14px}
+.profile-page.show{display:block}.cover{height:145px;background:linear-gradient(125deg,#342d66,#191925 60%,#6755c9);position:relative}
+.profile-top{padding:0 16px 16px}.profile-avatar{width:82px;height:82px;border-radius:50%;border:4px solid var(--surface);margin-top:-42px;background:linear-gradient(140deg,#998bff,#5140bc);display:grid;place-items:center;font-size:28px;font-weight:800;overflow:hidden;position:relative}
+.profile-avatar img,.cover img{width:100%;height:100%;object-fit:cover}.profile-avatar img{border-radius:50%}
+.profile-name{font-size:22px;font-weight:800;margin:8px 0 0}.profile-bio{color:var(--muted);white-space:pre-wrap;margin:8px 0}.profile-stats{display:flex;gap:18px;color:var(--muted);font-size:13px;margin:10px 0}.profile-actions{display:flex;gap:8px;flex-wrap:wrap}.profile-actions button{padding:8px 12px}.profile-edit{display:grid;gap:9px;margin-top:12px}.profile-edit input,.profile-edit textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;width:100%}.profile-edit textarea{min-height:70px}.follow-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.follow-chip{font-size:12px;background:var(--surface2);border-radius:30px;padding:5px 9px;color:var(--muted)}
+
 @media(max-width:1050px){.layout{grid-template-columns:200px minmax(0,680px);justify-content:center}.rightbar{display:none}}
 @media(max-width:700px){.layout{display:block;padding:10px 10px calc(80px + env(safe-area-inset-bottom))}.sidebar{display:none}.topbar{margin-top:2px}.mobile-brand{display:flex;align-items:center;gap:8px;font-weight:850;white-space:nowrap}.mobile-brand .logo{width:31px;height:31px;border-radius:10px}.search input{padding:10px}.stories,.composer,.post{border-radius:15px}.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#14141beF;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(15px)}.bottomnav button{border:0;background:none;color:var(--muted);font-size:20px;padding:6px 10px}.bottomnav button.active{color:var(--accent2)}.tabs button{font-size:13px}.compose-tools button{font-size:13px;padding:8px 4px}.post-actions button{font-size:13px}}
 @media(min-width:701px){.bottomnav{display:none}}
@@ -67,7 +73,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
 <div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
 </section>
-<div id="feed"></div>
+<div id="feed"></div><section id="profilePage" class="profile-page"></section>
 </main>
 <aside class="rightbar">
 <div class="panel">
@@ -86,7 +92,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 <div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Prototype: lưu trên thiết bị này, chưa đăng lên máy chủ.</div><div class="dialog-actions"><button class="secondary" id="cancel">Hủy</button><button class="primary" id="publish">Đăng bài</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const KEY='syntra_social_demo_posts_v1';\nconst PROFILE_KEY='syntra_social_demo_profile_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn"}');
+const KEY='syntra_social_demo_posts_v1';\nconst PROFILE_KEY='syntra_social_demo_profile_v1';\nconst FOLLOW_KEY='syntra_social_demo_follows_v1';\nlet localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');\nlet follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');\nlet viewedProfile=localProfile.name;
 const seed=[
 {id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
@@ -94,19 +100,19 @@ const seed=[
 ];
 let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;\nposts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';
-const feed=document.getElementById('feed');
+const feed=document.getElementById('feed');\nconst profilePage=document.getElementById('profilePage');
 function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function render(){
  const q=document.getElementById('search').value.trim().toLowerCase();
  let list=posts.filter(p=>{
-  const matchFilter=active==='all'||(active==='saved'&&p.saved)||(active==='profile'&&p.name===localProfile.name)||(active==='following'&&false)||(active==='video'&&p.type==='video')||(active==='photos'&&p.type==='photos')||(active==='communities'&&p.type==='communities');
+  const matchFilter=active==='all'||(active==='saved'&&p.saved)||(active==='following'&&follows.includes(p.name))||(active==='video'&&p.type==='video')||(active==='photos'&&p.type==='photos')||(active==='communities'&&p.type==='communities');
   const matchSearch=!q||(p.text+' '+p.name).toLowerCase().includes(q);
   return matchFilter&&matchSearch;
  });
- feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><div class="avatar">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><div class="user">'+esc(p.name)+'</div><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
+ feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><button class="more" data-report="'+p.id+'" aria-label="Tùy chọn">⋯</button></div><div class="post-text">'+esc(p.text)+'</div>'+(p.type==='video'?'<div class="post-media">▶<br>Video demo · Chưa có phát video thật</div>':p.type==='photos'?'<div class="post-media">▧<br>Ảnh demo · Chưa tải ảnh</div>':'')+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+p.id+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+p.id+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+p.id+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button><button data-share="'+p.id+'">↗ Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):'<div class="post empty">Không có bài viết phù hợp.</div>';
 }
-function filter(f){active=f;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
+function filter(f){active=f;document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}\nfeed.addEventListener('click',e=>{const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile)}});
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>filter(b.dataset.filter)));
 document.getElementById('search').addEventListener('input',render);
 const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function close(){modal.classList.remove('show')}
