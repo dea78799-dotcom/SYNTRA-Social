@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.1** — mobile-first local prototype with a dedicated post detail view and inline comments. Core content remains local to the current browser. Core content remains local to the current browser.
+> Status: **Prototype 1.2** — mobile-first local prototype with post detail, inline comments, and clickable hashtags. Core content remains local to the current browser. Core content remains local to the current browser.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -195,3 +195,19 @@ GitHub Pages can host the static prototype. A real social network will require a
 - JavaScript inline vượt qua kiểm tra cú pháp bằng bộ phân tích JavaScript.
 - Đã xác minh các thành phần trang chi tiết, biểu mẫu bình luận, điểm mở trang chi tiết và bộ xử lý thao tác.
 - Chưa thực hiện kiểm thử trình duyệt thực tế trên Android/desktop; cần kiểm tra thao tác và bố cục trên thiết bị trước khi phát hành.
+
+
+## Prototype 1.2 — Hashtag tương tác
+
+- Nhận diện hashtag trong nội dung bài viết, hỗ trợ chữ tiếng Việt có dấu, chữ Latin và chữ số.
+- Hashtag được hiển thị bằng màu nhấn riêng và có thể nhấn trên bảng tin, Khám phá và trang chi tiết.
+- Khi nhấn hashtag, SYNTRA Social mở Khám phá và tìm các bài viết chứa từ khóa đó.
+- Nội dung bài viết vẫn được escape trước khi hiển thị; hashtag không được thực thi như HTML tùy ý.
+
+**Giới hạn:** tìm kiếm hashtag chỉ quét bài viết đang lưu cục bộ trên trình duyệt. Chưa có hashtag xu hướng, bộ đếm toàn hệ thống, gợi ý máy chủ hoặc đồng bộ giữa người dùng.
+
+### Kiểm tra phiên bản 1.2
+- Đã đọc lại index.html từ GitHub sau cập nhật.
+- JavaScript inline vượt qua kiểm tra cú pháp.
+- Đã xác minh hàm định dạng hashtag, hai vị trí hiển thị nội dung bài viết và xử lý nhấn hashtag.
+- Chưa thực hiện kiểm thử tương tác trực tiếp trên trình duyệt Android/desktop.
