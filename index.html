@@ -177,6 +177,18 @@ body.syntra-compact .post,body.syntra-compact .composer{padding:9px;margin-botto
 body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 @media(max-width:700px){.settings-page{padding:12px}.settings-section{padding:12px}.settings-row{align-items:flex-start}.settings-row select{max-width:130px}}
 
+
+#postDetailPage{display:none;padding:0 0 24px}
+#postDetailPage.show{display:block}
+.detail-back{margin:12px 0}
+.detail-comments{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px}
+.detail-comments h3{margin:0 0 12px}
+.detail-comment{padding:10px 0;border-bottom:1px solid var(--border)}
+.detail-comment:last-child{border-bottom:0}
+.detail-comment-form{display:flex;gap:8px;margin-top:14px}
+.detail-comment-form input{min-width:0;flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px}
+.detail-open{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:0}
+
 </style>
 </head>
 <body>
@@ -218,7 +230,7 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 <div class="compose-row"><div class="avatar">S</div><button class="compose-placeholder" id="openComposer2">Chia sẻ điều gì đó với cộng đồng...</button></div>
 <div class="compose-tools"><button id="photoBtn">▧ Ảnh</button><button id="videoBtn">▷ Video</button><button id="communityBtn">♧ Cộng đồng</button></div>
 </section>
-<div id="feed"></div><section id="explorePage" class="explore-page" aria-label="Khám phá SYNTRA" style="display:none"></section><section id="profilePage" class="profile-page"></section><section id="settingsPage" class="settings-page" aria-label="Cài đặt"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
+<div id="feed"></div><section id="postDetailPage" aria-label="Chi tiết bài viết"></section><section id="explorePage" class="explore-page" aria-label="Khám phá SYNTRA" style="display:none"></section><section id="profilePage" class="profile-page"></section><section id="settingsPage" class="settings-page" aria-label="Cài đặt"></section><section id="chatPage" class="chat-page" aria-label="Tin nhắn SYNTRA"></section>
 </main>
 <aside class="rightbar">
 <div class="panel">
@@ -266,7 +278,7 @@ const seed=[
 ];
 let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
 posts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
-let active='all';
+let active='all';let activePostId=null;
 let selectedMedia=[];
 const mediaUrls=new Map();
 const mediaItems=new Map();
@@ -303,6 +315,7 @@ document.addEventListener('keydown',e=>{if(!mediaViewer.classList.contains('show
 const feed=document.getElementById('feed');
 const settingsPage=document.getElementById('settingsPage');
 const discoverPage=document.getElementById('explorePage');
+ const postDetailPage=document.getElementById('postDetailPage');
 const profilePage=document.getElementById('profilePage');
 const chatPage=document.getElementById('chatPage');
 const demoContacts=[{id:'syntra-team',name:'SYNTRA Team',initial:'S',status:'Tài khoản demo chính thức'},{id:'creative-studio',name:'Creative Studio',initial:'C',status:'Nhà sáng tạo demo'},{id:'tech-corner',name:'Góc Công nghệ',initial:'G',status:'Cộng đồng demo'}];
@@ -398,7 +411,7 @@ function renderExplore(){
  if(!q)list=[...list].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,6);
  const queryLine=q?'<div class="explore-query"><span>Đang tìm kiếm</span><strong>'+esc(q)+'</strong></div>':'';
  const topicHtml=topics.map(t=>'<button class="topic-chip" type="button" data-search-term="'+esc(t.query)+'"><span><b>'+esc(t.title)+'</b><small>'+esc(t.desc)+'</small></span><span class="topic-mark">#</span></button>').join('');
- const cardHtml=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-comment="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button></div></article>').join(''):'<div class="explore-empty">Không tìm thấy nội dung phù hợp. Thử tên khác, hashtag hoặc chủ đề khác.</div>';
+ const cardHtml=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" data-profile="'+esc(p.name)+'" style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" data-profile="'+esc(p.name)+'" style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div></div><div class="post-text">'+esc(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">♡ '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-open-post="'+esc(p.id)+'">◯ Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+(p.saved?'▣ Đã lưu':'▣ Lưu')+'</button></div></article>').join(''):'<div class="explore-empty">Không tìm thấy nội dung phù hợp. Thử tên khác, hashtag hoặc chủ đề khác.</div>';
  discoverPage.innerHTML='<div class="explore-hero"><div class="explore-kicker">SYNTRA / EXPLORE</div><h1 class="explore-title">Khám phá</h1><p class="explore-subtitle">Tìm người, bài viết và những chủ đề bạn quan tâm.</p>'+queryLine+'</div><div class="explore-section-head"><h3>Chủ đề nổi bật</h3><span>Gợi ý khám phá</span></div><div class="topic-grid">'+topicHtml+'</div><div class="explore-results"><div class="explore-section-head"><h3>'+(q?'Kết quả tìm kiếm':'Bài viết được quan tâm')+'</h3><span>'+list.length+' bài viết</span></div>'+cardHtml+'</div>';
  hydratePostMedia(discoverPage);
 }
@@ -431,7 +444,7 @@ function renderChat(){profilePage.classList.remove('show');profilePage.innerHTML
  chatPage.querySelector('#chatForm').onsubmit=e=>{e.preventDefault();const input=chatPage.querySelector('#chatInput');const value=input.value.trim();if(!value)return;if(!chats[activeChat])chats[activeChat]=[];chats[activeChat].push({from:'me',text:value,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});addNotice('message','Bạn đã gửi tin nhắn', 'Tin nhắn demo đã lưu trong cuộc trò chuyện với '+(demoContacts.find(c=>c.id===activeChat)?.name||'liên hệ')+'.');localStorage.setItem(CHAT_KEY,JSON.stringify(chats));renderChat();const box=chatPage.querySelector('#chatMessages');box.scrollTop=box.scrollHeight};
  chatPage.querySelector('#chatBack').onclick=()=>chatPage.classList.remove('thread-open');chatPage.querySelector('#chatSearch').oninput=e=>{const q=e.target.value.toLowerCase();chatPage.querySelectorAll('[data-chat]').forEach(b=>b.style.display=b.textContent.toLowerCase().includes(q)?'flex':'none')};
 }
-function handleMediaGalleryClick(e){const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile);return}const galleryButton=e.target.closest('[data-gallery-post]');if(galleryButton){openImageViewer(galleryButton.dataset.galleryPost,Number(galleryButton.dataset.galleryIndex));}}
+function handleMediaGalleryClick(e){const detailBtn=e.target.closest('[data-open-post]');if(detailBtn){openPostDetail(detailBtn.dataset.openPost);return}const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile);return}const galleryButton=e.target.closest('[data-gallery-post]');if(galleryButton){openImageViewer(galleryButton.dataset.galleryPost,Number(galleryButton.dataset.galleryIndex));}}
 feed.addEventListener('click',handleMediaGalleryClick);
 profilePage.addEventListener('click',handleMediaGalleryClick);
 discoverPage.addEventListener('click',handleMediaGalleryClick);
