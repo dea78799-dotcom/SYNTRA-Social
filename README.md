@@ -342,3 +342,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added [GitHub Actions security static checks](.github/workflows/security-static-check.yml), triggered on relevant pushes and pull requests. The workflow uses the default read-only repository permission and requires no Supabase credentials or paid staging database.
 - The static validator was syntax-checked and executed locally against representative fixtures: **36 static checks passed**. The current committed artifacts also passed 22 direct content/contract checks in this review.
 - These checks do not execute SQL, connect to Supabase, emulate Auth/JWT, or prove RLS behavior. The 1.9C migration remains unapplied; API-level verification still requires an isolated staging environment.
+
+
+## Security test automation 1.9D
+
+- Added `scripts/test_security_validator.py`, a mutation self-test that runs the static validator in isolated temporary copies and checks that four unsafe regressions are rejected (broad UPDATE grant, missing timestamp trigger assignment, wrong recipient predicate, missing F03 regression case).
+- GitHub Actions runs both the baseline static validator and mutation self-tests.
+- These checks are local/static CI checks only. They do not connect to Supabase, execute migrations, test JWT/API behavior, or prove runtime RLS enforcement. The workflow run has not yet been verified.
