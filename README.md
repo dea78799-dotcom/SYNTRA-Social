@@ -490,3 +490,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 
 - Signup trigger repair: fixed the profile-creation trigger to use PostgreSQL `COALESCE` syntax correctly; signup had been failing with HTTP 500 before this database migration.
 - Public discovery/feed is intentionally deferred. Current cloud posts and media are private to the signed-in account.
+
+
+## Prototype 2.11 — Account status and settings clarity
+
+- Updated the settings page to distinguish real Supabase account/private media sync from features that remain local demo data.
+- Removed an outdated notice claiming the app had no real account, server, synchronization, or authentication.
+- Clarified that comments, likes, messages, and some settings are still local to the current browser.
+- Updated the in-app prototype version to 2.11.
+- Signup and login were confirmed by the project owner after the database trigger repair. Cross-device media/post behavior still needs a two-device test.
