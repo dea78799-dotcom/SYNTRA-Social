@@ -99,7 +99,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.31": '<span class="meta">2.31</span>' in source,
+    "settings badge reflects prototype 2.32": '<span class="meta">2.32</span>' in source,
     "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
 
     "cloud avatar controls are disabled and cleared when signed out": "if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;" in source and "cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');" in source,
@@ -161,7 +161,7 @@ checks = {
     "manual sync button reflects loading and offline state": "syncButton.textContent=cloudSyncing?'Đang đồng bộ…':navigator.onLine===false?'Đang ngoại tuyến':'Đồng bộ ngay'" in source,
     "cloud sync prevents duplicate concurrent requests": "if(cloudSyncPromise&&cloudSyncUserId===userId)return cloudSyncPromise" in source,
     "cloud sync rejects stale account responses": "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false" in source,
-    "cloud sync refreshes when returning online or to tab": "window.addEventListener('focus',()=>{autoSyncCloudPosts()})" in source and "window.addEventListener('online',()=>{updateCloudAccountUI();autoSyncCloudPosts()})" in source and "document.addEventListener('visibilitychange'" in source,
+    "cloud sync refreshes when returning online or to tab": "window.addEventListener('focus',()=>{if(document.visibilityState==='visible')runCloudAutoSyncNow()})" in source and "window.addEventListener('online',()=>{updateCloudAccountUI();runCloudAutoSyncNow()})" in source and "document.addEventListener('visibilitychange'" in source,
     "cloud sync cleans old account media cache": "cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)})" in source,
     "cloud sync rejects stale response after interaction hydration": "let interactions;" in source and "loadCloudPostInteractions(publicRows,userId)" in source and "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in source,
     "public feed rejects stale account response before replacing feed": "const syncUserId=syntraCloudUser?.id||null;" in source and "loadCloudPostInteractions(rows,syncUserId)" in source and "if((syntraCloudUser?.id||null)!==syncUserId)return false;" in source,
@@ -229,7 +229,7 @@ checks = {
     "cloud sync center stores bounded local-only event history": "CLOUD_SYNC_HISTORY_KEY='syntra_cloud_sync_history_v1'" in source and "cloudSyncHistory=cloudSyncHistory.slice(0,20)" in source and "writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory)" in source,
     "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source and "async function retryCloudSyncCenter()" in source,
     "cloud sync center avoids storing account credentials or post content": "Không lưu nội dung bài viết hoặc thông tin đăng nhập." in source and "summary:ok?'Đồng bộ hoàn tất':result.detail" in source,
-    "settings version reflects prototype 2.31": "SYNTRA Social Prototype 2.31" in source and '<span class="meta">2.31</span>' in source,
+    "settings version reflects prototype 2.32": "SYNTRA Social Prototype 2.32" in source and '<span class="meta">2.32</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
