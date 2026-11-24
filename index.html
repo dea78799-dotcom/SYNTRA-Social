@@ -799,7 +799,7 @@ let cloudSyncing=false;
 let publicFeedSyncPromise=null;
 let publicFeedLastSyncAt=0;
 function cloudPostFromRow(row,mediaRows=[],profile=null){
- const displayName=profile?.display_name||profile?.username||(syntraCloudUser&&syntraCloudUser.id===row.author_id&&syntraCloudUser.user_metadata&&syntraCloudUser.user_metadata.display_name)||localProfile.name||'Thành viên SYNTRA';
+ const displayName=profile?.display_name||profile?.username||(syntraCloudUser&&syntraCloudUser.id===row.author_id&&syntraCloudUser.user_metadata&&syntraCloudUser.user_metadata.display_name)||'Thành viên SYNTRA';
  const mediaIds=mediaRows.map(item=>item.id);
  return{id:row.id,name:displayName,tag:'@syntra · '+new Date(row.created_at).toLocaleString('vi-VN'),text:row.body||'',type:mediaRows.some(item=>item.media_type==='video')?'video':mediaRows.length?'photos':'text',mediaIds,mediaId:mediaIds[0]||null,likes:0,liked:false,saved:false,comments:[],cloud:true,publicCloud:row.visibility==='public',authorId:row.author_id,visibility:row.visibility||'private',createdAt:row.created_at};
 }
@@ -811,7 +811,7 @@ async function syncPublicFeed(silent=true){
   const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('visibility','public').eq('status','published').order('created_at',{ascending:false}).limit(50);
   if(error){console.warn('SYNTRA public feed failed:',error);if(!silent)toast('Chưa tải được bảng tin công khai.');return false}
   const rows=data||[];const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
-  if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,bio,is_private,is_discoverable').in('id',authorIds);if(profileResult.error){console.warn('SYNTRA public profiles failed:',profileResult.error);if(!silent)toast('Chưa tải được hồ sơ người đăng.');return false}profiles=profileResult.data||[]}
+  if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(profileResult.error){console.warn('SYNTRA public profiles failed:',profileResult.error);if(!silent)toast('Chưa tải được hồ sơ người đăng.');return false}profiles=profileResult.data||[]}
   const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
   const publicPosts=rows.map(row=>cloudPostFromRow(row,[],profileMap.get(row.author_id)||null));
   posts=[...publicPosts,...posts.filter(post=>!post.publicCloud)];save();publicFeedLastSyncAt=Date.now();
