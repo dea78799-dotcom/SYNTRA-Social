@@ -679,3 +679,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Retry refreshes the signed-in account's posts/media/interactions, public feed, notifications, and bookmarks, while preserving existing per-request account checks and sync de-duplication.
 - No database migration was required.
 - Static regression checks cover bounded history, local-only storage, privacy-safe summaries, and retry wiring. Actual Android and two-device testing remains required.
+
+
+## Prototype 2.32 — Random Auto Sync
+
+- Added foreground auto-sync scheduling with a newly randomized interval of 30–60 minutes after each completed cycle.
+- The scheduler reuses the existing Cloud sync pipeline and its in-flight guards; it does not create parallel sync jobs.
+- The timer pauses while the page is hidden or the device is offline. Returning to the app or reconnecting triggers a sync and starts a new randomized interval.
+- The Settings Sync Center displays the estimated next automatic sync time.
+- Browser/Android background execution is not guaranteed: mobile browsers may suspend JavaScript timers while the app is backgrounded or closed. This is foreground auto-sync, not an Android background service or push mechanism.
+- No database migration was required. Automated static regression checks cover interval bounds, overlap prevention, lifecycle pause/resume, and the Settings status indicator.
