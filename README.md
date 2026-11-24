@@ -660,3 +660,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Supabase JS is pinned to 2.119.2. Current Supabase documentation describes built-in exponential-backoff retries for idempotent PostgREST GET/HEAD/OPTIONS requests on network failures and HTTP 503/520. SYNTRA does not add a second retry wrapper, avoiding duplicate retry layers. Writes are not automatically retried by that documented mechanism.
 - No database migration was required.
 - Static regression checks cover stale-session protection, bookmark-state preservation, and offline UI behavior. Real Android network interruption and two-device account-switch tests remain required; CI does not simulate those device scenarios.
+
+## Prototype 2.30 — Cloud Sync Diagnostics
+
+- Added a diagnostics panel to Settings with a manual Data API connectivity check.
+- The probe requests only the id column from published public posts and applies the public visibility/status filters. It does not fetch post bodies or private account data.
+- Reports request latency, last diagnostic time, most recent sync operation, and a short categorized explanation.
+- Classifies common network, permission, missing-table/endpoint, server, and generic API errors. It avoids displaying credentials or raw response payloads.
+- Cloud sync now records failures while loading posts, media metadata, and public likes/comments, and records successful completion.
+- No database migration or new table is required.
+- Static regression checks cover the minimal probe, diagnostic categories, latency display, operation status, and version metadata. Real Android offline/online testing and multi-account testing remain necessary.
