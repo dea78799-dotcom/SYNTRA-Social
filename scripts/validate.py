@@ -10,11 +10,9 @@ PRIVACY_MIGRATION = Path("supabase/migrations/20261124120000_privacy_deletion_ca
 REPORT_MIGRATION = Path("supabase/migrations/20261124130000_syntra_social_235_report_validation.sql")
 OWNER_MIGRATION = Path("supabase/migrations/20261124140000_syntra_social_236_owner_moderation.sql")
 OWNER_PRIVACY_MIGRATION = Path("supabase/migrations/20261124143000_syntra_social_2361_report_privacy_acl.sql")
-OWNER_MIGRATION = Path("supabase/migrations/20261124140000_syntra_social_236_owner_moderation.sql")
 report_migration_source = REPORT_MIGRATION.read_text(encoding="utf-8") if REPORT_MIGRATION.exists() else ""
 owner_migration_source = OWNER_MIGRATION.read_text(encoding="utf-8") if OWNER_MIGRATION.exists() else ""
 owner_privacy_migration_source = OWNER_PRIVACY_MIGRATION.read_text(encoding="utf-8") if OWNER_PRIVACY_MIGRATION.exists() else ""
-owner_migration_source = OWNER_MIGRATION.read_text(encoding="utf-8") if OWNER_MIGRATION.exists() else ""
 privacy_migration_source = PRIVACY_MIGRATION.read_text(encoding="utf-8") if PRIVACY_MIGRATION.exists() else ""
 cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
 
