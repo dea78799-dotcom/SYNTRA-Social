@@ -82,7 +82,7 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.25": "SYNTRA Social Prototype 2.25" in source and '<span class="meta">2.25</span>' in source,
+    "settings version reflects prototype 2.26": "SYNTRA Social Prototype 2.26" in source and '<span class="meta">2.26</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
     "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
@@ -90,7 +90,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.25": '<span class="meta">2.25</span>' in source,
+    "settings badge reflects prototype 2.26": '<span class="meta">2.26</span>' in source,
     "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
 
     "cloud avatar controls are disabled and cleared when signed out": "if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;" in source and "cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');" in source,
