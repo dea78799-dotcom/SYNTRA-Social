@@ -1344,7 +1344,7 @@ function renderSettings(){
 
 function normalizeSearch(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/đ/g,'d')}
 function sortDiscoveryPosts(list){const copy=[...list];return sortMode==='popular'?copy.sort((a,b)=>(b.likes||0)-(a.likes||0)):copy;}
-function sanitizeCloudSearchTerm(value){return String(value||'').replace(/[\\%_]/g,'').replace(/[\\u0000-\\u001f\\u007f]/g,'').trim().slice(0,60)}
+function sanitizeCloudSearchTerm(value){return String(value||'').replace(/[\\%_]/g,'').replace(/[\x00-\x1f\x7f]/g,'').trim().slice(0,60)}
 async function searchCloudContent(rawQuery,requestId){
  const root=discoverPage.querySelector('#cloudSearchResults');if(!root||requestId!==cloudSearchRequest)return;
  const term=sanitizeCloudSearchTerm(rawQuery);if(term.length<2){root.innerHTML='<div class="cloud-search-status">Nhập ít nhất 2 ký tự để tìm thành viên và bài viết công khai.</div>';return}
