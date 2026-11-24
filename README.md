@@ -781,7 +781,7 @@ on conflict (user_id) do nothing;
 - Added [the Android mobile regression checklist](docs/MOBILE-REGRESSION-TEST-2.37.md) for real-device checks. Automated checks cannot replace testing on physical Android phones; account sign-in, cross-device sync, media upload, and MFA still require manual verification.
 
 
-## Prototype 2.38 — Private posts across devices and duplicate sync repair
+## Prototype 2.39 — Private posts across devices and duplicate sync repair
 
 - Fixed the home feed filter so private Cloud posts are visible to the currently signed-in owner on any device. Private posts from other accounts remain excluded.
 - Kept private media access owner-scoped: the client downloads media only through authenticated metadata for the signed-in account, while the existing Storage RLS policy restricts objects to the matching account folder.
@@ -789,3 +789,13 @@ on conflict (user_id) do nothing;
 - Preserved unrelated public Cloud posts and browser-local demo posts during owner sync.
 - Added regression checks for owner-only private feed visibility, authenticated private media retrieval, and stable-ID deduplication. No database schema or RLS policy was changed.
 - Manual verification is still required on two Android devices using the same test account: one private image/video post, one private text post, and one public text post. Confirm each appears exactly once and private posts remain invisible to a separate account.
+
+
+## Prototype 2.39 — Local composer drafts
+
+- Added automatic local draft saving for composer text, post type, and visibility as the user edits the form.
+- Restores the latest draft when the composer is opened again, including after a page reload on the same browser/device.
+- Added an explicit clear-draft action. A draft is also cleared after a post is successfully published; failed publishing keeps the draft.
+- Drafts remain in this browser's local storage and are not uploaded to SYNTRA Cloud or shared across devices.
+- Browser file inputs cannot be restored after closing or reloading a page, so image/video attachments must be selected again. No attachment bytes, passwords, or account credentials are stored in the draft.
+- Added static regression checks for autosave, restoration, clearing, and the local-only/media behavior. Manual Android browser testing is still required.
