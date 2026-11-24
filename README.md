@@ -569,3 +569,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Public feed is refreshed after a successful profile update. This release does not add profile bio or avatar editing.
 - Settings gear alignment from 2.17 remains unchanged.
 - Static regression checks cover account scoping, column selection, validation, visibility mapping and update-result verification. Real account testing is still required.
+
+
+## Prototype 2.21 — Cloud profile avatars
+
+- Added profile avatar upload and removal in the SYNTRA Cloud profile settings.
+- Uses the private `syntra-avatars` Storage bucket. Uploads are limited to JPEG, PNG or WebP and 2 MB.
+- Each object is stored under the authenticated user's ID folder with a unique filename. Uploads use `upsert: false`; the profile pointer is updated only after the upload succeeds.
+- Storage SELECT policy permits the owner to read their own avatar and permits other visitors to read avatars only when the corresponding profile is public and discoverable. INSERT and DELETE are owner-folder scoped.
+- Public profile pages now display the stored avatar. Private profiles remain unavailable to signed-out visitors, and their avatar objects are not readable by other users.
+- The database exposes only the `avatar_path` profile column in addition to the previously permitted public fields; no service-role key is used in the browser.
+- Static regression checks cover upload validation, owner-scoped storage paths, profile pointer verification, deletion, and public-profile display. Real uploads and two-device viewing still need a user-device test.
