@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.9** — mobile-first local prototype with discovery, creator dashboard, community groups, local social interactions, and safety controls including block, community rules, and content warnings.
+ > Status: **Prototype 2.10** — mobile-first prototype with Supabase email authentication, private text-post sync, and private cross-device image/video storage. This remains a limited prototype, not a public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -42,7 +42,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 2. Backend foundation — initial Supabase database and RLS deployed; real authentication/client integration pending.
 3. Profiles and following — demo/local version implemented; server-side social graph pending.
 4. Posts, comments, reactions and notifications — local demo implemented; real moderation/report/block tools pending.
-5. Local image/video attachments and multi-image albums — prototype implemented; cloud media storage pending.
+5. Image/video attachments and multi-image albums — local preview plus private Supabase Storage sync implemented for the signed-in account.
 6. Short-video feed, recommendations and streaming — pending.
 7. Real communities and group membership — pending.
 8. Security, privacy controls, accessibility and deployment testing — required before public launch.
@@ -53,7 +53,7 @@ Demo posts created in this version are saved in browser local storage on the cur
 - The backend architecture is documented in [docs/BACKEND-ARCHITECTURE.md](docs/BACKEND-ARCHITECTURE.md).
 - The read-only Supabase schema/RLS review is recorded in [docs/BACKEND-AUDIT-1.9.md](docs/BACKEND-AUDIT-1.9.md).
 - The authorization scenarios and acceptance criteria are documented in [docs/RLS-TEST-MATRIX-1.9B.md](docs/RLS-TEST-MATRIX-1.9B.md).
-- Supabase project `SYNTRA-Social` is active in Singapore (`ap-southeast-1`). The initial nine-table PostgreSQL schema and RLS baseline are deployed. Email provider configuration, frontend authentication, Storage policies and end-to-end tests are still pending.
+- Supabase project `SYNTRA-Social` is active in Singapore (`ap-southeast-1`). The existing PostgreSQL schema and RLS baseline are deployed. The static frontend now includes email authentication and a private media bucket restricted to each authenticated user's own storage folder. End-to-end device testing remains pending.
 - Keep the public prototype local-only until authentication, RLS, private media policies, block/report controls and age-appropriate safeguards pass verification.
 
 ## Authentication setup
@@ -474,3 +474,16 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Dùng cùng tài khoản trên nhiều thiết bị là điều kiện để xem cùng một tập bài viết. Không chia sẻ mật khẩu qua chat hoặc mã nguồn.
 
 **Kiểm chứng trước khi phát hành:** dự án Supabase đang hoạt động; bảng `posts` bật RLS; quyền `authenticated` có SELECT/INSERT, còn `anon` không có SELECT/INSERT; chính sách `posts_select_own` và `posts_insert_own` giới hạn theo `auth.uid() = author_id`. Cơ sở dữ liệu hiện chưa có tài khoản hoặc bài viết. Đăng ký/đăng nhập thật và kiểm tra hai điện thoại vẫn cần thử bằng tài khoản của người dùng.
+
+
+## Prototype 2.10 — Private cloud media sync
+
+- Signed-in users can publish text posts, photo albums (up to 8 images, 4 MB each / 20 MB total), or one video (MP4/WEBM, up to 12 MB).
+- Media files upload to the private `syntra-post-media` Supabase Storage bucket. The bucket is not public.
+- Storage SELECT, INSERT and DELETE policies restrict each account to the first folder matching its authenticated user ID.
+- Media metadata is stored in the existing `public.post_media` table; no new public-facing table or service-role key is added.
+- On another device, sign in to the same account and press **Đồng bộ ngay**. The app fetches the account's post/media metadata and downloads attachments only when they are displayed.
+- Deleting a cloud post removes its stored media objects before deleting the post record.
+- Existing local-only demo posts and files are not automatically uploaded or migrated.
+- Cloud posts remain `private`; this release does not make them visible to other accounts. Comments, likes, messages, groups and public feeds are not yet cloud-synced.
+- Static validation and GitHub Actions do not replace real Android upload/download testing. Test with non-sensitive sample files first.
