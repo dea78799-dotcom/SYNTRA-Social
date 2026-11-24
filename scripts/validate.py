@@ -48,6 +48,19 @@ for index, js in enumerate(parser.parts, start=1):
         raise SystemExit(f"FAIL: inline script {index} has a syntax error")
     print(f"PASS: inline JavaScript {index} syntax")
 
+if not CLOUD_CLIENT.exists():
+    raise SystemExit("FAIL: supabase-client.js is missing")
+with tempfile.NamedTemporaryFile("w", suffix=".mjs", encoding="utf-8", delete=False) as file:
+    file.write(cloud_source)
+    cloud_path = file.name
+cloud_result = subprocess.run(["node", "--check", cloud_path], text=True, capture_output=True)
+Path(cloud_path).unlink(missing_ok=True)
+if cloud_result.returncode:
+    print(cloud_result.stdout)
+    print(cloud_result.stderr)
+    raise SystemExit("FAIL: Supabase module has a syntax error")
+print("PASS: Supabase module syntax")
+
 checks = {
     "local reset clears the posts key": "[KEY," in source and "BLOCKED_USERS_KEY].forEach(k=>localStorage.removeItem(k))" in source,
     "local reset clears the notices collection": "notices=[]" in source,
