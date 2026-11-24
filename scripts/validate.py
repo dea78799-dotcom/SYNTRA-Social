@@ -193,6 +193,13 @@ checks = {
     "read all updates only recipient-owned read_at fields": ".from('notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',userId).is('read_at',null)" in source,
     "cloud notifications refresh on account change and app focus": "await loadCloudNotifications(syntraCloudUser.id,true)" in source and "await loadCloudNotifications(syntraCloudUser.id,true)" in source,
     "notification writes are handled by database triggers, not client inserts": "from('notifications').insert" not in source and "async function loadCloudNotifications" in source,
+    "cloud search queries only public discoverable profiles": "async function searchCloudContent" in source and ".eq('is_private',false).eq('is_discoverable',true)" in source,
+    "cloud search queries published public posts only": ".eq('visibility','public').eq('status','published').ilike('body',pattern)" in source,
+    "cloud search limits result counts and sanitizes wildcard input": "function sanitizeCloudSearchTerm" in source and ".slice(0,60)" in source and ".limit(12)" in source and ".limit(8)" in source,
+    "cloud search ignores stale responses": "requestId!==cloudSearchRequest" in source and "function scheduleCloudSearch" in source,
+    "cloud search escapes profile and post content": "esc(member.display_name||member.username" in source and "esc(post.text)" in source,
+    "cloud search result actions open public profiles and posts": "data-cloud-search-profile" in source and "data-cloud-search-post" in source and "openPostDetail(button.dataset.cloudSearchPost)" in source,
+    "settings version reflects prototype 2.26": "SYNTRA Social Prototype 2.26" in source and '<span class="meta">2.26</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
