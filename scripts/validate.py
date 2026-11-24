@@ -9,7 +9,11 @@ CLOUD_CLIENT = Path("supabase-client.js")
 PRIVACY_MIGRATION = Path("supabase/migrations/20261124120000_privacy_deletion_cancel_grant.sql")
 REPORT_MIGRATION = Path("supabase/migrations/20261124130000_syntra_social_235_report_validation.sql")
 OWNER_MIGRATION = Path("supabase/migrations/20261124140000_syntra_social_236_owner_moderation.sql")
+OWNER_PRIVACY_MIGRATION = Path("supabase/migrations/20261124143000_syntra_social_2361_report_privacy_acl.sql")
+OWNER_MIGRATION = Path("supabase/migrations/20261124140000_syntra_social_236_owner_moderation.sql")
 report_migration_source = REPORT_MIGRATION.read_text(encoding="utf-8") if REPORT_MIGRATION.exists() else ""
+owner_migration_source = OWNER_MIGRATION.read_text(encoding="utf-8") if OWNER_MIGRATION.exists() else ""
+owner_privacy_migration_source = OWNER_PRIVACY_MIGRATION.read_text(encoding="utf-8") if OWNER_PRIVACY_MIGRATION.exists() else ""
 owner_migration_source = OWNER_MIGRATION.read_text(encoding="utf-8") if OWNER_MIGRATION.exists() else ""
 privacy_migration_source = PRIVACY_MIGRATION.read_text(encoding="utf-8") if PRIVACY_MIGRATION.exists() else ""
 cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
@@ -74,7 +78,7 @@ checks = {
     "report trigger function is not executable directly by client roles": "revoke all on function public.validate_syntra_report() from public, anon, authenticated;" in report_migration_source,
     "cloud report dialog submits only supported report target types": "function openCloudReportDialog(targetType,targetId,targetLabel)" in source and "!['post','comment','profile'].includes(targetType)" in source,
     "cloud report dialog sends authenticated reports with bounded details": "from('reports').insert({reporter_id:userId,target_type:targetType,target_id:targetId,reason,details})" in source and 'maxlength="1000"' in source,
-    "report history reads only the signed-in reporter's records": "from('reports').select('id,target_type,target_id,reason,details,status,created_at').eq('reporter_id',userId)" in source,
+    "report history relies on reporter-only RLS without selecting reporter identity": "from('reports').select('id,target_type,target_id,reason,details,status,created_at').order('created_at'" in source and ".eq('reporter_id',userId)" not in source,
     "public post menu opens the cloud report dialog": "openCloudReportDialog('post',p.id,p.name)" in source,
     "public profile has a report action": 'id="cloudReportProfile"' in source and "openCloudReportDialog('profile',id,displayName)" in source,
     "cloud comments have report actions": "data-report-comment" in source and "openCloudReportDialog('comment',b.dataset.reportComment" in source,
@@ -125,7 +129,7 @@ checks = {
     "Owner moderation requires AAL2 on the server": "auth.jwt()->>'aal','aal1') <> 'aal2'" in owner_migration_source and "reports_select_owner_aal2" in owner_migration_source,
     "moderation audit is private and records every status transition": "private.syntra_report_moderation_audit" in owner_migration_source and "insert into private.syntra_report_moderation_audit" in owner_migration_source,
     "reports cannot be updated directly by authenticated clients": "revoke update (id,reporter_id,target_type,target_id,reason,details,status,created_at)" in owner_migration_source,
-    "reporter identity is not selectable by authenticated clients": "revoke select (reporter_id) on table public.reports from authenticated;" in owner_migration_source,
+    "reporter identity is not selectable by authenticated clients": "revoke select on table public.reports from authenticated;" in owner_privacy_migration_source and "grant select (id, target_type, target_id, reason, details, status, created_at)" in owner_privacy_migration_source,
     "cloud block records load across devices for the current account": "async function loadCloudBlocks" in source and "from('blocks').select('blocker_id,blocked_id,blocked_label,created_at')" in source,
     "cloud blocking stores stable account IDs and labels": "from('blocks').insert({blocker_id:userId,blocked_id:targetId,blocked_label:safeLabel})" in source,
     "cloud block list supports unblocking": "async function unblockCloudUser" in source and "data-cloud-unblock" in source,
