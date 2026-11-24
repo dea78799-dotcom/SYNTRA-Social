@@ -70,6 +70,11 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "composer drafts autosave text and post options locally": "COMPOSER_DRAFT_KEY='syntra_social_composer_draft_v1'" in source and "localStorage.setItem(COMPOSER_DRAFT_KEY" in source and "getElementById('postText').addEventListener('input',saveComposerDraft)" in source and "getElementById('postType').addEventListener('change',saveComposerDraft)" in source and "getElementById('postVisibility').addEventListener('change',saveComposerDraft)" in source,
+    "composer drafts restore when the composer opens": "function restoreComposerDraft()" in source and "restoreComposerDraft();syncComposerViewport()" in source,
+    "composer drafts can be explicitly cleared and clear after successful publishing": "getElementById('clearDraft').addEventListener('click',()=>clearComposerDraft(true))" in source and "save();clearComposerDraft(true);close();filter('all')" in source,
+    "composer draft UI explains local-only storage and media re-selection": 'id="draftStatus"' in source and "Bản nháp chỉ lưu văn bản và lựa chọn bài viết trên trình duyệt này." in source and "Ảnh/video cần chọn lại nếu bạn đóng trang." in source,
+    "composer draft stylesheet is present and closed in document head": '<style id="syntra-composer-draft-2-39">' in source and source.find("</style>",source.find('<style id="syntra-composer-draft-2-39">')) < source.find("</head>"),
     "report migration validates authenticated ownership and public target": "new.reporter_id <> auth.uid()" in report_migration_source and "p.visibility = 'public'" in report_migration_source and "p.is_discoverable = true" in report_migration_source,
     "report migration enforces a daily submission limit": "recent_count >= 10" in report_migration_source and "interval '24 hours'" in report_migration_source,
     "report migration rejects self-reporting and locks status": "target_owner = new.reporter_id" in report_migration_source and "new.status := 'open'" in report_migration_source,
