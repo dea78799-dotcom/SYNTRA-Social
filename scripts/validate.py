@@ -82,7 +82,7 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.26": "SYNTRA Social Prototype 2.26" in source and '<span class="meta">2.26</span>' in source,
+    "settings version reflects prototype 2.27": "SYNTRA Social Prototype 2.27" in source and '<span class="meta">2.27</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
     "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
@@ -199,6 +199,8 @@ checks = {
     "cloud search ignores stale responses": "requestId!==cloudSearchRequest" in source and "function scheduleCloudSearch" in source,
     "cloud search escapes profile and post content": "esc(member.display_name||member.username" in source and "esc(post.text)" in source,
     "cloud search result actions open public profiles and posts": "data-cloud-search-profile" in source and "data-cloud-search-post" in source and "openPostDetail(button.dataset.cloudSearchPost)" in source,
+    "post detail remembers the previous screen": "let postDetailReturnView='all'" in source and "postDetailReturnView=active;activePostId=id" in source and "active=postDetailReturnView||'all'" in source,
+    "post detail back action has neutral label": 'id="detailBack">← Quay lại</button>' in source,
     "settings version reflects prototype 2.26": "SYNTRA Social Prototype 2.26" in source and '<span class="meta">2.26</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
