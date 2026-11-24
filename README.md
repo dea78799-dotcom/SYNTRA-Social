@@ -799,3 +799,12 @@ on conflict (user_id) do nothing;
 - Drafts remain in this browser's local storage and are not uploaded to SYNTRA Cloud or shared across devices.
 - Browser file inputs cannot be restored after closing or reloading a page, so image/video attachments must be selected again. No attachment bytes, passwords, or account credentials are stored in the draft.
 - Added static regression checks for autosave, restoration, clearing, and the local-only/media behavior. Manual Android browser testing is still required.
+
+
+## Prototype 2.40 — Multiple named composer drafts
+
+- Added a separate local draft collection alongside the existing automatic working draft. Users can save the current text and post options under a name, reopen a saved draft, rename it, or delete it.
+- The collection is capped at 20 entries. Saving with an existing name updates that named entry instead of creating a duplicate; names are compared case-insensitively.
+- Stored records are validated when read. Storage and quota errors are caught and surfaced in the composer; malformed collections are not silently overwritten.
+- Named drafts remain local to the current browser origin and device. They do not sync through SYNTRA Cloud. Attachments are not stored and must be selected again.
+- Added static regression checks for collection bounds, CRUD actions, validation, UI wiring, and responsive styling. Real Android interaction still requires manual verification.
