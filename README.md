@@ -545,3 +545,15 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Signed-out visitors load the public feed after the cloud client initializes; public posts are preserved when accounts switch.
 - Static regression checks cover visibility selection, public-only queries, private-post filtering, profile visibility, signed-out initialization and safe media restrictions.
 - Requires a real two-account / signed-out browser test before treating public visibility as production-ready.
+
+
+## Prototype 2.19 — Public member profiles
+
+- Tapping the author name or avatar on a public cloud post opens that account's public profile.
+- The profile page shows the account display name, username and up to 50 published public text posts.
+- The profile query checks both `is_private = false` and `is_discoverable = true`; unavailable or private profiles are not shown.
+- Profile reads request only ID, username, display name and visibility flags. Bio and avatar storage paths are not fetched or displayed.
+- The profile post query is scoped to the selected author and `visibility = 'public'` plus `status = 'published'`.
+- This remains a read-only profile view; follow counts, likes, comments and public media are not represented as server-backed features.
+- Static regression checks cover profile routing, visibility checks, public-only post queries, limited profile fields and return navigation.
+- Test with a signed-out browser or a second account after publishing a public text post.
