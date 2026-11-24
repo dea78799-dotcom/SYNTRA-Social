@@ -733,3 +733,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Granted authenticated users column-level UPDATE permission on `account_deletion_requests.status` so the existing cancel-pending-request action can work.
 - The existing RLS policy still limits cancellation to the signed-in owner of a pending request and requires the resulting status to be `cancelled`; users cannot update `user_id` or other columns.
 - Applied and verified against the live Supabase project. The privilege check confirms UPDATE on `status` is allowed while UPDATE on `user_id` and table-wide UPDATE remain unavailable.
+
+
+## Prototype 2.35 — Community Safety and Reports
+
+- Added a Cloud report dialog for public posts, public discoverable profiles, and comments attached to public published posts. Reports require an authenticated SYNTRA Cloud account.
+- Added reason categories (spam/scams, harassment, hate, violence, misinformation, privacy, and other) and optional details capped at 1,000 characters.
+- Added a report-history panel in Settings. RLS continues to limit report history to the submitting account; users cannot view other users' reports or change moderation status.
+- Added a server-side trigger that verifies the reporter identity, validates that the target still exists and is publicly reportable, rejects self-reports, forces new reports to `open`, and limits each account to 10 reports per rolling 24-hour period.
+- The report system records cases for later owner review. It does not automatically remove content, suspend accounts, or expose an administrative moderation console. Those actions require a separately authenticated moderator workflow.
+- Existing `reports` table and RLS policies were reused; no duplicate table was created. Migration: `20261124130000_syntra_social_235_report_validation.sql`.
+- Static checks cover report UI, authenticated ownership, target validation, rate limits, and version metadata. Real multi-account report submission and moderation operations still require manual testing.
