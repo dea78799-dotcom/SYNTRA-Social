@@ -557,3 +557,15 @@ GitHub Pages can host the static prototype. A real social network will require a
 - This remains a read-only profile view; follow counts, likes, comments and public media are not represented as server-backed features.
 - Static regression checks cover profile routing, visibility checks, public-only post queries, limited profile fields and return navigation.
 - Test with a signed-out browser or a second account after publishing a public text post.
+
+
+## Prototype 2.20 — Cloud profile settings
+
+- Added a signed-in account profile editor for display name, username and profile visibility.
+- Profile loading requests only the existing allowed columns and is scoped to the current authenticated user ID.
+- Updates are scoped to the current account, use the existing owner-only RLS policy, request the changed row with `.select()`, and verify that a row was actually updated.
+- Username validation requires 3–30 lowercase letters, digits or underscores; the existing case-insensitive unique database index prevents duplicate usernames.
+- Public visibility sets `is_private = false` and `is_discoverable = true`; private visibility disables both public profile discovery and profile access. Public post content remains controlled separately by each post's visibility.
+- Public feed is refreshed after a successful profile update. This release does not add profile bio or avatar editing.
+- Settings gear alignment from 2.17 remains unchanged.
+- Static regression checks cover account scoping, column selection, validation, visibility mapping and update-result verification. Real account testing is still required.
