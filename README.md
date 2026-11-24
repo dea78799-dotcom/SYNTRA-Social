@@ -356,3 +356,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Deepened `scripts/validate_security_1_9c.py` to inspect transaction order, grants and protected columns, trigger function scope/search path, database timestamp transition, trigger event, policy role and both `USING`/`WITH CHECK` predicates, and unexpected extra policies.
 - Expanded mutation self-tests to seven unsafe changes: broad UPDATE, protected-column grant, missing timestamp assignment, wrong identity predicate, missing WITH CHECK, extra permissive policy, and SECURITY DEFINER escalation. The baseline must still pass.
 - Static checks remain a source-contract audit, not a PostgreSQL parser or runtime security test. No migration has been applied to production or a staging database.
+
+
+## UI icon refresh 1.1
+
+- Replaced desktop navigation glyphs with a cohesive rounded-outline SVG style: Home, Explore, Video, Photos, Communities, Following, Saved, Inbox, and Settings.
+- Applied matching icons to mobile bottom navigation and post-composer media/community actions; the central create action uses a gold filled button.
+- Added a small inline icon renderer for future UI components, using a consistent 24px viewBox, rounded strokes, and currentColor styling.
+- Visual-only update: navigation behavior and local prototype data are unchanged. Browser/mobile visual testing is still pending.
+- Design reference: docs/ICON-SYSTEM-1.1.md.
