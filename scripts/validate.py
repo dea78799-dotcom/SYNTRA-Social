@@ -82,7 +82,7 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.27": "SYNTRA Social Prototype 2.27" in source and '<span class="meta">2.27</span>' in source,
+    "settings version reflects prototype 2.28": "SYNTRA Social Prototype 2.28" in source and '<span class="meta">2.28</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
     "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
@@ -90,7 +90,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.27": '<span class="meta">2.27</span>' in source,
+    "settings badge reflects prototype 2.28": '<span class="meta">2.28</span>' in source,
     "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
 
     "cloud avatar controls are disabled and cleared when signed out": "if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;" in source and "cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');" in source,
@@ -199,9 +199,15 @@ checks = {
     "cloud search ignores stale responses": "requestId!==cloudSearchRequest" in source and "function scheduleCloudSearch" in source,
     "cloud search escapes profile and post content": "esc(member.display_name||member.username" in source and "esc(post.text)" in source,
     "cloud search result actions open public profiles and posts": "data-cloud-search-profile" in source and "data-cloud-search-post" in source and "openPostDetail(button.dataset.cloudSearchPost)" in source,
+    "cloud bookmarks are loaded only for the signed-in user": "from('post_bookmarks').select('post_id,created_at').eq('user_id',userId)" in source and "function loadCloudBookmarks" in source,
+    "cloud bookmarks load only published public posts": "in('id',ids).eq('visibility','public').eq('status','published')" in source,
+    "cloud bookmarks restore saved state across sessions": "post.saved=savedIds.has(post.id)" in source and "await loadCloudBookmarks(syntraCloudUser.id,true)" in source,
+    "cloud bookmark writes are scoped to the current user": "from('post_bookmarks').delete().eq('user_id',userId).eq('post_id',p.id)" in source and "from('post_bookmarks').insert({user_id:userId,post_id:p.id})" in source,
+    "cloud bookmarks require sign-in and ignore stale account responses": "Đăng nhập SYNTRA Cloud để lưu bài viết giữa các thiết bị." in source and "syntraCloudUser.id!==userId" in source,
+
     "post detail remembers the previous screen": "let postDetailReturnView='all'" in source and "postDetailReturnView=active;activePostId=id" in source and "active=postDetailReturnView||'all'" in source,
     "post detail back action has neutral label": 'id="detailBack">← Quay lại</button>' in source,
-    "settings version reflects prototype 2.27": "SYNTRA Social Prototype 2.27" in source and '<span class="meta">2.27</span>' in source,
+    "settings version reflects prototype 2.28": "SYNTRA Social Prototype 2.28" in source and '<span class="meta">2.28</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
