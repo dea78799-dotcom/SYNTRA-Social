@@ -173,6 +173,11 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 .settings-button{border:1px solid #353641;background:#22232c;border-radius:10px;padding:9px 11px;font-size:12px}
 .settings-button.danger{border-color:#693344;background:#2b1820;color:#ffb2c5}
 .settings-note{font-size:11px;color:#9696a6;line-height:1.65;margin:8px 0 0}
+.cloud-auth-fields{display:grid;gap:8px;margin-top:10px}
+.cloud-auth-fields input{width:100%;min-width:0;background:#101116;border:1px solid #30313c;border-radius:9px;color:#f4f3f8;padding:11px;font:inherit;font-size:13px}
+.cloud-auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.cloud-auth-actions .settings-button{flex:1;min-width:110px}
+.settings-button:disabled{opacity:.45;cursor:not-allowed}
 .settings-danger{border-color:#633343}.settings-danger h3{color:#ffb2c5}
 body.syntra-compact .post,body.syntra-compact .composer{padding:9px;margin-bottom:8px}
 body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
@@ -763,6 +768,97 @@ function renderGroups(groupId=null){
 
 const demoContacts=[{id:'syntra-team',name:'SYNTRA Team',initial:'S',status:'Tài khoản demo chính thức'},{id:'creative-studio',name:'Creative Studio',initial:'C',status:'Nhà sáng tạo demo'},{id:'tech-corner',name:'Góc Công nghệ',initial:'G',status:'Cộng đồng demo'}];
 function save(){return writeLocalJSON(KEY,posts)}
+
+let syntraSupabaseClient=null;
+let syntraCloudUser=null;
+let syntraCloudReady=false;
+let syntraCloudMessage='';
+function cloudPostFromRow(row){
+ const displayName=(syntraCloudUser&&syntraCloudUser.user_metadata&&syntraCloudUser.user_metadata.display_name)||localProfile.name||'Bạn';
+ return{id:row.id,name:displayName,tag:'@syntra · '+new Date(row.created_at).toLocaleString('vi-VN'),text:row.body||'',type:'text',mediaIds:[],mediaId:null,likes:0,liked:false,saved:false,comments:[],cloud:true,visibility:row.visibility||'private',createdAt:row.created_at};
+}
+function updateCloudAccountUI(message){
+ if(message)cloudAccountMessage=message;
+ const status=document.getElementById('cloudAccountStatus');
+ if(status){
+  if(cloudAccountMessage)status.textContent=cloudAccountMessage;
+  else if(!syntraCloudReady)status.textContent='Đang kết nối SYNTRA Cloud…';
+  else if(syntraCloudUser)status.textContent='Đã đăng nhập · '+(syntraCloudUser.email||'Tài khoản SYNTRA')+' · Bài viết riêng tư được đồng bộ trên tài khoản này.';
+  else status.textContent='Chưa đăng nhập. Dùng cùng một tài khoản trên hai điện thoại để xem chung bài viết.';
+ }
+ const signedIn=!!syntraCloudUser;
+ ['cloudSignUp','cloudSignIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!syntraCloudReady||signedIn});
+ ['cloudSyncNow','cloudSignOut'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!syntraCloudReady||!signedIn});
+}
+async function syncCloudPosts(silent){
+ if(!syntraSupabaseClient||!syntraCloudUser)return false;
+ const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('author_id',syntraCloudUser.id).eq('status','published').order('created_at',{ascending:false}).limit(100);
+ if(error){console.warn('SYNTRA cloud sync failed:',error);updateCloudAccountUI('Không đồng bộ được bài viết: '+error.message);if(!silent)toast('Không đồng bộ được bài viết. Hãy thử lại.');return false}
+ const cloudPosts=(data||[]).map(cloudPostFromRow);
+ posts=[...cloudPosts,...posts.filter(post=>!post.cloud)];
+ save();
+ render();
+ updateCloudAccountUI();
+ if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết từ SYNTRA Cloud.');
+ return true;
+}
+async function setCloudSession(session){
+ const previousId=syntraCloudUser&&syntraCloudUser.id;
+ syntraCloudUser=session&&session.user?session.user:null;
+ cloudAccountMessage='';
+ if(syntraCloudUser)await syncCloudPosts(true);
+ else if(previousId){posts=posts.filter(post=>!post.cloud);save();render()}
+ updateCloudAccountUI();
+}
+async function handleCloudSignUp(){
+ if(!syntraSupabaseClient||!syntraCloudReady){toast('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ const password=document.getElementById('cloudPassword')?.value||'';
+ const displayName=(document.getElementById('cloudDisplayName')?.value||'').trim();
+ if(!displayName||!email||!password){updateCloudAccountUI('Hãy nhập tên hiển thị, email và mật khẩu.');return}
+ if(password.length<8){updateCloudAccountUI('Mật khẩu cần có ít nhất 8 ký tự.');return}
+ const button=document.getElementById('cloudSignUp');if(button)button.disabled=true;
+ try{
+  const {data,error}=await syntraSupabaseClient.auth.signUp({email,password,options:{data:{display_name:displayName}}});
+  if(error)throw error;
+  if(data.session){await setCloudSession(data.session);updateCloudAccountUI('Tạo tài khoản thành công. Bài viết mới sẽ được đồng bộ.');toast('Đã tạo tài khoản SYNTRA.')}
+  else updateCloudAccountUI('Đã gửi yêu cầu tạo tài khoản. Nếu hệ thống yêu cầu xác nhận email, hãy mở thư xác nhận rồi quay lại đăng nhập.');
+ }catch(error){updateCloudAccountUI('Không tạo được tài khoản: '+(error.message||'Lỗi không xác định'))}
+ finally{updateCloudAccountUI()}
+}
+async function handleCloudSignIn(){
+ if(!syntraSupabaseClient||!syntraCloudReady){toast('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ const password=document.getElementById('cloudPassword')?.value||'';
+ if(!email||!password){updateCloudAccountUI('Hãy nhập email và mật khẩu.');return}
+ const button=document.getElementById('cloudSignIn');if(button)button.disabled=true;
+ try{
+  const {data,error}=await syntraSupabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  await setCloudSession(data.session);
+  updateCloudAccountUI('Đăng nhập thành công. Bài viết đã được đồng bộ.');
+  toast('Đã đăng nhập SYNTRA Cloud.');
+ }catch(error){updateCloudAccountUI('Đăng nhập không thành công: '+(error.message||'Hãy kiểm tra thông tin đăng nhập.'))}
+ finally{updateCloudAccountUI()}
+}
+async function handleCloudSignOut(){
+ if(!syntraSupabaseClient)return;
+ const {error}=await syntraSupabaseClient.auth.signOut();
+ if(error){updateCloudAccountUI('Không đăng xuất được: '+error.message);return}
+ await setCloudSession(null);toast('Đã đăng xuất SYNTRA Cloud.');
+}
+async function refreshCloudPosts(){if(!syntraCloudUser){toast('Hãy đăng nhập trước.');return}await syncCloudPosts(false)}
+window.syntraCloudInit=async function(client){
+ syntraSupabaseClient=client;syntraCloudReady=true;updateCloudAccountUI();
+ const {data,error}=await client.auth.getSession();
+ if(error){updateCloudAccountUI('Không đọc được phiên đăng nhập: '+error.message);return}
+ await setCloudSession(data.session);
+ client.auth.onAuthStateChange((event,session)=>{
+  if(event==='INITIAL_SESSION')return;
+  Promise.resolve().then(()=>setCloudSession(session));
+ });
+};
+
 function saveNotices(){writeLocalJSON(NOTICE_KEY,notices);renderNoticeCount()}
 function addNotice(kind,title,body){notices.unshift({id:'n'+Date.now()+Math.random().toString(16).slice(2,6),kind,title,body,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),read:false,demo:false});notices=notices.slice(0,60);saveNotices()}
 function renderNoticeCount(){const n=notices.filter(x=>!x.read).length;const el=document.getElementById('noticeCount');if(el){el.textContent=n>99?'99+':String(n);el.style.display=n?'inline-block':'none'}}
@@ -817,15 +913,20 @@ function renderSettings(){
  feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='block';settingsPage.classList.add('show');
  document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
  settingsPage.innerHTML='<div class="settings-head"><button class="secondary" id="settingsBack">←</button><div><h2>Cài đặt</h2><p>SYNTRA Social · Demo trên thiết bị</p></div></div>'+
- '<section class="settings-section"><h3>Quyền riêng tư</h3>'+
+ '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.9 đồng bộ bài viết văn bản; ảnh và video vẫn đang lưu cục bộ.</p></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
  '<div class="settings-row"><div><b>Hiển thị hồ sơ</b><small>Điều khiển mô phỏng quyền xem hồ sơ</small></div><select id="visibility"><option value="public">Công khai</option><option value="followers">Người theo dõi</option><option value="private">Riêng tư</option></select></div>'+
  '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
  '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
  '</section><section class="settings-section"><h3>Người dùng đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Danh sách chặn chỉ áp dụng trên trình duyệt hiện tại và dùng tên hiển thị; chưa có tài khoản hoặc ID người dùng ổn định.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Dữ liệu hiện chỉ lưu trên trình duyệt này. Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.8</small></div><span class="meta">2.8</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Frontend demo · Local storage</small></div><span class="meta">Offline demo</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.9</small></div><span class="meta">2.9</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Frontend demo · Local storage</small></div><span class="meta">Offline demo</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
+ settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
+ settingsPage.querySelector('#cloudSignIn').onclick=handleCloudSignIn;
+ settingsPage.querySelector('#cloudSignOut').onclick=handleCloudSignOut;
+ settingsPage.querySelector('#cloudSyncNow').onclick=refreshCloudPosts;
+ updateCloudAccountUI();
  settingsPage.querySelector('#refreshMediaStorage').onclick=refreshMediaStorageStatus;
  settingsPage.querySelector('#runIntegrityAudit').onclick=auditDataIntegrity;
  settingsPage.querySelector('#exportIntegrityReport').onclick=exportIntegrityReport;
@@ -960,13 +1061,13 @@ const modal=document.getElementById('modal');let composerReturnFocus=null;functi
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show')){e.preventDefault();close()}});
 document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
-document.getElementById('publish').onclick=async()=>{const button=document.getElementById('publish');if(button.disabled)return;const textValue=document.getElementById('postText').value.trim();if(!textValue&&!selectedMedia.length){toast('Hãy nhập nội dung hoặc chọn tệp.');return}button.disabled=true;const mediaIds=[];try{for(const item of selectedMedia){const id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);await storeMedia(id,item.file);mediaIds.push(id)}const post={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),name:localProfile.name,tag:'@local · vừa xong',text:textValue,type:selectedMedia.length?(selectedMedia[0].kind==='image'?'photos':'video'):document.getElementById('postType').value,mediaIds,mediaId:mediaIds.length===1?mediaIds[0]:null,likes:0,liked:false,saved:false,comments:[]};posts.unshift(post);if(!save()){posts.shift();throw new Error('Bộ nhớ bài viết đã đầy.')}document.getElementById('postText').value='';close();filter('all');toast(mediaIds.length?'Đã lưu bài viết và '+mediaIds.length+' tệp trên thiết bị.':'Đã lưu bài viết trên thiết bị.')}catch(err){await Promise.all(mediaIds.map(deleteMedia));toast(err.message==='Bộ nhớ bài viết đã đầy.'?err.message:'Không lưu được tệp. Hãy kiểm tra dung lượng trình duyệt.')}finally{button.disabled=false}};
+document.getElementById('publish').onclick=async()=>{const button=document.getElementById('publish');if(button.disabled)return;const textValue=document.getElementById('postText').value.trim();if(!textValue&&!selectedMedia.length){toast('Hãy nhập nội dung hoặc chọn tệp.');return}if(!syntraCloudReady||!syntraSupabaseClient){toast('SYNTRA Cloud chưa kết nối. Hãy tải lại trang.');return}if(!syntraCloudUser){toast('Hãy đăng nhập trong Cài đặt để đăng bài đồng bộ giữa hai điện thoại.');return}if(selectedMedia.length){toast('Bản 2.9 hiện đồng bộ bài viết văn bản. Đồng bộ ảnh/video sẽ được bổ sung ở bước tiếp theo.');return}button.disabled=true;try{const {data,error}=await syntraSupabaseClient.from('posts').insert({author_id:syntraCloudUser.id,body:textValue,visibility:'private',status:'published'}).select('id,author_id,body,visibility,status,created_at').single();if(error)throw error;const post=cloudPostFromRow(data);posts=[post,...posts.filter(item=>item.id!==post.id)];save();document.getElementById('postText').value='';close();filter('all');toast('Đã đăng bài lên SYNTRA Cloud. Hãy đăng nhập cùng tài khoản trên điện thoại còn lại.')}catch(error){console.warn('SYNTRA cloud publish failed:',error);toast('Không đăng được bài: '+(error.message||'Lỗi kết nối'))}finally{button.disabled=false}};
 async function handlePostActionClick(e){
  const b=e.target.closest('button');if(!b)return;
  const menuToggle=b.closest('[data-post-menu]');
  if(menuToggle){const id=menuToggle.dataset.postMenu;const panel=menuToggle.parentElement.querySelector('[data-post-menu-panel]');const opening=panel&&panel.hidden;document.querySelectorAll('.post-menu').forEach(m=>m.hidden=true);document.querySelectorAll('[data-post-menu]').forEach(t=>t.setAttribute('aria-expanded','false'));if(panel&&opening){panel.hidden=false;menuToggle.setAttribute('aria-expanded','true')}return}
  const menuAction=b.closest('[data-post-menu-action]');
- if(menuAction){const id=menuAction.dataset.postId;const p=posts.find(x=>x.id===id);const panel=menuAction.closest('.post-menu');if(panel)panel.hidden=true;const wrap=menuAction.closest('.post-menu-wrap');const toggle=wrap&&wrap.querySelector('[data-post-menu]');if(toggle)toggle.setAttribute('aria-expanded','false');if(!p)return;if(menuAction.dataset.postMenuAction==='delete'){if(p.name!==localProfile.name){toast('Bạn chỉ có thể xóa bài viết của mình.');return}if(!confirm('Xóa bài viết này và toàn bộ ảnh/video đính kèm khỏi thiết bị?'))return;const mediaIds=getPostMediaIds(p);if(viewerPostId===p.id)closeImageViewer();const oldPosts=posts;posts=posts.filter(x=>x.id!==p.id);if(!save()){posts=oldPosts;toast('Không thể cập nhật bộ nhớ bài viết.');return}await Promise.all(mediaIds.map(deleteMedia));render();toast('Đã xóa bài viết và tệp đính kèm (nếu có).');return}if(menuAction.dataset.postMenuAction==='report'){if(p.name===localProfile.name){toast('Bạn không thể báo cáo bài viết của chính mình.');return}toast('Báo cáo nội dung sẽ được triển khai khi có hệ thống kiểm duyệt.');return}}
+ if(menuAction){const id=menuAction.dataset.postId;const p=posts.find(x=>x.id===id);const panel=menuAction.closest('.post-menu');if(panel)panel.hidden=true;const wrap=menuAction.closest('.post-menu-wrap');const toggle=wrap&&wrap.querySelector('[data-post-menu]');if(toggle)toggle.setAttribute('aria-expanded','false');if(!p)return;if(menuAction.dataset.postMenuAction==='delete'){if(!p.cloud&&p.name!==localProfile.name){toast('Bạn chỉ có thể xóa bài viết của mình.');return}if(p.cloud){if(!syntraSupabaseClient||!syntraCloudUser){toast('Hãy đăng nhập để xóa bài viết trên máy chủ.');return}if(!confirm('Xóa bài viết này khỏi SYNTRA Cloud trên tất cả thiết bị đã đăng nhập?'))return;const {error}=await syntraSupabaseClient.from('posts').delete().eq('id',p.id).eq('author_id',syntraCloudUser.id);if(error){toast('Không xóa được bài viết: '+error.message);return}posts=posts.filter(item=>item.id!==p.id);save();render();toast('Đã xóa bài viết khỏi SYNTRA Cloud.');return}if(!confirm('Xóa bài viết này và toàn bộ ảnh/video đính kèm khỏi thiết bị?'))return;const mediaIds=getPostMediaIds(p);if(viewerPostId===p.id)closeImageViewer();const oldPosts=posts;posts=posts.filter(x=>x.id!==p.id);if(!save()){posts=oldPosts;toast('Không thể cập nhật bộ nhớ bài viết.');return}await Promise.all(mediaIds.map(deleteMedia));render();toast('Đã xóa bài viết và tệp đính kèm (nếu có).');return}if(menuAction.dataset.postMenuAction==='report'){if(p.name===localProfile.name){toast('Bạn không thể báo cáo bài viết của chính mình.');return}toast('Báo cáo nội dung sẽ được triển khai khi có hệ thống kiểm duyệt.');return}}
  if(b.dataset.like){let p=posts.find(x=>x.id===b.dataset.like);p.liked=!p.liked;p.likes+=p.liked?1:-1;if(p.liked)addNotice('like','Bạn đã thích một bài viết','Bạn vừa thích bài viết của '+p.name+'.');save();render()}
  if(b.dataset.save){let p=posts.find(x=>x.id===b.dataset.save);p.saved=!p.saved;save();render();toast(p.saved?'Đã lưu bài viết':'Đã bỏ lưu')}
  if(b.dataset.comment){let p=posts.find(x=>x.id===b.dataset.comment);let c=prompt('Nhập bình luận (demo lưu trên thiết bị):');if(c&&c.trim()){p.comments.push({name:localProfile.name,text:c.trim()});addNotice('comment','Bạn đã bình luận', 'Bình luận của bạn đã được lưu trên thiết bị.');save();render();toast('Đã thêm bình luận trên thiết bị.')}}
@@ -998,5 +1099,6 @@ document.querySelectorAll('[data-filter="profile"]').forEach(b=>b.addEventListen
 function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 render();
 </script>
+<script type="module" src="./supabase-client.js"></script>
 </body>
 </html>
