@@ -935,6 +935,7 @@ async function loadCloudProfileSettings(){
  const bioCount=document.getElementById('cloudProfileBioCount');
  if(!status||!saveButton||!displayInput||!usernameInput||!visibilityInput||!bioInput)return;
  const userId=syntraCloudUser&&syntraCloudUser.id;
+ const cloudExportButton=document.getElementById('cloudExportData');if(cloudExportButton)cloudExportButton.disabled=!userId;
  if(!syntraSupabaseClient||!userId){
   status.textContent='Đăng nhập để chỉnh sửa hồ sơ SYNTRA Cloud.';
   await loadCloudFollowInbox(null);
