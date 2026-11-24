@@ -638,3 +638,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Changed the detail-page back label to the neutral “Quay lại”.
 - No database or Supabase policy changes were needed.
 - Static regression checks cover return-view preservation and the back control label. Device-level navigation testing remains recommended.
+
+
+## Prototype 2.28 — Cloud Bookmarks
+
+- Added the `post_bookmarks` table with a composite user/post primary key and cascading foreign keys.
+- Row Level Security limits bookmark reads and deletes to the owning account. Inserts require the authenticated owner and a published public post.
+- Explicit Data API grants are limited to authenticated SELECT, INSERT, and DELETE; anonymous access and direct UPDATE are not granted.
+- Cloud bookmarks sync on sign-in and app foreground. The existing “Đã lưu” navigation displays cloud-saved public posts alongside local-only saved items.
+- Public post content is re-fetched under the existing posts RLS policy; private or unpublished posts are excluded. Bookmarks remain account-scoped and are cleared from the local cloud state when switching accounts.
+- Local/demo posts keep their existing device-only save behavior.
+- Static regression checks cover ownership scoping, public-post filtering, stale-account protection, and cross-session restore. Actual two-account/device testing remains required.
