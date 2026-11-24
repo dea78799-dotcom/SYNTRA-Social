@@ -764,3 +764,10 @@ on conflict (user_id) do nothing;
 
 - No service-role key or secret is placed in browser code. The first Owner must be assigned manually before the TOTP setup screen becomes available.
 - Automated static checks cover private role storage, AAL2 enforcement, TOTP flow, report queue field selection, audit logging, and the prohibition on direct client status updates. Real TOTP enrollment and moderation still require a manual signed-in test.
+
+### 2.36.1 — Report identity column hardening
+
+- Removed table-wide SELECT for authenticated clients on `public.reports` and re-granted only the columns required by the reporter history and Owner queue. The reporter UUID is no longer readable through the Data API.
+- Updated report history to rely on the existing reporter-only RLS policy rather than filtering by the protected `reporter_id` column.
+- Revoked authenticated DELETE on reports. Owner-role table remains inaccessible directly; a self-row SELECT policy is present as defense in depth, but no SELECT grant is given.
+- Live ACL verification confirms authenticated users cannot read `reporter_id`, cannot directly update report status, cannot insert or read Owner roles, and cannot call moderation functions anonymously.
