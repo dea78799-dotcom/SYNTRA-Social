@@ -164,7 +164,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.42": '<span class="meta">2.42</span>' in source,
+    "settings badge reflects prototype 2.43": '<span class="meta">2.43</span>' in source,
     "security center is present in Settings": 'id="securityCenter"' in source and 'id="securityAccountStatus"' in source,
     "security center reports verified email from Supabase Auth": "user.email_confirmed_at||user.confirmed_at" in source and 'id="securityEmailStatus"' in source,
     "unverified email can request a confirmation resend": "auth.resend({type:'signup',email:syntraCloudUser.email})" in source and "handleCloudResendVerification" in source,
