@@ -877,11 +877,13 @@ async function setCloudSession(session){
  if(previousId&&(!nextUser||previousId!==nextUser.id)){
   cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)});
   cloudMediaById.clear();cloudLastSyncAt=0;
-  posts=posts.filter(post=>!post.cloud);save();render();
+  posts=posts.filter(post=>post.publicCloud||!post.cloud);save();render();
  }
  syntraCloudUser=nextUser;
  cloudAccountMessage='';
  if(syntraCloudUser)await syncCloudPosts(true);
+ await syncPublicFeed(true);
+ if(!syntraCloudUser)render();
  updateCloudAccountUI();
 }
 function cloudAuthErrorMessage(error,mode){
