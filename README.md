@@ -449,3 +449,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Khôi phục media trong một IndexedDB read-write transaction; nếu transaction lỗi, trình duyệt sẽ hủy transaction.
 - Giới hạn media trong mỗi bản sao là 20 MB và tệp sao lưu nhập tối đa 35 MB để tránh tiêu thụ quá nhiều bộ nhớ trên điện thoại.
 - Bản sao không được mã hóa; hãy giữ tệp riêng tư. Tệp chỉ dùng để chuyển dữ liệu giữa các trình duyệt/thiết bị, không phải đồng bộ máy chủ.
+
+
+## Prototype 2.8 — Trung tâm kiểm tra toàn vẹn dữ liệu
+
+- Bổ sung công cụ quét dữ liệu cục bộ: bài viết thiếu ID, ID bài viết trùng, JSON localStorage không đọc được, media bị thiếu và media không còn được bài viết tham chiếu.
+- Kiểm tra cấu trúc tệp media, bao gồm ID và Blob.
+- Cho phép xuất báo cáo JSON chỉ chứa thời điểm kiểm tra, số liệu và ID liên quan; không đưa nội dung bài viết hoặc tin nhắn vào báo cáo.
+- Không tự động xóa tệp media thừa, không sửa bài viết và không ghi đè dữ liệu khi phát hiện lỗi.
+- Công cụ chạy trong trình duyệt hiện tại; kết quả chỉ phản ánh dữ liệu trên thiết bị đó.
+
+**Kiểm chứng:** GitHub Actions kiểm tra cú pháp JavaScript nhúng và các điều kiện tĩnh của tính năng. Kiểm thử thao tác thực tế trên Android vẫn cần thực hiện trên thiết bị; chưa thể coi báo cáo là bằng chứng dữ liệu đã được sửa.
