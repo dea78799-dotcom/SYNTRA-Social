@@ -144,7 +144,7 @@ checks = {
     "signed-out public comments are disabled with clear guidance": "Đăng nhập để bình luận và đồng bộ trên các thiết bị." in source,
     "public feed survives account switches": "posts=posts.filter(post=>post.publicCloud||!post.cloud)" in source,
     "public feed status explains public interaction sync": "Bạn vẫn xem được bài viết, lượt thích và bình luận công khai" in source,
-    "private multi-device sync is clearly explained": "Đăng nhập cùng tài khoản trên các thiết bị để đồng bộ riêng tư." in source,
+    "private multi-device sync is clearly explained": "Đăng nhập để tương tác và đồng bộ trên các thiết bị" in source,
     "hybrid cloud status copy is accurate": "Tài khoản và bài viết riêng tư dùng SYNTRA Cloud" in source and "Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật." not in source,
     "cloud account UI is present": 'id="cloudSignUp"' in source and 'id="cloudSignIn"' in source,
     "cloud sync status shows active progress and last successful time": "Đang đồng bộ…" in source and "Đã đồng bộ lúc" in source and "cloudLastSyncAt" in source,
