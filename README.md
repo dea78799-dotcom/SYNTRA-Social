@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.16** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
+ > Status: **Prototype 2.17** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -526,3 +526,9 @@ GitHub Pages can host the static prototype. A real social network will require a
 - A successful sync clears an earlier sync error message so the account status does not continue showing stale failure text.
 - Static regression checks cover sync progress, last-success timestamp, error clearing and button loading state.
 - The timestamp is local to the current browser session and is not a server audit record.
+
+
+## Prototype 2.17
+- Corrected the slight vertical optical offset of the settings gear in desktop and mobile navigation.
+- Kept the adjustment scoped to the settings icon so other navigation icons and button hit areas remain unchanged.
+- Added a static regression check for the alignment rule.
