@@ -176,6 +176,15 @@ checks = {
     "cloud deletion removes media objects": ".storage.from(SYNTRA_MEDIA_BUCKET).remove(paths)" in source,
     "media size validation remains enabled": "const max=kind==='image'?4*1024*1024:12*1024*1024" in source and "total>20*1024*1024" in source,
     "old media sync limitation is removed": "Đồng bộ ảnh/video sẽ được bổ sung" not in source,
+    "cloud follow relation loads from Supabase": "async function loadCloudFollowRelation" in source and "from('follows').select('follower_id,following_id,status,created_at,accepted_at')" in source,
+    "public follows are accepted immediately and private follows create requests": "const status=isPrivate?'pending':'accepted'" in source and "payload.accepted_at=new Date().toISOString()" in source,
+    "follow requests can be canceled or unfollowed": "from('follows').delete().eq('follower_id',userId).eq('following_id',targetId)" in source,
+    "follow inbox loads follower and following counts": "id=\"cloudFollowContent\"" in source and "cloud-follow-stats" in source,
+    "incoming follow requests can be accepted or rejected": "data-follow-accept" in source and "data-follow-reject" in source and "status:'accepted',accepted_at:new Date().toISOString()" in source,
+    "private discoverable profiles expose only identity and request UI": "profile.is_discoverable!==true" in source and "id,username,display_name,is_private,is_discoverable" in source and "Hồ sơ riêng tư" in source,
+    "private profile visibility remains discoverable for follow requests": "is_private:visibility==='private',is_discoverable:true" in source,
+    "follow controls require authentication and prevent self-follow": "Đăng nhập SYNTRA Cloud để theo dõi thành viên." in source and "targetId===syntraCloudUser.id" in source,
+    "follow inbox is refreshed after loading own cloud profile": "await loadCloudFollowInbox(userId)" in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
