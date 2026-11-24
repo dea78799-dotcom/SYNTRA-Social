@@ -457,6 +457,14 @@ body.composer-open{overflow:hidden;overscroll-behavior:none}
   }
 }
 </style>
+<style id="syntra-post-management-2-15">
+.creator-post-editor{display:grid;gap:9px;margin-top:12px;padding:12px;border:1px solid #d8b56d38;border-radius:14px;background:#111119}
+.creator-post-editor[hidden]{display:none}
+.creator-post-editor textarea{width:100%;min-height:112px;resize:vertical;padding:12px;border:1px solid #ffffff22;border-radius:10px;background:#0c0c12;color:var(--text);font:inherit;line-height:1.55}
+.creator-post-editor textarea:focus{outline:2px solid #d8b56d88;border-color:var(--accent2)}
+.creator-post-editor .creator-post-actions{display:flex;flex-wrap:wrap;gap:8px}
+.creator-post-editor .creator-post-actions button{min-height:40px}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -939,7 +947,7 @@ function renderProfile(name){
  viewedProfile=name;
  const own=name===localProfile.name;
  if(!own&&isBlocked(name)){profilePage.classList.add('show');feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='none';postDetailPage.classList.remove('show');document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';chatPage.classList.remove('show','thread-open');profilePage.innerHTML='<section class="blocked-profile"><h2>Hồ sơ đã bị chặn</h2><p>Bạn đã chặn hồ sơ này trên thiết bị hiện tại. Nội dung và tương tác của hồ sơ sẽ được ẩn trong bản demo.</p><button class="secondary" data-unblock-profile="'+esc(name)+'">Bỏ chặn</button><button class="secondary" id="backFeed">Về bảng tin</button></section>';profilePage.querySelector('#backFeed').onclick=()=>filter('all');return}
- const ownPosts=posts.filter(p=>p.name===name);
+ const ownPosts=posts.filter(p=>(own&&p.cloud)||p.name===name);
  const totalLikes=ownPosts.reduce((sum,p)=>sum+(Number(p.likes)||0),0);
  const totalComments=ownPosts.reduce((sum,p)=>sum+(Array.isArray(p.comments)?p.comments.length:0),0);
  const mediaPosts=ownPosts.filter(p=>getPostMediaIds(p).length||['photos','video'].includes(p.type)).length;
@@ -948,9 +956,47 @@ function renderProfile(name){
  if(own){
   profilePage.insertAdjacentHTML('beforeend','<section class="creator-dashboard"><div class="creator-heading"><div><span class="explore-kicker">SYNTRA CREATOR</span><h3>Bảng điều khiển nhà sáng tạo</h3></div><span class="creator-local-badge">Dữ liệu demo</span></div><div class="creator-metrics"><div><b>'+ownPosts.length+'</b><span>Bài viết</span></div><div><b>'+totalLikes+'</b><span>Lượt thích</span></div><div><b>'+totalComments+'</b><span>Bình luận</span></div><div><b>'+mediaPosts+'</b><span>Bài có media</span></div></div><p class="creator-note">Số liệu tính từ nội dung đang lưu trên thiết bị này. Chưa có lượt xem, phân tích thời gian thực hoặc dữ liệu từ người dùng khác.</p></section>');
  }
- const filterBar='<div class="creator-content-head"><h3>Nội dung đã đăng</h3><div class="creator-filters" role="group" aria-label="Lọc nội dung nhà sáng tạo"><button class="active" data-creator-filter="all">Tất cả ('+byType.all+')</button><button data-creator-filter="text">Văn bản ('+byType.text+')</button><button data-creator-filter="photos">Ảnh ('+byType.photos+')</button><button data-creator-filter="video">Video ('+byType.video+')</button><button data-creator-filter="communities">Cộng đồng ('+byType.communities+')</button></div></div><div id="creatorPosts">'+(ownPosts.length?ownPosts.map(p=>'<article class="post creator-post" data-creator-type="'+(p.type||'text')+'"><div class="post-text">'+formatPostText(p.text)+'</div>'+buildPostMedia(p)+'<div class="meta">'+(p.likes||0)+' lượt thích · '+(p.comments||[]).length+' bình luận</div><div class="creator-post-actions"><button class="secondary" data-open-post="'+esc(p.id)+'">Xem bài viết</button>'+'</div></article>').join(''):'<div class="empty">Chưa có bài viết.</div>')+'</div>';
+ const filterBar='<div class="creator-content-head"><h3>Nội dung đã đăng</h3><div class="creator-filters" role="group" aria-label="Lọc nội dung nhà sáng tạo"><button class="active" data-creator-filter="all">Tất cả ('+byType.all+')</button><button data-creator-filter="text">Văn bản ('+byType.text+')</button><button data-creator-filter="photos">Ảnh ('+byType.photos+')</button><button data-creator-filter="video">Video ('+byType.video+')</button><button data-creator-filter="communities">Cộng đồng ('+byType.communities+')</button></div></div><div id="creatorPosts">'+(ownPosts.length?ownPosts.map(p=>'<article class="post creator-post" data-creator-type="'+(p.type||'text')+'"><div class="post-text">'+formatPostText(p.text)+'</div>'+buildPostMedia(p)+'<div class="meta">'+(p.likes||0)+' lượt thích · '+(p.comments||[]).length+' bình luận</div><div class="creator-post-actions"><button class="secondary" data-open-post="'+esc(p.id)+'">Xem bài viết</button><button class="secondary" type="button" data-edit-own-post="'+esc(p.id)+'">Chỉnh sửa</button></div><div class="creator-post-editor" data-creator-editor="'+esc(p.id)+'" hidden><label class="meta" for="creator-edit-'+esc(p.id)+'">Nội dung bài viết</label><textarea id="creator-edit-'+esc(p.id)+'" maxlength="5000" rows="4">'+esc(p.text||'')+'</textarea><div class="creator-post-actions"><button class="primary" type="button" data-save-own-post="'+esc(p.id)+'">Lưu thay đổi</button><button class="secondary" type="button" data-cancel-own-post="'+esc(p.id)+'">Hủy</button></div><small class="meta">'+(p.cloud?'Bài Cloud: thay đổi sẽ đồng bộ sang thiết bị khác.':'Bài lưu cục bộ: chỉ thay đổi trên thiết bị này.')+'</small></div></article>').join(''):'<div class="empty">Chưa có bài viết.</div>')+'</div>';
  profilePage.insertAdjacentHTML('beforeend','<section class="creator-content">'+filterBar+'</section>');
  hydratePostMedia(profilePage);
+ profilePage.querySelectorAll('[data-edit-own-post]').forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.editOwnPost;
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  if(editor){editor.hidden=false;const field=editor.querySelector('textarea');if(field)field.focus()}
+ });
+ profilePage.querySelectorAll('[data-cancel-own-post]').forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.cancelOwnPost;
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  const post=ownPosts.find(item=>item.id===id);
+  if(editor&&post){const field=editor.querySelector('textarea');if(field)field.value=post.text||'';editor.hidden=true}
+ });
+ profilePage.querySelectorAll('[data-save-own-post]').forEach(btn=>btn.onclick=async()=>{
+  const id=btn.dataset.saveOwnPost;
+  const post=ownPosts.find(item=>item.id===id);
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  const field=editor&&editor.querySelector('textarea');
+  if(!post||!field)return;
+  const nextText=field.value.trim();
+  if(!nextText){toast('Nội dung bài viết không được để trống.');field.focus();return}
+  if(nextText.length>5000){toast('Nội dung tối đa 5.000 ký tự.');return}
+  const oldText=post.text||'';
+  if(nextText===oldText){editor.hidden=true;return}
+  btn.disabled=true;btn.textContent='Đang lưu…';
+  try{
+   if(post.cloud){
+    if(!syntraSupabaseClient||!syntraCloudUser){toast('Hãy đăng nhập lại để sửa bài Cloud.');return}
+    const {data,error}=await syntraSupabaseClient.from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id).select('id,body').maybeSingle();
+    if(error)throw error;
+    if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.');
+   }
+   post.text=nextText;
+   const saved=save();
+   editor.hidden=true;
+   renderProfile(localProfile.name);
+   toast(post.cloud?'Đã cập nhật bài Cloud. Thiết bị khác sẽ nhận nội dung mới khi đồng bộ.':saved?'Đã cập nhật bài viết trên thiết bị này.':'Đã cập nhật trong phiên hiện tại nhưng bộ nhớ thiết bị không ghi được.');
+  }catch(error){toast('Không sửa được bài viết: '+(error.message||'Lỗi kết nối'))}
+  finally{btn.disabled=false;btn.textContent='Lưu thay đổi'}
+ });
  profilePage.querySelector('#backFeed').onclick=()=>filter('all');
  profilePage.querySelectorAll('[data-creator-filter]').forEach(btn=>btn.onclick=()=>{
   profilePage.querySelectorAll('[data-creator-filter]').forEach(x=>x.classList.toggle('active',x===btn));
@@ -979,14 +1025,14 @@ function renderSettings(){
  feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='block';settingsPage.classList.add('show');
  document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
  settingsPage.innerHTML='<div class="settings-head"><button class="secondary" id="settingsBack">←</button><div><h2>Cài đặt</h2><p>SYNTRA Social · Tài khoản cloud và dữ liệu trên thiết bị</p></div></div>'+
- '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-password-tools"><button class="settings-button" type="button" id="cloudPasswordToggle" aria-pressed="false">Hiện mật khẩu</button><button class="settings-button" type="button" id="cloudResetPassword">Quên mật khẩu?</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.14 hiển thị trạng thái và thời điểm đồng bộ riêng tư bài viết, ảnh và video trên các thiết bị dùng cùng tài khoản. Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau.</p></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
+ '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-password-tools"><button class="settings-button" type="button" id="cloudPasswordToggle" aria-pressed="false">Hiện mật khẩu</button><button class="settings-button" type="button" id="cloudResetPassword">Quên mật khẩu?</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.15 bổ sung trang quản lý và chỉnh sửa bài viết; bài Cloud được cập nhật trên máy chủ để các thiết bị cùng tài khoản nhận thay đổi. Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau.</p></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
  '<div class="settings-row"><div><b>Hiển thị hồ sơ</b><small>Điều khiển mô phỏng quyền xem hồ sơ</small></div><select id="visibility"><option value="public">Công khai</option><option value="followers">Người theo dõi</option><option value="private">Riêng tư</option></select></div>'+
  '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
  '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
  '</section><section class="settings-section"><h3>Người dùng đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Danh sách chặn chỉ áp dụng trên trình duyệt hiện tại và dùng tên hiển thị; chưa có tài khoản hoặc ID người dùng ổn định.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Bài viết, ảnh và video được đồng bộ riêng tư khi bạn đăng nhập cùng tài khoản. Các dữ liệu demo như bình luận, lượt thích, tin nhắn và một số cài đặt vẫn chỉ lưu trên trình duyệt hiện tại.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.14</small></div><span class="meta">2.14</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.15</small></div><span class="meta">2.14</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
  settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
