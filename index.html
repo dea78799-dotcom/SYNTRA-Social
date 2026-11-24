@@ -173,6 +173,7 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 .settings-button{border:1px solid #353641;background:#22232c;border-radius:10px;padding:9px 11px;font-size:12px}
 .settings-button.danger{border-color:#693344;background:#2b1820;color:#ffb2c5}
 .cloud-profile-form{display:grid;gap:8px;margin-top:10px}.cloud-profile-form label{font-size:12px;color:#c9c8d2;font-weight:700}.cloud-profile-form input,.cloud-profile-form select{width:100%;min-width:0;background:#101116;border:1px solid #30313c;border-radius:10px;color:#f4f3f8;padding:11px;font:inherit}.cloud-profile-form input:focus,.cloud-profile-form select:focus{outline:2px solid #d8b56d66;border-color:var(--accent)}.cloud-username-field{display:flex;align-items:center;gap:8px;background:#101116;border:1px solid #30313c;border-radius:10px;padding-left:11px;color:var(--accent2)}.cloud-username-field input{border:0;background:transparent;padding-left:0;outline:none}.cloud-profile-save{margin-top:5px;min-height:42px;background:#caa45a;color:#17130b;font-weight:800}.cloud-profile-save:disabled{opacity:.5;cursor:default}.cloud-profile-form .settings-note{margin:0}
+.cloud-avatar-editor{display:flex;align-items:center;gap:13px;margin:14px 0 18px}.cloud-avatar-preview{width:76px;height:76px;flex:none;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#30291e,#59462b);border:2px solid #d8b56d88;font-size:25px;font-weight:800;color:#f3d99e}.cloud-avatar-preview img{width:100%;height:100%;object-fit:cover}.cloud-avatar-controls{min-width:0;flex:1;display:grid;gap:6px}.cloud-avatar-controls label{font-size:12px;color:#c9c8d2;font-weight:700}.cloud-avatar-controls input{width:100%;min-width:0;color:#c9c8d2;font-size:11px}.cloud-avatar-actions{display:flex;gap:7px;flex-wrap:wrap}.cloud-avatar-actions button{min-height:38px}.public-profile-avatar{overflow:hidden}.public-profile-avatar img{width:100%;height:100%;object-fit:cover}
 .settings-note{font-size:11px;color:#9696a6;line-height:1.65;margin:8px 0 0}
 .cloud-auth-fields{display:grid;gap:8px;margin-top:10px}
 .cloud-auth-fields input{width:100%;min-width:0;background:#101116;border:1px solid #30313c;border-radius:9px;color:#f4f3f8;padding:11px;font:inherit;font-size:13px}
@@ -799,6 +800,20 @@ let cloudLastSyncAt=0;
 let cloudSyncing=false;
 let publicFeedSyncPromise=null;
 let publicFeedLastSyncAt=0;
+let cloudCurrentAvatarPath=null;
+let cloudAvatarPreviewUrl=null;
+const cloudAvatarUrls=new Map();
+async function getCloudAvatarUrl(path){
+ if(!path||!syntraSupabaseClient)return '';
+ if(cloudAvatarUrls.has(path))return cloudAvatarUrls.get(path);
+ try{const {data,error}=await syntraSupabaseClient.storage.from('syntra-avatars').download(path);if(error||!data)return '';const url=URL.createObjectURL(data);cloudAvatarUrls.set(path,url);return url}catch(error){console.warn('SYNTRA avatar download failed:',error);return ''}
+}
+function setCloudAvatarPreview(url,displayName='SYNTRA'){
+ const image=document.getElementById('cloudAvatarImage'),initial=document.getElementById('cloudAvatarInitial');if(!image||!initial)return;
+ initial.textContent=String(displayName||'S').trim().slice(0,1).toUpperCase()||'S';
+ if(url){image.src=url;image.hidden=false;initial.hidden=true}else{image.removeAttribute('src');image.hidden=true;initial.hidden=false}
+}
+function releaseCloudAvatarPreview(){if(cloudAvatarPreviewUrl){URL.revokeObjectURL(cloudAvatarPreviewUrl);cloudAvatarPreviewUrl=null}}
 function cloudPostFromRow(row,mediaRows=[],profile=null){
  const displayName=profile?.display_name||profile?.username||(syntraCloudUser&&syntraCloudUser.id===row.author_id&&syntraCloudUser.user_metadata&&syntraCloudUser.user_metadata.display_name)||'Thành viên SYNTRA';
  const mediaIds=mediaRows.map(item=>item.id);
@@ -817,7 +832,7 @@ async function renderPublicProfile(authorId){
  profilePage.innerHTML='<section class="public-profile-loading"><p>Đang tải hồ sơ…</p></section>';
  try{
   const [profileResult,postsResult]=await Promise.all([
-   syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').eq('id',profileToken).maybeSingle(),
+   syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable,avatar_path').eq('id',profileToken).maybeSingle(),
    syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('author_id',profileToken).eq('visibility','public').eq('status','published').order('created_at',{ascending:false}).limit(50)
   ]);
   if(profileResult.error)throw profileResult.error;if(postsResult.error)throw postsResult.error;
@@ -827,10 +842,11 @@ async function renderPublicProfile(authorId){
    profilePage.querySelector('#publicProfileBack').onclick=()=>filter('all');return;
   }
   const displayName=profile.display_name||profile.username||'Thành viên SYNTRA';
+  const avatarUrl=profile.avatar_path?await getCloudAvatarUrl(profile.avatar_path):'';
   const publicPosts=(postsResult.data||[]).map(row=>cloudPostFromRow(row,[],profile));
   posts=[...posts.filter(post=>post.authorId!==profileToken),...publicPosts];save();
   const username=profile.username?'@'+profile.username:'Thành viên SYNTRA';
-  profilePage.innerHTML='<section class="public-profile"><div class="public-profile-cover"></div><div class="public-profile-top"><div class="public-profile-avatar">'+esc(displayName.slice(0,1).toUpperCase())+'</div><div class="public-profile-name">'+esc(displayName)+'</div><div class="public-profile-username">'+esc(username)+'</div><p class="public-profile-description">Hồ sơ công khai trên SYNTRA Social</p><div class="public-profile-stats"><b>'+publicPosts.length+'</b><span>bài viết công khai</span></div><div class="public-profile-actions"><button class="secondary" id="publicProfileBack">← Về bảng tin</button></div></div></section><section class="creator-content"><div class="creator-content-head"><h3>Bài viết công khai</h3></div><div id="publicProfilePosts">'+(publicPosts.length?publicPosts.map(post=>'<article class="post creator-post"><div class="post-text">'+formatPostText(post.text)+'</div><div class="meta">'+esc(new Date(post.createdAt).toLocaleString('vi-VN'))+'</div><div class="public-post-note">Bài viết công khai · chỉ xem</div></article>').join(''):'<div class="empty">Chưa có bài viết công khai.</div>')+'</div></section>';
+  profilePage.innerHTML='<section class="public-profile"><div class="public-profile-cover"></div><div class="public-profile-top"><div class="public-profile-avatar">'+(avatarUrl?'<img src="'+esc(avatarUrl)+'" alt="Ảnh đại diện">':esc(displayName.slice(0,1).toUpperCase()))+'</div><div class="public-profile-name">'+esc(displayName)+'</div><div class="public-profile-username">'+esc(username)+'</div><p class="public-profile-description">Hồ sơ công khai trên SYNTRA Social</p><div class="public-profile-stats"><b>'+publicPosts.length+'</b><span>bài viết công khai</span></div><div class="public-profile-actions"><button class="secondary" id="publicProfileBack">← Về bảng tin</button></div></div></section><section class="creator-content"><div class="creator-content-head"><h3>Bài viết công khai</h3></div><div id="publicProfilePosts">'+(publicPosts.length?publicPosts.map(post=>'<article class="post creator-post"><div class="post-text">'+formatPostText(post.text)+'</div><div class="meta">'+esc(new Date(post.createdAt).toLocaleString('vi-VN'))+'</div><div class="public-post-note">Bài viết công khai · chỉ xem</div></article>').join(''):'<div class="empty">Chưa có bài viết công khai.</div>')+'</div></section>';
   profilePage.querySelector('#publicProfileBack').onclick=()=>filter('all');viewedProfile=displayName;
  }catch(error){
   console.error('SYNTRA public profile failed:',error);
@@ -1114,19 +1130,62 @@ async function loadCloudProfileSettings(){
  status.textContent='Đang tải hồ sơ tài khoản…';
  [displayInput,usernameInput,visibilityInput,saveButton].forEach(el=>el.disabled=true);
  try{
-  const {data,error}=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').eq('id',userId).maybeSingle();
+  const {data,error}=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable,avatar_path').eq('id',userId).maybeSingle();
   if(error)throw error;
   if(!syntraCloudUser||syntraCloudUser.id!==userId)return;
   if(!data)throw new Error('Không tìm thấy hồ sơ của tài khoản này.');
   displayInput.value=data.display_name||'';
   usernameInput.value=data.username||'';
   visibilityInput.value=data.is_private===false&&data.is_discoverable===true?'public':'private';
+  cloudCurrentAvatarPath=data.avatar_path||null;
+  const avatarUrl=cloudCurrentAvatarPath?await getCloudAvatarUrl(cloudCurrentAvatarPath):'';
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return;
+  setCloudAvatarPreview(avatarUrl,data.display_name||data.username);
+  const avatarFile=document.getElementById('cloudAvatarFile'),saveAvatar=document.getElementById('saveCloudAvatar'),removeAvatar=document.getElementById('removeCloudAvatar');
+  if(avatarFile)avatarFile.disabled=false;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=!cloudCurrentAvatarPath;
   status.textContent='Hồ sơ đã tải. Thay đổi chỉ áp dụng cho tài khoản đang đăng nhập.';
   [displayInput,usernameInput,visibilityInput,saveButton].forEach(el=>el.disabled=false);
  }catch(error){
   console.warn('SYNTRA cloud profile load failed:',error);
   status.textContent='Không tải được hồ sơ: '+(error.message||'Hãy thử lại.');
  }
+}
+async function saveCloudAvatar(){
+ const status=document.getElementById('cloudProfileStatus'),fileInput=document.getElementById('cloudAvatarFile'),saveButton=document.getElementById('saveCloudAvatar');
+ const file=fileInput&&fileInput.files&&fileInput.files[0];
+ if(!syntraSupabaseClient||!syntraCloudUser||!file){if(status)status.textContent='Đăng nhập và chọn ảnh trước khi tải lên.';return}
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2*1024*1024){status.textContent='Ảnh phải là JPG, PNG hoặc WebP và không vượt quá 2 MB.';return}
+ const userId=syntraCloudUser.id,oldPath=cloudCurrentAvatarPath,extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+ const randomId=window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+ const newPath=userId+'/'+randomId+'.'+extension;
+ saveButton.disabled=true;saveButton.textContent='Đang tải…';status.textContent='Đang tải ảnh đại diện lên SYNTRA Cloud…';
+ try{
+  const {error:uploadError}=await syntraSupabaseClient.storage.from('syntra-avatars').upload(newPath,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+  if(uploadError)throw uploadError;
+  const {data,error}=await syntraSupabaseClient.from('profiles').update({avatar_path:newPath,updated_at:new Date().toISOString()}).eq('id',userId).select('id,avatar_path').maybeSingle();
+  if(error||!data){await syntraSupabaseClient.storage.from('syntra-avatars').remove([newPath]);if(error)throw error;throw new Error('Không thể cập nhật đường dẫn ảnh trong hồ sơ.')}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return;
+  cloudCurrentAvatarPath=newPath;releaseCloudAvatarPreview();
+  const url=await getCloudAvatarUrl(newPath);setCloudAvatarPreview(url,document.getElementById('cloudProfileDisplayName').value);
+  if(oldPath&&oldPath!==newPath){await syntraSupabaseClient.storage.from('syntra-avatars').remove([oldPath]);const oldUrl=cloudAvatarUrls.get(oldPath);if(oldUrl)URL.revokeObjectURL(oldUrl);cloudAvatarUrls.delete(oldPath)}
+  fileInput.value='';saveButton.disabled=true;document.getElementById('removeCloudAvatar').disabled=false;
+  status.textContent='Ảnh đại diện đã đồng bộ. Thiết bị khác sẽ tải ảnh khi mở lại hồ sơ.';toast('Đã cập nhật ảnh đại diện SYNTRA Cloud.');
+ }catch(error){console.warn('SYNTRA avatar upload failed:',error);status.textContent='Không tải được ảnh: '+(error.message||'Hãy thử lại.')}
+ finally{if(syntraCloudUser&&syntraCloudUser.id===userId){saveButton.disabled=true;saveButton.textContent='Tải ảnh lên'}}
+}
+async function removeCloudAvatar(){
+ const status=document.getElementById('cloudProfileStatus'),button=document.getElementById('removeCloudAvatar');
+ if(!syntraSupabaseClient||!syntraCloudUser||!cloudCurrentAvatarPath)return;
+ const userId=syntraCloudUser.id,oldPath=cloudCurrentAvatarPath;button.disabled=true;status.textContent='Đang xóa ảnh đại diện…';
+ try{
+  const {data,error}=await syntraSupabaseClient.from('profiles').update({avatar_path:null,updated_at:new Date().toISOString()}).eq('id',userId).select('id,avatar_path').maybeSingle();
+  if(error)throw error;if(!data)throw new Error('Không thể cập nhật hồ sơ tài khoản.');
+  cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('',document.getElementById('cloudProfileDisplayName').value);
+  const oldUrl=cloudAvatarUrls.get(oldPath);if(oldUrl)URL.revokeObjectURL(oldUrl);cloudAvatarUrls.delete(oldPath);
+  await syntraSupabaseClient.storage.from('syntra-avatars').remove([oldPath]);
+  status.textContent='Đã xóa ảnh đại diện khỏi hồ sơ SYNTRA Cloud.';toast('Đã xóa ảnh đại diện.');
+ }catch(error){console.warn('SYNTRA avatar removal failed:',error);status.textContent='Không xóa được ảnh: '+(error.message||'Hãy thử lại.')}
+ finally{if(syntraCloudUser&&syntraCloudUser.id===userId)button.disabled=!cloudCurrentAvatarPath}
 }
 async function saveCloudProfileSettings(){
  const status=document.getElementById('cloudProfileStatus');
@@ -1172,14 +1231,14 @@ function renderSettings(){
  feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='block';settingsPage.classList.add('show');
  document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
  settingsPage.innerHTML='<div class="settings-head"><button class="secondary" id="settingsBack">←</button><div><h2>Cài đặt</h2><p>SYNTRA Social · Tài khoản cloud và dữ liệu trên thiết bị</p></div></div>'+
- '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-password-tools"><button class="settings-button" type="button" id="cloudPasswordToggle" aria-pressed="false">Hiện mật khẩu</button><button class="settings-button" type="button" id="cloudResetPassword">Quên mật khẩu?</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.20 bổ sung chỉnh sửa hồ sơ cloud và quyền hiển thị hồ sơ theo tài khoản.</p></section>'+'<section class="settings-section cloud-profile-section"><h3>Hồ sơ SYNTRA Cloud</h3><p class="settings-note" id="cloudProfileStatus" aria-live="polite">Đăng nhập để tải hồ sơ của bạn.</p><div class="cloud-profile-form"><label for="cloudProfileDisplayName">Tên hiển thị</label><input id="cloudProfileDisplayName" type="text" maxlength="60" placeholder="Tên mọi người nhìn thấy" autocomplete="nickname"><label for="cloudProfileUsername">Username</label><div class="cloud-username-field"><span>@</span><input id="cloudProfileUsername" type="text" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="none" spellcheck="false"></div><small class="settings-note">3–30 ký tự: chữ không dấu, số hoặc dấu gạch dưới. Username phải chưa có người sử dụng.</small><label for="cloudProfileVisibility">Quyền hiển thị</label><select id="cloudProfileVisibility"><option value="private">Riêng tư · không xuất hiện trong khám phá</option><option value="public">Công khai · có thể tìm thấy và xem bài công khai</option></select><button class="settings-button cloud-profile-save" id="saveCloudProfile" disabled>Lưu hồ sơ</button></div></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
+ '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-password-tools"><button class="settings-button" type="button" id="cloudPasswordToggle" aria-pressed="false">Hiện mật khẩu</button><button class="settings-button" type="button" id="cloudResetPassword">Quên mật khẩu?</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.21 bổ sung chỉnh sửa hồ sơ cloud và quyền hiển thị hồ sơ theo tài khoản.</p></section>'+'<section class="settings-section cloud-profile-section"><h3>Hồ sơ SYNTRA Cloud</h3><p class="settings-note" id="cloudProfileStatus" aria-live="polite">Đăng nhập để tải hồ sơ của bạn.</p><div class="cloud-avatar-editor"><div class="cloud-avatar-preview" id="cloudAvatarPreview"><span id="cloudAvatarInitial">S</span><img id="cloudAvatarImage" alt="Ảnh đại diện SYNTRA" hidden></div><div class="cloud-avatar-controls"><label for="cloudAvatarFile">Ảnh đại diện</label><input id="cloudAvatarFile" type="file" accept="image/jpeg,image/png,image/webp" disabled><small class="settings-note">JPG, PNG hoặc WebP · tối đa 2 MB. Ảnh được đồng bộ qua SYNTRA Cloud.</small><div class="cloud-avatar-actions"><button class="settings-button cloud-profile-save" id="saveCloudAvatar" disabled>Tải ảnh lên</button><button class="settings-button" id="removeCloudAvatar" disabled>Xóa ảnh</button></div></div></div><div class="cloud-profile-form"><label for="cloudProfileDisplayName">Tên hiển thị</label><input id="cloudProfileDisplayName" type="text" maxlength="60" placeholder="Tên mọi người nhìn thấy" autocomplete="nickname"><label for="cloudProfileUsername">Username</label><div class="cloud-username-field"><span>@</span><input id="cloudProfileUsername" type="text" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="none" spellcheck="false"></div><small class="settings-note">3–30 ký tự: chữ không dấu, số hoặc dấu gạch dưới. Username phải chưa có người sử dụng.</small><label for="cloudProfileVisibility">Quyền hiển thị</label><select id="cloudProfileVisibility"><option value="private">Riêng tư · không xuất hiện trong khám phá</option><option value="public">Công khai · có thể tìm thấy và xem bài công khai</option></select><button class="settings-button cloud-profile-save" id="saveCloudProfile" disabled>Lưu hồ sơ</button></div></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
  '<div class="settings-row"><div><b>Hiển thị hồ sơ</b><small>Điều khiển mô phỏng quyền xem hồ sơ</small></div><select id="visibility"><option value="public">Công khai</option><option value="followers">Người theo dõi</option><option value="private">Riêng tư</option></select></div>'+
  '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
  '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
  '</section><section class="settings-section"><h3>Người dùng đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Danh sách chặn chỉ áp dụng trên trình duyệt hiện tại và dùng tên hiển thị; chưa có tài khoản hoặc ID người dùng ổn định.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Bài viết, ảnh và video được đồng bộ riêng tư khi bạn đăng nhập cùng tài khoản. Các dữ liệu demo như bình luận, lượt thích, tin nhắn và một số cài đặt vẫn chỉ lưu trên trình duyệt hiện tại.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.20</small></div><span class="meta">2.20</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.21</small></div><span class="meta">2.21</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
  settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
@@ -1188,6 +1247,9 @@ function renderSettings(){
  settingsPage.querySelector('#cloudSignOut').onclick=handleCloudSignOut;
  settingsPage.querySelector('#cloudSyncNow').onclick=refreshCloudPosts;
  settingsPage.querySelector('#saveCloudProfile').onclick=saveCloudProfileSettings;
+ settingsPage.querySelector('#cloudAvatarFile').onchange=e=>{const file=e.target.files&&e.target.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2*1024*1024){e.target.value='';toast('Chỉ nhận JPG, PNG hoặc WebP tối đa 2 MB.');return}releaseCloudAvatarPreview();cloudAvatarPreviewUrl=URL.createObjectURL(file);setCloudAvatarPreview(cloudAvatarPreviewUrl,document.getElementById('cloudProfileDisplayName').value);settingsPage.querySelector('#saveCloudAvatar').disabled=false};
+ settingsPage.querySelector('#saveCloudAvatar').onclick=saveCloudAvatar;
+ settingsPage.querySelector('#removeCloudAvatar').onclick=removeCloudAvatar;
  updateCloudAccountUI();
  loadCloudProfileSettings();
  settingsPage.querySelector('#refreshMediaStorage').onclick=refreshMediaStorageStatus;
