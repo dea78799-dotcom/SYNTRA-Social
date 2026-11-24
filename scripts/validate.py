@@ -83,7 +83,7 @@ checks = {
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
     "settings version reflects prototype 2.9": "SYNTRA Social Prototype 2.9" in source,
-    "cloud account UI is present": "id=\'cloudSignUp\'" in source and "id=\'cloudSignIn\'" in source,
+    "cloud account UI is present": 'id="cloudSignUp"' in source and 'id="cloudSignIn"' in source,
     "cloud client bootstrap is referenced": 'type="module" src="./supabase-client.js"' in source,
     "Supabase client uses pinned version": "@supabase/supabase-js@2.119.2" in cloud_source,
     "only publishable key is configured": "sb_publishable_" in cloud_source and "service_role" not in cloud_source,
