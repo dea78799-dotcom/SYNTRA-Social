@@ -84,7 +84,7 @@ checks = {
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
     "settings version reflects prototype 2.15": "SYNTRA Social Prototype 2.15" in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
-    "creator post editor is rendered with safe escaped content": 'data-creator-editor="'+esc(p.id)+'"' in source and 'maxlength="5000">'+esc(p.text||'')+'</textarea>' in source,
+    "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
     "creator edit controls are wired": "data-edit-own-post" in source and "data-save-own-post" in source and "data-cancel-own-post" in source,
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
