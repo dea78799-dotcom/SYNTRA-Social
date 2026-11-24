@@ -779,3 +779,13 @@ on conflict (user_id) do nothing;
 - Added a visible keyboard-focus indicator for interactive controls.
 - Expanded GitHub static regression checks for mobile navigation, composer actions, media viewer semantics, notification labeling, and the new responsive CSS.
 - Added [the Android mobile regression checklist](docs/MOBILE-REGRESSION-TEST-2.37.md) for real-device checks. Automated checks cannot replace testing on physical Android phones; account sign-in, cross-device sync, media upload, and MFA still require manual verification.
+
+
+## Prototype 2.38 — Private posts across devices and duplicate sync repair
+
+- Fixed the home feed filter so private Cloud posts are visible to the currently signed-in owner on any device. Private posts from other accounts remain excluded.
+- Kept private media access owner-scoped: the client downloads media only through authenticated metadata for the signed-in account, while the existing Storage RLS policy restricts objects to the matching account folder.
+- Fixed Cloud sync merging by database post ID. A post already loaded from the public feed is replaced by its authoritative owner-sync row instead of being appended a second time.
+- Preserved unrelated public Cloud posts and browser-local demo posts during owner sync.
+- Added regression checks for owner-only private feed visibility, authenticated private media retrieval, and stable-ID deduplication. No database schema or RLS policy was changed.
+- Manual verification is still required on two Android devices using the same test account: one private image/video post, one private text post, and one public text post. Confirm each appears exactly once and private posts remain invisible to a separate account.
