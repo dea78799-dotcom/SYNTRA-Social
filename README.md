@@ -365,3 +365,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added a small inline icon renderer for future UI components, using a consistent 24px viewBox, rounded strokes, and currentColor styling.
 - Visual-only update: navigation behavior and local prototype data are unchanged. Browser/mobile visual testing is still pending.
 - Design reference: docs/ICON-SYSTEM-1.1.md.
+
+
+## UI icon refresh 1.2
+
+- Standardized SVG icons for feed post actions (like, comment, save) and post detail actions (like, comment, save, share).
+- Notification bell now uses the shared icon renderer. Interaction icons have consistent alignment, gaps, and minimum touch height.
+- Visual-only change; no behavior/data changes. Browser QA remains pending.
