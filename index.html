@@ -1142,7 +1142,7 @@ async function syncCloudPosts(silent){
   try{interactions=await loadCloudPostInteractions(publicRows,userId)}catch(error){recordCloudDiagnostic('Tải lượt thích/bình luận',false,error);throw error}
   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
   const cloudPosts=rows.map(row=>({...cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id)),...(interactions.get(row.id)||{})}));
-  posts=[...cloudPosts,...posts.filter(post=>post.publicCloud||!post.cloud)];save();render();cloudLastSyncAt=Date.now();cloudAccountMessage='';recordCloudDiagnostic('Đồng bộ bài viết và media',true);updateCloudAccountUI();
+  const syncedPostIds=new Set(cloudPosts.map(post=>post.id));posts=[...cloudPosts,...posts.filter(post=>!post.cloud||!syncedPostIds.has(post.id))];save();render();cloudLastSyncAt=Date.now();cloudAccountMessage='';recordCloudDiagnostic('Đồng bộ bài viết và media',true);updateCloudAccountUI();
   if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết và '+mediaRows.length+' tệp ảnh/video.');
   return true;
  })();
@@ -1965,7 +1965,7 @@ function render(){
  const normalizedQuery=normalizeSearch(q.replace(/^#/,''));
  let list=posts.filter(p=>{
   if(isBlocked(p.name)||(p.cloud&&cloudBlockedUserIds.has(p.authorId)))return false;
-  if(active==='all'&&p.cloud&&!p.publicCloud)return false;
+  if(active==='all'&&p.cloud&&!p.publicCloud&&p.authorId!==syntraCloudUser?.id)return false;
   const matchFilter=active==='all'||(active==='saved'&&p.saved)||(active==='following'&&(cloudFollowingIds.has(p.authorId)||follows.includes(p.name)))||(active==='text'&&!['photos','video','communities'].includes(p.type)&&!getPostMediaIds(p).length)||(active==='video'&&p.type==='video')||(active==='photos'&&p.type==='photos')||(active==='communities'&&p.type==='communities');
   const haystack=normalizeSearch([p.text,p.name,p.tag,(p.comments||[]).map(c=>c.text).join(' '),p.type].join(' '));
   const matchSearch=!normalizedQuery||haystack.includes(normalizedQuery);
