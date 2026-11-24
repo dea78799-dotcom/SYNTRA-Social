@@ -431,3 +431,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Existing feed tabs and filtering controls remain in place.
 
 **Validation:** the updated HTML was read back from GitHub and checked for the heading, status indicator, responsive styles, preserved feed tabs and duplicate insertion. A real Android/browser visual test has not yet been performed.
+
+## Prototype 2.0 — Mobile composer repair
+
+- Redesigned the create-post dialog on narrow screens as a bottom sheet with safe-area-aware spacing.
+- Added bounded internal scrolling so the text field, media preview, file-picker controls and publish actions remain reachable on short screens.
+- Increased touch target sizing and made the action row remain visible while scrolling.
+- Added dialog semantics, an accessible label for the post text field, Escape-to-close behavior, background scroll locking, and focus restoration to the opener.
+
+**Validation:** fetched the committed index.html again from GitHub and confirmed the new CSS/JS hooks, accessibility attributes, unique style block, and removal of the old open-handler. This is a static source read-back only; real Android keyboard, browser rendering, image/video selection, and publish flow still need device testing.
