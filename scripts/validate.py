@@ -82,10 +82,11 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.10": "SYNTRA Social Prototype 2.10" in source,
-    "settings badge reflects prototype 2.10": '<span class="meta">2.10</span>' in source,
+    "settings version reflects prototype 2.11": "SYNTRA Social Prototype 2.11" in source,
+    "settings badge reflects prototype 2.11": '<span class="meta">2.11</span>' in source,
     "public feed is clearly deferred": "Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau." in source,
     "private multi-device sync is clearly explained": "Đăng nhập cùng tài khoản trên các thiết bị để đồng bộ riêng tư." in source,
+    "hybrid cloud status copy is accurate": "Tài khoản và bài viết riêng tư dùng SYNTRA Cloud" in source and "Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật." not in source,
     "cloud account UI is present": 'id="cloudSignUp"' in source and 'id="cloudSignIn"' in source,
     "cloud client bootstrap is referenced": 'type="module" src="./supabase-client.js"' in source,
     "Supabase client uses pinned version": "@supabase/supabase-js@2.119.2" in cloud_source,
@@ -111,3 +112,4 @@ for name, ok in checks.items():
 if failed:
     raise SystemExit("Validation failed: " + ", ".join(failed))
 print("All SYNTRA Social static checks passed.")
+
