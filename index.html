@@ -579,27 +579,28 @@ const GROUPS_KEY='syntra_social_groups_v1';
 const GROUP_REPORTS_KEY='syntra_social_group_reports_v1';
 const GROUP_ADMIN_LOG_KEY='syntra_social_group_admin_log_v1';
 const BLOCKED_USERS_KEY='syntra_social_blocked_users_v1';
-let notices=JSON.parse(localStorage.getItem(NOTICE_KEY)||'null')||[
+function readLocalJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw===null?fallback:JSON.parse(raw)}catch(error){console.warn('Dữ liệu lưu cục bộ không hợp lệ:',key,error);return fallback}}
+let notices=readLocalJSON(NOTICE_KEY,null)||[
  {id:'welcome',kind:'system',title:'Chào mừng đến SYNTRA Social',body:'Đây là thông báo mẫu để bạn xem thử giao diện.',time:'Vừa xong',read:false,demo:true},
  {id:'sample-like',kind:'like',title:'Lượt thích mới (mô phỏng)',body:'Một tài khoản mẫu đã thích bài viết demo của bạn.',time:'Hôm nay',read:false,demo:true},
  {id:'sample-follow',kind:'follow',title:'Người theo dõi mới (mô phỏng)',body:'Một tài khoản mẫu đã theo dõi hồ sơ của bạn.',time:'Hôm nay',read:true,demo:true}
 ];
-let localProfile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"name":"Bạn","bio":"","avatar":"","cover":""}');
-let follows=JSON.parse(localStorage.getItem(FOLLOW_KEY)||'[]');
-let blockedUsers=JSON.parse(localStorage.getItem(BLOCKED_USERS_KEY)||'[]');
+let localProfile=readLocalJSON(PROFILE_KEY,{name:'Bạn',bio:'',avatar:'',cover:''});if(!localProfile||typeof localProfile!=='object'||Array.isArray(localProfile))localProfile={name:'Bạn',bio:'',avatar:'',cover:''};localProfile=Object.assign({name:'Bạn',bio:'',avatar:'',cover:''},localProfile);
+let follows=readLocalJSON(FOLLOW_KEY,[]);if(!Array.isArray(follows))follows=[];
+let blockedUsers=readLocalJSON(BLOCKED_USERS_KEY,[]);
 if(!Array.isArray(blockedUsers))blockedUsers=[];
 function isBlocked(name){return blockedUsers.some(value=>String(value).toLowerCase()===String(name||'').toLowerCase())}
 function blockUser(name){if(!name||name===localProfile.name||isBlocked(name))return false;blockedUsers.push(name);blockedUsers=[...new Set(blockedUsers)];localStorage.setItem(BLOCKED_USERS_KEY,JSON.stringify(blockedUsers));follows=follows.filter(value=>value!==name);localStorage.setItem(FOLLOW_KEY,JSON.stringify(follows));return true}
 function unblockUser(name){blockedUsers=blockedUsers.filter(value=>String(value).toLowerCase()!==String(name||'').toLowerCase());localStorage.setItem(BLOCKED_USERS_KEY,JSON.stringify(blockedUsers))}
 let viewedProfile=localProfile.name;
-let chats=JSON.parse(localStorage.getItem(CHAT_KEY)||'null')||{'syntra-team':[{from:'them',text:'Chào mừng bạn đến với hộp thư SYNTRA Social. Đây là cuộc trò chuyện demo.',time:'09:30'}]};
+let chats=readLocalJSON(CHAT_KEY,null)||{'syntra-team':[{from:'them',text:'Chào mừng bạn đến với hộp thư SYNTRA Social. Đây là cuộc trò chuyện demo.',time:'09:30'}]};if(!chats||typeof chats!=='object'||Array.isArray(chats))chats={'syntra-team':[{from:'them',text:'Chào mừng bạn đến với hộp thư SYNTRA Social. Đây là cuộc trò chuyện demo.',time:'09:30'}]};
 let activeChat='syntra-team';
 const seed=[
 {id:'seed1',name:'SYNTRA Official',tag:'@syntra · 2 giờ',text:'Chào mừng đến với SYNTRA Social — nơi ý tưởng, hình ảnh, video và cộng đồng kết nối trong cùng một không gian. 🚀\n\nĐây là bản prototype đầu tiên. Chúng tôi đang xây dựng từng tính năng và thử nghiệm giao diện.',type:'all',likes:12,liked:false,saved:false},
 {id:'seed2',name:'Góc Công nghệ',tag:'@tech · 4 giờ',text:'Bạn muốn thấy tính năng nào đầu tiên trên SYNTRA Social?\n\n• Video ngắn\n• Bài viết & thảo luận\n• Nhóm cộng đồng\n• Hồ sơ người sáng tạo',type:'communities',likes:7,liked:false,saved:false},
 {id:'seed3',name:'Creative Studio',tag:'@creative · hôm qua',text:'Không gian dành cho sáng tạo — chia sẻ dự án, tác phẩm, những điều bạn đang học và ý tưởng mới.',type:'photos',likes:4,liked:false,saved:false}
 ];
-let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
+let posts=readLocalJSON(KEY,null)||seed;if(!Array.isArray(posts))posts=seed;
 posts.forEach(p=>{if(!Array.isArray(p.comments))p.comments=[]});
 let active='all';let activePostId=null;let activeTopic=null;let sortMode='newest';
 let selectedMedia=[];
@@ -642,11 +643,11 @@ const discoverPage=document.getElementById('explorePage');
 const profilePage=document.getElementById('profilePage');
 const chatPage=document.getElementById('chatPage');
 const groupsPage=document.getElementById('groupsPage');
-let groups=JSON.parse(localStorage.getItem(GROUPS_KEY)||'null');if(!Array.isArray(groups)){groups=[{id:'sample-tech',name:'Góc Công nghệ',description:'Trao đổi về công nghệ, ứng dụng và những sản phẩm mới.',category:'Công nghệ',owner:'demo',members:[],posts:[],sample:true},{id:'sample-study',name:'Góc Học tập',description:'Chia sẻ cách học, tài liệu và kinh nghiệm học tập.',category:'Học tập',owner:'demo',members:[],posts:[],sample:true},{id:'sample-creative',name:'Xưởng Sáng tạo',description:'Nơi giới thiệu ý tưởng, dự án và sản phẩm sáng tạo.',category:'Sáng tạo',owner:'demo',members:[],posts:[],sample:true}];localStorage.setItem(GROUPS_KEY,JSON.stringify(groups));}
+let groups=readLocalJSON(GROUPS_KEY,null);if(!Array.isArray(groups)){groups=[{id:'sample-tech',name:'Góc Công nghệ',description:'Trao đổi về công nghệ, ứng dụng và những sản phẩm mới.',category:'Công nghệ',owner:'demo',members:[],posts:[],sample:true},{id:'sample-study',name:'Góc Học tập',description:'Chia sẻ cách học, tài liệu và kinh nghiệm học tập.',category:'Học tập',owner:'demo',members:[],posts:[],sample:true},{id:'sample-creative',name:'Xưởng Sáng tạo',description:'Nơi giới thiệu ý tưởng, dự án và sản phẩm sáng tạo.',category:'Sáng tạo',owner:'demo',members:[],posts:[],sample:true}];localStorage.setItem(GROUPS_KEY,JSON.stringify(groups));}
 function saveGroups(){localStorage.setItem(GROUPS_KEY,JSON.stringify(groups))}
-function getGroupReports(){const value=JSON.parse(localStorage.getItem(GROUP_REPORTS_KEY)||'[]');if(!Array.isArray(value))return [];let changed=false;const normalized=value.map((report,index)=>{const item={...report};if(!item.id){const stamp=String(item.createdAt||'').replace(/[^0-9a-z]/gi,'').slice(0,18)||'old';item.id='legacy_'+index+'_'+stamp;changed=true}if(item.status==='local-review'){item.status='pending';changed=true}if(!item.status){item.status='pending';changed=true}return item});if(changed)localStorage.setItem(GROUP_REPORTS_KEY,JSON.stringify(normalized));return normalized}
+function getGroupReports(){const value=readLocalJSON(GROUP_REPORTS_KEY,[]);if(!Array.isArray(value))return [];let changed=false;const normalized=value.map((report,index)=>{const item={...report};if(!item.id){const stamp=String(item.createdAt||'').replace(/[^0-9a-z]/gi,'').slice(0,18)||'old';item.id='legacy_'+index+'_'+stamp;changed=true}if(item.status==='local-review'){item.status='pending';changed=true}if(!item.status){item.status='pending';changed=true}return item});if(changed)localStorage.setItem(GROUP_REPORTS_KEY,JSON.stringify(normalized));return normalized}
 function saveGroupReports(items){localStorage.setItem(GROUP_REPORTS_KEY,JSON.stringify(items))}
-function getGroupAdminLog(){const value=JSON.parse(localStorage.getItem(GROUP_ADMIN_LOG_KEY)||'[]');return Array.isArray(value)?value:[]}
+function getGroupAdminLog(){const value=readLocalJSON(GROUP_ADMIN_LOG_KEY,[]);return Array.isArray(value)?value:[]}
 function logGroupAdmin(groupId,action,detail){const items=getGroupAdminLog();items.unshift({id:'gal_'+Date.now().toString(36)+Math.random().toString(16).slice(2,6),groupId,action,detail,actor:localProfile.name,createdAt:new Date().toISOString()});localStorage.setItem(GROUP_ADMIN_LOG_KEY,JSON.stringify(items.slice(0,100)))}
 function formatGroupTime(value){const date=new Date(value);return Number.isNaN(date.getTime())?'Thời gian không xác định':date.toLocaleString('vi-VN',{dateStyle:'short',timeStyle:'short'})}
 function renderGroupAdminPanel(g){
@@ -721,7 +722,7 @@ function renderProfile(name){
 }
 
 const SETTINGS_KEY='syntra_social_settings_demo_v1';
-let appSettings=Object.assign({profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false},JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'));
+let appSettings=Object.assign({profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false},readLocalJSON(SETTINGS_KEY,{}));
 function saveAppSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(appSettings))}
 function renderSettings(){
  chatPage.classList.remove('show','thread-open');chatPage.innerHTML='';
