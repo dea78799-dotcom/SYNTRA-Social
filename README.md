@@ -487,3 +487,6 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Existing local-only demo posts and files are not automatically uploaded or migrated.
 - Cloud posts remain `private`; this release does not make them visible to other accounts. Comments, likes, messages, groups and public feeds are not yet cloud-synced.
 - Static validation and GitHub Actions do not replace real Android upload/download testing. Test with non-sensitive sample files first.
+
+- Signup trigger repair: fixed the profile-creation trigger to use PostgreSQL `COALESCE` syntax correctly; signup had been failing with HTTP 500 before this database migration.
+- Public discovery/feed is intentionally deferred. Current cloud posts and media are private to the signed-in account.
