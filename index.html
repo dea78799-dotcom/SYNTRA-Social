@@ -1584,7 +1584,7 @@ async function loadCloudReports(userId=syntraCloudUser?.id){
  if(!syntraSupabaseClient||!userId){root.innerHTML='';if(status)status.textContent='Đăng nhập để xem lịch sử báo cáo của bạn.';return false}
  if(status)status.textContent='Đang tải báo cáo…';
  try{
-  const {data,error}=await syntraSupabaseClient.from('reports').select('id,target_type,target_id,reason,details,status,created_at').eq('reporter_id',userId).order('created_at',{ascending:false}).limit(50);
+  const {data,error}=await syntraSupabaseClient.from('reports').select('id,target_type,target_id,reason,details,status,created_at').order('created_at',{ascending:false}).limit(50);
   if(error)throw error;if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
   const items=data||[],reasonLabels={spam:'Spam hoặc lừa đảo',harassment:'Quấy rối hoặc bắt nạt',hate:'Ngôn từ thù ghét',violence:'Nội dung bạo lực',misinformation:'Thông tin sai lệch',privacy:'Vi phạm quyền riêng tư',other:'Lý do khác'},statusLabels={open:'Đã tiếp nhận',reviewing:'Đang xem xét',resolved:'Đã xử lý',dismissed:'Không vi phạm'};
   if(status)status.textContent=items.length+' báo cáo gần đây · Chỉ bạn xem được lịch sử này.';
