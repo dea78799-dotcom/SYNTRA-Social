@@ -5,6 +5,8 @@ import tempfile
 
 HTML = Path("index.html")
 source = HTML.read_text(encoding="utf-8")
+CLOUD_CLIENT = Path("supabase-client.js")
+cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
 
 class InlineScripts(HTMLParser):
     def __init__(self):
@@ -67,7 +69,18 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.8": "SYNTRA Social Prototype 2.8" in source,
+    "settings version reflects prototype 2.9": "SYNTRA Social Prototype 2.9" in source,
+    "cloud account UI is present": "id=\'cloudSignUp\'" in source and "id=\'cloudSignIn\'" in source,
+    "cloud client bootstrap is referenced": 'type="module" src="./supabase-client.js"' in source,
+    "Supabase client uses pinned version": "@supabase/supabase-js@2.119.2" in cloud_source,
+    "only publishable key is configured": "sb_publishable_" in cloud_source and "service_role" not in cloud_source,
+    "cloud sign up uses email auth": "auth.signUp({email,password" in source,
+    "cloud sign in uses password auth": "auth.signInWithPassword({email,password})" in source,
+    "cloud posts are fetched from server": "from('posts').select('id,author_id,body,visibility,status,created_at')" in source,
+    "cloud posts are inserted on publish": "from('posts').insert({author_id:syntraCloudUser.id,body:textValue" in source,
+    "posting requires cloud login": "Hãy đăng nhập trong Cài đặt để đăng bài đồng bộ" in source,
+    "cloud posts are deleted remotely": "from('posts').delete().eq('id',p.id)" in source,
+    "media sync limitation is disclosed": "Đồng bộ ảnh/video sẽ được bổ sung" in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
