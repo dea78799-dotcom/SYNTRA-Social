@@ -47,7 +47,7 @@ for index, js in enumerate(parser.parts, start=1):
     print(f"PASS: inline JavaScript {index} syntax")
 
 checks = {
-    "local reset clears the posts key": "[KEY,CHAT_KEY,NOTICE_KEY,FOLLOW_KEY,PROFILE_KEY,SETTINGS_KEY]" in source,
+    "local reset clears the posts key": "[KEY," in source and "BLOCKED_USERS_KEY].forEach(k=>localStorage.removeItem(k))" in source,
     "local reset clears the notices collection": "notices=[]" in source,
     "no stale POST_KEY reference": "POST_KEY" not in source,
     "no stale notifications variable": "notifications=[]" not in source,
