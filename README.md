@@ -499,3 +499,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Clarified that comments, likes, messages, and some settings are still local to the current browser.
 - Updated the in-app prototype version to 2.11.
 - Signup and login were confirmed by the project owner after the database trigger repair. Cross-device media/post behavior still needs a two-device test.
+
+
+## Prototype 2.12 — Account password UX
+
+- Added a show/hide password control to the account settings screen.
+- Added a password-reset email request using Supabase Auth `resetPasswordForEmail`; the app does not collect or transmit passwords outside Supabase Auth.
+- Added Vietnamese-friendly messages for common authentication errors, including incorrect credentials, unconfirmed email, duplicate registration, invalid email and rate limiting.
+- Added static regression checks for the new controls and handlers.
+- The reset email uses the Supabase project's configured Site URL. Password-reset email delivery and the complete recovery-link flow still require a real inbox/device test.
