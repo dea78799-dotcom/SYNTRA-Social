@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.17** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
+ > Status: **Prototype 2.18** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -532,3 +532,15 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Corrected the slight vertical optical offset of the settings gear in desktop and mobile navigation.
 - Kept the adjustment scoped to the settings icon so other navigation icons and button hit areas remain unchanged.
 - Added a static regression check for the alignment rule.
+
+
+## Prototype 2.18 — Public text feed and visibility
+
+- Added a post visibility selector; new posts default to **Private**.
+- Public text posts are written with `visibility = 'public'`; private posts remain restricted to their owner.
+- Added a public feed query for published public posts, plus public profile lookup restricted by `is_private = false` and `is_discoverable = true`.
+- Added database grants and RLS policies so anonymous and signed-in visitors can read only published public posts and discoverable, non-private profiles. Existing owner policies remain in place.
+- Public posts are read-only in this prototype: likes and comments are not presented as server-backed interactions.
+- Public image/video publishing is blocked for now. The media bucket and media metadata remain private to the owner until a separate public-media authorization design is completed.
+- Static regression checks cover visibility selection, public-only queries, private-post filtering, profile visibility and safe media restrictions.
+- Requires a real two-account / signed-out browser test before treating public visibility as production-ready.
