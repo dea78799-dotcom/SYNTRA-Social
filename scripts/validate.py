@@ -91,6 +91,13 @@ checks = {
     "cloud auto sync pauses while hidden or offline": "document.visibilityState==='hidden'" in source and "navigator.onLine===false" in source,
     "cloud auto sync resumes on focus visibility and reconnect": "runCloudAutoSyncNow()" in source,
     "cloud auto sync reports next scheduled time in settings": 'id="cloudAutoSyncStatus"' in source,
+    "security center shows email verification and database RLS baseline": 'id="cloudSecurityEmailState"' in source and 'RLS bật trên 10/10 bảng public' in source,
+    "security center updates password through Supabase Auth": "auth.updateUser({password})" in source and "async function handleCloudSecurityUpdatePassword()" in source,
+    "security center supports email confirmation resend": "auth.resend({type:'signup',email:syntraCloudUser.email})" in source,
+    "security center can revoke other device refresh sessions": "auth.signOut({scope:'others'})" in source,
+    "ordinary sign out only affects current device": "auth.signOut({scope:'local'})" in source,
+    "security center controls are wired and account-aware": "renderCloudSecurityCenter()" in source and "cloudSecuritySignOutOthers" in source,
+    "security center warns about leaked password protection": "Leaked Password Protection" in source,
     "settings version reflects prototype 2.33": "SYNTRA Social Prototype 2.33" in source and '<span class="meta">2.33</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
@@ -238,7 +245,7 @@ checks = {
     "cloud sync center stores bounded local-only event history": "CLOUD_SYNC_HISTORY_KEY='syntra_cloud_sync_history_v1'" in source and "cloudSyncHistory=cloudSyncHistory.slice(0,20)" in source and "writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory)" in source,
     "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source and "async function retryCloudSyncCenter()" in source,
     "cloud sync center avoids storing account credentials or post content": "Không lưu nội dung bài viết hoặc thông tin đăng nhập." in source and "summary:ok?'Đồng bộ hoàn tất':result.detail" in source,
-    "settings version reflects prototype 2.32": "SYNTRA Social Prototype 2.32" in source and '<span class="meta">2.32</span>' in source,
+    "settings version reflects prototype 2.33": "SYNTRA Social Prototype 2.33" in source and '<span class="meta">2.33</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
