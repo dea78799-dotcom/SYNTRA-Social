@@ -580,3 +580,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Public profile pages now display the stored avatar. Private profiles remain unavailable to signed-out visitors, and their avatar objects are not readable by other users.
 - The database exposes only the `avatar_path` profile column in addition to the previously permitted public fields; no service-role key is used in the browser.
 - Static regression checks cover upload validation, owner-scoped storage paths, profile pointer verification, deletion, and public-profile display. Real uploads and two-device viewing still need a user-device test.
+
+
+## Prototype 2.22 — Cloud profile bio
+
+- Added a 160-character bio editor to the signed-in SYNTRA Cloud profile settings, with a live character counter.
+- Bio values load from and save to the current authenticated user's own profile row; the update is verified by selecting the updated row.
+- Public profile pages request the bio only alongside the profile's public visibility fields. A bio is rendered only after the profile passes both `is_private = false` and `is_discoverable = true` checks, and its text is HTML-escaped before display.
+- Granted column-level `SELECT (bio)` to `anon` and `authenticated`; existing profile RLS policies continue to restrict visible rows to public/discoverable profiles or the signed-in owner. No service-role key is exposed.
+- Static regression checks cover the editor, character limit, owner-scoped save, public-only rendering and explicit column selection. Real account and second-device tests are still required.
