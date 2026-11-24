@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.18** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
+ > Status: **Prototype 2.33** — mobile-first hybrid prototype with Supabase authentication, cross-device social features, sync diagnostics, and an account security center. This remains a limited prototype, not a production-ready public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -689,3 +689,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - The Settings Sync Center displays the estimated next automatic sync time.
 - Browser/Android background execution is not guaranteed: mobile browsers may suspend JavaScript timers while the app is backgrounded or closed. This is foreground auto-sync, not an Android background service or push mechanism.
 - No database migration was required. Automated static regression checks cover interval bounds, overlap prevention, lifecycle pause/resume, and the Settings status indicator.
+
+
+## Prototype 2.33 — Account Security Center
+
+- Added a Security Center in Settings showing the signed-in account's email verification state and the current browser/device session.
+- Added a resend-confirmation action for unverified email accounts, using the Supabase Auth resend endpoint.
+- Added password update with minimum-length and confirmation checks. Password values are never written to local storage or diagnostic history.
+- Added “sign out other sessions” using Supabase Auth's `scope: 'others'`; the current session remains active. Revoked refresh tokens do not guarantee immediate invalidation of already-issued access tokens.
+- Reviewed the current Supabase RLS configuration: all 10 public tables have RLS enabled, and current policies scope private records to their owners/participants or explicitly published public content. This is a configuration review, not a substitute for runtime tests with separate accounts.
+- Supabase Security Advisor currently reports **Leaked Password Protection Disabled**. The app surfaces this warning and links to the official guidance; the setting still needs to be enabled in the Supabase dashboard.
+- No database migration or new table was required. Static regression checks cover the password update, email verification, session revocation controls, and security status rendering. Real Android and two-account tests remain required.
