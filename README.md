@@ -589,3 +589,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Public profile pages request the bio only alongside the profile's public visibility fields. A bio is rendered only after the profile passes both `is_private = false` and `is_discoverable = true` checks, and its text is HTML-escaped before display.
 - Granted column-level `SELECT (bio)` to `anon` and `authenticated`; existing profile RLS policies continue to restrict visible rows to public/discoverable profiles or the signed-in owner. No service-role key is exposed.
 - Static regression checks cover the editor, character limit, owner-scoped save, public-only rendering and explicit column selection. Real account and second-device tests are still required.
+
+
+## Prototype 2.23 — Cloud likes and comments
+
+- Public published posts now load like counts, the signed-in user's like state, and comments from Supabase so interactions are consistent across devices.
+- Likes and comments on public Cloud posts require a signed-in account and are written to the existing `likes` and `comments` tables. Local/demo posts keep their device-local behavior.
+- Public visitors can read interactions on published public posts. Private-post interaction rows remain visible only to their owner under the existing RLS ownership rules.
+- Added owner-scoped and public-post-aware RLS policies, limited new comment text to 500 characters at the client and database policy, and added a comments-by-post index.
+- Static regression checks cover cross-device interaction loading, public-post checks, authenticated writes and preserving local/demo behavior. Real account and second-device interaction tests are still required.
