@@ -202,6 +202,15 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 
 /* Prototype 1.8 — user protection */
 .blocked-profile,.group-rules{margin:16px 0;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}.blocked-profile p,.group-rules p{color:var(--muted);line-height:1.6}.group-rules h3{margin:0 0 8px}.group-rules p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.content-warning-label{display:inline-block;margin-right:8px;padding:4px 8px;border-radius:8px;background:#473922;color:#f1d59b;font-size:11px}.warning-content{display:block;margin-top:8px;white-space:pre-wrap}.warning-content[hidden]{display:none}.group-warning-toggle{display:flex;align-items:center;gap:8px;margin:5px 0 12px;color:var(--muted);font-size:12px}
+
+/* SYNTRA Social Icon System 1.1 */
+.s-icon{width:21px;height:21px;display:inline-block;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.nav .icon{display:grid;place-items:center}.nav .icon .s-icon{width:21px;height:21px;stroke-width:1.75}
+.bottomnav button{display:grid;place-items:center;min-width:40px;min-height:42px}.bottomnav .s-icon{width:23px;height:23px;stroke-width:1.9}
+#bottomCreate{background:#caa45a;color:#17151b;border-radius:14px;width:42px;height:42px;align-self:center}
+#bottomCreate .s-icon{width:25px;height:25px;stroke-width:2.2}
+.compose-tools button{display:flex;align-items:center;justify-content:center;gap:7px}.compose-tools .s-icon{width:18px;height:18px}
+.nav button .s-icon,.bottomnav button .s-icon{transition:transform .16s ease,color .16s ease}.nav button:active .s-icon,.bottomnav button:active .s-icon{transform:scale(.92)}
 </style>
 </head>
 <body>
@@ -271,6 +280,40 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 <div class="media-viewer" id="mediaViewer" role="dialog" aria-modal="true" aria-label="Trình xem album ảnh"><button class="secondary viewer-close" id="viewerClose" aria-label="Đóng">✕</button><button class="secondary viewer-nav" id="viewerPrev" aria-label="Ảnh trước">‹</button><div class="viewer-stage"><img id="viewerImage" alt="Ảnh đang xem"></div><button class="secondary viewer-nav" id="viewerNext" aria-label="Ảnh tiếp theo">›</button><div class="viewer-counter" id="viewerCounter"></div><div class="viewer-tools"><button id="viewerDownload">↓ Tải ảnh về</button></div></div>
 <script>
 const KEY='syntra_social_demo_posts_v1';
+// SYNTRA Social custom icon library — outline, rounded, 24px grid.
+function synIcon(name){
+ const paths={
+ home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6"/>',
+ explore:'<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/>',
+ video:'<rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="m10 8.5 5 3.5-5 3.5z"/>',
+ image:'<rect x="3.5" y="4" width="17" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 17 5-5 3 3 2-2 4 4"/>',
+ community:'<circle cx="12" cy="7" r="3.5"/><circle cx="5.5" cy="14" r="3"/><circle cx="18.5" cy="14" r="3"/><path d="M12 10.5V20M8 17.5l4 2.5 4-2.5"/>',
+ heart:'<path d="M20.5 8.5c0 5-8.5 10-8.5 10s-8.5-5-8.5-10a4.5 4.5 0 0 1 8.5-2 4.5 4.5 0 0 1 8.5 2Z"/>',
+ saved:'<path d="M6 4.5h12v16l-6-4-6 4z"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M19.3 14.8a1.8 1.8 0 0 0 .5 1.9l.1.1-1.8 1.8-.1-.1a1.8 1.8 0 0 0-1.9-.5 1.8 1.8 0 0 0-1.2 1.6v.2h-2.5v-.2a1.8 1.8 0 0 0-1.2-1.6 1.8 1.8 0 0 0-1.9.5l-.1.1-1.8-1.8.1-.1a1.8 1.8 0 0 0 .5-1.9 1.8 1.8 0 0 0-1.6-1.2H6.5V9.3h.2a1.8 1.8 0 0 0 1.6-1.2 1.8 1.8 0 0 0-.5-1.9l-.1-.1 1.8-1.8.1.1a1.8 1.8 0 0 0 1.9.5 1.8 1.8 0 0 0 1.2-1.6v-.2h2.5v.2a1.8 1.8 0 0 0 1.2 1.6 1.8 1.8 0 0 0 1.9-.5l.1-.1 1.8 1.8-.1.1a1.8 1.8 0 0 0-.5 1.9 1.8 1.8 0 0 0 1.6 1.2h.2v2.5h-.2a1.8 1.8 0 0 0-1.6 1.2"/>',
+ profile:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.2 3.2-5 7-5s6.2 1.8 7 5"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ comment:'<path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.5 8.5 0 0 1-3.5-.8L4 20l1.2-3.5A7.2 7.2 0 0 1 4 12a7.5 7.5 0 0 1 8-7.5 7.5 7.5 0 0 1 8 7Z"/>',
+ share:'<path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M5 11v8h14v-8"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
+ back:'<path d="m15 18-6-6 6-6"/><path d="M9 12h11"/>',
+ close:'<path d="m6 6 12 12M18 6 6 18"/>',
+ send:'<path d="m3 11 18-8-8 18-2-7-8-3Z"/><path d="m11 14 10-11"/>',
+ menu:'<path d="M4 6h16M4 12h16M4 18h16"/>'
+ };
+ return '<svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.plus)+'</svg>';
+}
+(function installSyntraIcons(){
+ const glyphs={'⌂':'home','⌕':'explore','▷':'video','▧':'image','♧':'community','♡':'heart','▣':'saved','✉':'mail','⚙':'settings','◉':'profile','＋':'plus'};
+ document.querySelectorAll('#desktopNav .icon').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
+ document.querySelectorAll('#bottomNav button').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
+ const photo=document.getElementById('photoBtn'), video=document.getElementById('videoBtn'), community=document.getElementById('communityBtn');
+ if(photo)photo.innerHTML=synIcon('image')+'Ảnh';
+ if(video)video.innerHTML=synIcon('video')+'Video';
+ if(community)community.innerHTML=synIcon('community')+'Cộng đồng';
+})();
+
 const PROFILE_KEY='syntra_social_demo_profile_v1';
 const FOLLOW_KEY='syntra_social_demo_follows_v1';
 const CHAT_KEY='syntra_social_demo_chats_v1';
