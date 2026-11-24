@@ -102,6 +102,8 @@ checks = {
     "private cloud posts are hidden from public home feed": "active==='all'&&p.cloud&&!p.publicCloud" in source,
     "public posts do not imply local-only social interactions": "Bài viết công khai · tương tác sẽ được bổ sung sau" in source,
     "public feed syncs when home feed renders": "if(active==='all')syncPublicFeed(true)" in source,
+    "public feed loads for signed-out visitors after cloud initialization": "await syncPublicFeed(true);" in source and "if(!syntraCloudUser)render();" in source,
+    "public feed survives account switches": "posts=posts.filter(post=>post.publicCloud||!post.cloud)" in source,
     "public feed status is accurate": "Bảng tin công khai đã hỗ trợ bài viết văn bản" in source,
     "private multi-device sync is clearly explained": "Đăng nhập cùng tài khoản trên các thiết bị để đồng bộ riêng tư." in source,
     "hybrid cloud status copy is accurate": "Tài khoản và bài viết riêng tư dùng SYNTRA Cloud" in source and "Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật." not in source,
