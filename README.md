@@ -836,3 +836,12 @@ on conflict (user_id) do nothing;
 - Added a manual cleanup action for local IndexedDB media records that are not referenced by the currently loaded post collection. The candidate set is recalculated immediately before deletion, and media currently open in the viewer is excluded.
 - Cleanup requires explicit confirmation and deletes only the local IndexedDB copies. It does not delete posts, account data, or original media objects in Supabase Storage. No automatic cleanup or persistent-storage permission request is performed.
 - Added static regression checks for storage reporting, orphan byte accounting, viewer protection, confirmation, and the local-only deletion boundary. Android browser testing is still required, especially after switching accounts, scrolling through older posts, and restoring a backup.
+
+## Prototype 2.44 — Media Integrity Checker
+
+- Extended the existing manual integrity audit to inspect local IndexedDB media Blob records without changing them.
+- Checks stored size and MIME metadata against the actual Blob, detects zero-byte files, and reports files that cannot be read.
+- Computes SHA-256 fingerprints sequentially for readable files up to 20 MB and groups identical content. Hashes are used only during the local audit; they are not uploaded or persisted. If Web Crypto is unavailable or hashing is skipped for a large file, the report marks that item as skipped rather than treating it as unreadable.
+- Distinguishes media references that have authenticated SYNTRA Cloud metadata from references with neither a local file nor known Cloud metadata, avoiding a false missing-file warning for remote-only media.
+- The exported integrity report is version 2 and includes detailed findings. The audit is manual and read-only: it does not repair, rename, upload, or delete files or Cloud objects.
+- Added regression checks for Blob metadata, empty/unreadable media, SHA-256 duplicate grouping, hashing limits, Cloud metadata distinction, report details, and the manual-only action. Browser and Android testing remains necessary with real posts and multiple accounts.
