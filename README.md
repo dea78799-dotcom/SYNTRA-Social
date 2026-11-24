@@ -508,3 +508,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added Vietnamese-friendly messages for common authentication errors, including incorrect credentials, unconfirmed email, duplicate registration, invalid email and rate limiting.
 - Added static regression checks for the new controls and handlers.
 - The reset email uses the Supabase project's configured Site URL. Password-reset email delivery and the complete recovery-link flow still require a real inbox/device test.
+
+
+## Prototype 2.13 — Cross-device sync reliability
+
+- Prevents duplicate simultaneous cloud sync requests for the same signed-in account.
+- Ignores responses from an account that is no longer the active session, preventing stale data from replacing the current feed.
+- Refreshes private posts and media metadata when the user returns to the tab or the device reconnects, with a 30-second cooldown after a successful sync.
+- Clears cached cloud media when signing out or switching accounts so one account's downloaded media is not retained in the next account's in-memory view.
+- Static regression checks cover concurrency, stale-session protection, automatic refresh triggers and media-cache cleanup.
+- Real two-device verification still requires the user to sign in with the same account on both devices.
