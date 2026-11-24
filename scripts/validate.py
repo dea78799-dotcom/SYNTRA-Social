@@ -294,3 +294,13 @@ if failed:
     raise SystemExit("Validation failed: " + ", ".join(failed))
 print("All SYNTRA Social static checks passed.")
 
+
+
+# Regression guard for the Cloud Search stylesheet wrapper.
+if "<style id=\"syntra-cloud-search-2-26\">" not in source:
+    raise SystemExit("FAIL: Cloud Search CSS style wrapper is missing")
+cloud_style_start = source.index("<style id=\"syntra-cloud-search-2-26\">")
+cloud_style_end = source.find("</style>", cloud_style_start)
+cloud_style_html_end = source.find("</head>", cloud_style_start)
+if cloud_style_end < 0 or (cloud_style_html_end >= 0 and cloud_style_end > cloud_style_html_end):
+    raise SystemExit("FAIL: Cloud Search CSS is not closed before </head>")
