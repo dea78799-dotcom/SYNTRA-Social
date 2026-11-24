@@ -400,3 +400,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added a responsive video shell with a fullscreen control, feature detection, and mobile fallback.
 - Preserved native video controls, local IndexedDB storage, upload limits, and no-autoplay behavior.
 - Details: `docs/MEDIA-EXPERIENCE-1.6.md`. Static source checks passed; Android browser QA remains pending.
+
+
+## 1.7 — Notification markup & responsive repair
+
+- Fixed the notification button: removed JavaScript string-concatenation text from static HTML.
+- Mounted the bell SVG through the existing synIcon('bell') initializer.
+- Added a tablet layout for widths from 701px to 950px, with a flexible content column and hidden right rail.
+- Added mobile overflow safeguards for the page, search, posts, and media; horizontal scrollers remain independently scrollable.
+- Verification: fetched the updated index.html from GitHub and confirmed the broken literal is absent and the new icon initializer and responsive rules are present.
+- Limitation: no real Android/browser visual test was run in this change.
