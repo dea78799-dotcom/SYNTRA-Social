@@ -65,7 +65,7 @@ checks = {
     "integrity audit detects missing media": "missingMediaIds" in source,
     "integrity audit detects orphan media": "orphanMediaIds" in source,
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
-    "integrity report export is wired": "exportIntegrityReport()" in source and "id=\'exportIntegrityReport\'" in source,
+    "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
     "settings version reflects prototype 2.8": "SYNTRA Social Prototype 2.8" in source,
 }
