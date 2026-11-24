@@ -440,3 +440,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added dialog semantics, an accessible label for the post text field, Escape-to-close behavior, background scroll locking, and focus restoration to the opener.
 
 **Validation:** fetched the committed index.html again from GitHub and confirmed the new CSS/JS hooks, accessibility attributes, unique style block, and removal of the old open-handler. This is a static source read-back only; real Android keyboard, browser rendering, image/video selection, and publish flow still need device testing.
+
+
+## Prototype 2.7 — Sao lưu và khôi phục cục bộ
+
+- Xuất một tệp JSON chứa các mục dữ liệu demo trong localStorage cùng ảnh/video Blob trong IndexedDB.
+- Khôi phục từ tệp JSON đã tạo bởi SYNTRA Social, kiểm tra phiên bản, khóa lưu trữ và dữ liệu media trước khi thay thế dữ liệu hiện tại.
+- Khôi phục media trong một IndexedDB read-write transaction; nếu transaction lỗi, trình duyệt sẽ hủy transaction.
+- Giới hạn media trong mỗi bản sao là 20 MB và tệp sao lưu nhập tối đa 35 MB để tránh tiêu thụ quá nhiều bộ nhớ trên điện thoại.
+- Bản sao không được mã hóa; hãy giữ tệp riêng tư. Tệp chỉ dùng để chuyển dữ liệu giữa các trình duyệt/thiết bị, không phải đồng bộ máy chủ.
