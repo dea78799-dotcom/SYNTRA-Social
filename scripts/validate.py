@@ -87,7 +87,7 @@ checks = {
     "creator post editor is rendered with safe escaped content": 'data-creator-editor="'+esc(p.id)+'"' in source and 'maxlength="5000">'+esc(p.text||'')+'</textarea>' in source,
     "creator edit controls are wired": "data-edit-own-post" in source and "data-save-own-post" in source and "data-cancel-own-post" in source,
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
-    "local post edits save to local storage": "post.text=nextText;\n   const saved=save();" in source,
+    "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
     "settings badge reflects prototype 2.15": '<span class="meta">2.15</span>' in source,
     "public feed is clearly deferred": "Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau." in source,
