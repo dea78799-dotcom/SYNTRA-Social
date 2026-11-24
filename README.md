@@ -712,3 +712,17 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Read-only database audit confirmed RLS is enabled on all 10 public application tables and found 35 table policies. Supabase Security Advisor still reports that leaked-password protection is disabled; the Settings panel explains where this must be enabled in the Supabase Dashboard.
 - The browser app does not expose a full device/IP session inventory, so SYNTRA does not claim to show one.
 - No database migration was required. Automated regression checks cover password updates, email verification resend, session scopes, and security UI wiring. Real email delivery and two-device session tests remain required.
+
+
+## Prototype 2.34 — Cloud Privacy Center
+
+- Reused the existing `public.blocks` table and added a bounded `blocked_label` display field so the account that created a block can identify it in the block list across devices.
+- Added block-aware RLS to public profile, public post, follow, comment, like, and notification reads. A block hides the two accounts from each other while they are authenticated. Anonymous public browsing does not have an account identity to apply a per-account block against.
+- Prevented new follow relations between blocked accounts. A private-schema trigger removes any existing follow relation in either direction when a block is created; its SECURITY DEFINER function is restricted to the authenticated blocker and uses a fixed search path.
+- Added a Cloud block list with unblock controls, profile-level block actions, and block actions from the follower list.
+- Added follower management: view accepted followers and remove a follower without blocking them.
+- Added a Cloud data export JSON for the current account: profile, own posts, accessible comments/likes, bookmarks, follows, blocks, notifications, deletion-request records, and owned media metadata. Passwords, auth tokens, and raw media files are excluded. Browser-local demo data is not part of this Cloud export.
+- Added `account_deletion_requests` with RLS and a one-active-request constraint. Users can submit and cancel a pending request. Submitting a request does **not** delete the account; the project owner must process it through a secure administrative workflow.
+- No credentials or service-role key are exposed in the browser. The new public table has explicit authenticated grants and RLS. Anonymous SELECT on `blocks` is granted only because public RLS expressions reference the table; its RLS policy returns no block rows to anonymous users.
+- No automatic account deletion, password changes, or data erasure are performed by this feature.
+- Static regression checks cover Cloud block syncing, block controls, follower removal, export boundaries, and deletion-request state. Two-account Android tests and a manual deletion-request processing test remain required.
