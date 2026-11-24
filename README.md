@@ -393,3 +393,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added contextual three-dot menus: delete own posts (with confirmation and media cleanup) or show the report placeholder for other posts.
 - Menus close on outside click or Escape and restore focus to the opener.
 - Reporting is not connected to a moderation server yet. Details: `docs/POST-CARD-MENU-1.5.md`.
+
+
+## Media experience 1.6
+- Improved responsive album layouts for 2, 3, and 4+ photos; retained the +N overflow indicator and image viewer.
+- Added a responsive video shell with a fullscreen control, feature detection, and mobile fallback.
+- Preserved native video controls, local IndexedDB storage, upload limits, and no-autoplay behavior.
+- Details: `docs/MEDIA-EXPERIENCE-1.6.md`. Static source checks passed; Android browser QA remains pending.
