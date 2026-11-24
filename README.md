@@ -598,3 +598,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Public visitors can read interactions on published public posts. Private-post interaction rows remain visible only to their owner under the existing RLS ownership rules.
 - Added owner-scoped and public-post-aware RLS policies, limited new comment text to 500 characters at the client and database policy, and added a comments-by-post index.
 - Static regression checks cover cross-device interaction loading, public-post checks, authenticated writes and preserving local/demo behavior. Real account and second-device interaction tests are still required.
+
+
+## Prototype 2.24 — Cloud follow and private follow requests
+
+- Added cross-device follow/unfollow for SYNTRA Cloud member profiles using the existing `public.follows` table.
+- Following a public profile creates an accepted relation immediately. Following a private but discoverable profile creates a pending request; the requester can cancel it.
+- Account settings show accepted follower/following counts and incoming pending requests. Profile owners can accept or reject requests.
+- Private profiles remain discoverable by username/display name so people can send a request, but the public profile page hides bio, avatar and posts. Private-content access for accepted followers is not part of this prototype yet.
+- Updated RLS: follow rows remain readable only by the two participants; only the profile owner can accept an incoming pending request; accepted relations can be created only for public/discoverable profiles. Column-level UPDATE permission is limited to status and accepted_at.
+- Profile discovery now permits discoverable private profiles while the client requests only identity columns for those profiles. No service-role key is exposed.
+- Static regression checks cover follow state, private requests, request moderation and authentication guards. Real two-account and two-device tests are still required.
