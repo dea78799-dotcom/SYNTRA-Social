@@ -217,6 +217,30 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 .post-actions .s-icon{width:18px;height:18px;stroke-width:1.8}
 .top-action .s-icon{width:20px;height:20px}
 </style>
+
+<style id="syntra-mobile-polish-1-4">
+/* Mobile polish 1.4: safer scroll clearance, readable secondary text, consistent story icons and touch targets. */
+@media(max-width:700px){
+ .layout{padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
+ .bottomnav{min-height:64px;padding:7px 5px calc(7px + env(safe-area-inset-bottom));align-items:center}
+ .bottomnav button{min-width:42px;min-height:46px;display:grid;place-items:center;padding:7px 9px}
+ #bottomCreate{width:52px;height:52px;min-width:52px;min-height:52px;border-radius:16px;background:var(--accent);color:#17151a;box-shadow:0 3px 12px #d8b56d30}
+ .bottomnav button .s-icon{width:23px;height:23px}
+ .bottomnav #bottomCreate .s-icon{width:25px;height:25px}
+ .stories{gap:13px;padding:7px 2px 14px;scrollbar-width:none}
+ .stories::-webkit-scrollbar{display:none}
+ .story{min-width:58px;font-size:12px;color:#b1b1bd}
+ .story-ring{width:52px;height:52px;padding:2px;margin-bottom:6px}
+ .story-ring>div .s-icon{width:21px;height:21px;stroke-width:1.9}
+ .compose-tools button{min-height:42px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px}
+ .compose-tools .s-icon{width:18px;height:18px;flex:none}
+ .post-actions{gap:4px;align-items:center}
+ .post-actions button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:#b1b1bd}
+ .post-actions .s-icon{width:18px;height:18px;flex:none}
+ .meta,.post-actions button,.story{color:#b1b1bd}
+}
+@media(min-width:701px){.stories .story-ring>div .s-icon{width:21px;height:21px}}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -308,12 +332,18 @@ function synIcon(name){
  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
   userPlus:'<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M19 8v6m-3-3h6"/>',
   edit:'<path d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15z"/>',
-  shield:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>'
+  shield:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
+  idea:'<path d="M9 18h6M10 22h4M8.2 14.5A7 7 0 1 1 15.8 14.5c-.9.7-1.3 1.5-1.5 2.5h-4.6c-.2-1-.6-1.8-1.5-2.5Z"/><path d="M12 4v2m-5.7.3 1.4 1.4m10-1.4-1.4 1.4"/>',
+  palette:'<path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.4-3.4 1.8 1.8 0 0 1 1.3-3.1H18a3 3 0 0 0 3-3c0-4.7-4-8.5-9-8.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/>',
+  gamepad:'<path d="M6.5 9h11a4 4 0 0 1 3.8 5l-1 3.3a2.5 2.5 0 0 1-4.1 1.1L14 16h-4l-2.2 2.4a2.5 2.5 0 0 1-4.1-1.1l-1-3.3a4 4 0 0 1 3.8-5Z"/><path d="M7 12v4m-2-2h4m7-1h.01M18 15h.01"/>',
+  laptop:'<rect x="5" y="4" width="14" height="12" rx="1.5"/><path d="M2.5 20h19l-1.5-4H4z"/>'
  };
  return '<svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.plus)+'</svg>';
 }
 (function installSyntraIcons(){
  const glyphs={'⌂':'home','⌕':'explore','▷':'video','▧':'image','♧':'community','♡':'heart','▣':'saved','✉':'mail','⚙':'settings','◉':'profile','＋':'plus'};
+ const storyIcons={0:'plus',2:'idea',3:'palette',4:'gamepad',5:'laptop'};
+ document.querySelectorAll('#stories .story-ring>div').forEach((el,i)=>{if(storyIcons[i])el.innerHTML=synIcon(storyIcons[i]);});
  document.querySelectorAll('#desktopNav .icon').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
  document.querySelectorAll('#bottomNav button').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
  const photo=document.getElementById('photoBtn'), video=document.getElementById('videoBtn'), community=document.getElementById('communityBtn');
