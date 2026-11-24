@@ -82,7 +82,7 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.29": "SYNTRA Social Prototype 2.29" in source and '<span class="meta">2.29</span>' in source,
+    "settings version reflects prototype 2.30": "SYNTRA Social Prototype 2.30" in source and '<span class="meta">2.30</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
     "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
@@ -90,7 +90,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.29": '<span class="meta">2.29</span>' in source,
+    "settings badge reflects prototype 2.30": '<span class="meta">2.30</span>' in source,
     "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
 
     "cloud avatar controls are disabled and cleared when signed out": "if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;" in source and "cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');" in source,
@@ -157,6 +157,12 @@ checks = {
     "cloud sync rejects stale response after interaction hydration": "const interactions=await loadCloudPostInteractions(publicRows,userId);" in source and "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in source,
     "public feed rejects stale account response before replacing feed": "const syncUserId=syntraCloudUser?.id||null;" in source and "loadCloudPostInteractions(rows,syncUserId)" in source and "if((syntraCloudUser?.id||null)!==syncUserId)return false;" in source,
     "offline state is visible and disables manual sync": "Ngoại tuyến · " in source and "navigator.onLine===false" in source and "window.addEventListener('offline'" in source,
+    "cloud diagnostics panel and manual action are present": 'id="cloudDiagnosticsStatus"' in source and 'id="cloudDiagnosticCheck"' in source and "onclick=checkCloudConnection" in source,
+    "cloud diagnostic probe reads only public post IDs": "from('posts').select('id').eq('visibility','public').eq('status','published').limit(1)" in source,
+    "cloud diagnostics classify network permission schema and server errors": "function classifyCloudError(error)" in source and "category:'network'" in source and "category:'permission'" in source and "category:'schema'" in source and "category:'server'" in source,
+    "cloud diagnostics report latency and recent sync operation": "cloudDiagnostics.latencyMs=Date.now()-started" in source and "cloudDiagnostics.lastOperationAt=Date.now()" in source and "function renderCloudDiagnostics()" in source,
+    "cloud sync diagnostics capture posts media interaction failures": "recordCloudDiagnostic('Tải bài viết',false,error)" in source and "recordCloudDiagnostic('Tải metadata ảnh/video',false,mediaResult.error)" in source and "recordCloudDiagnostic('Tải lượt thích/bình luận',false,error)" in source,
+    "cloud sync diagnostics record successful completion": "recordCloudDiagnostic('Đồng bộ bài viết và media',true)" in source,
     "password visibility control is present and wired": 'id="cloudPasswordToggle"' in source and "function toggleCloudPassword()" in source,
     "password reset request uses Supabase Auth": "auth.resetPasswordForEmail(email)" in source and 'id="cloudResetPassword"' in source,
     "password reset control is wired": "handleCloudPasswordReset" in source and "cloudResetPassword').onclick=handleCloudPasswordReset" in source,
@@ -211,7 +217,7 @@ checks = {
 
     "post detail remembers the previous screen": "let postDetailReturnView='all'" in source and "postDetailReturnView=active;activePostId=id" in source and "active=postDetailReturnView||'all'" in source,
     "post detail back action has neutral label": 'id="detailBack">← Quay lại</button>' in source,
-    "settings version reflects prototype 2.29": "SYNTRA Social Prototype 2.29" in source and '<span class="meta">2.29</span>' in source,
+    "settings version reflects prototype 2.30": "SYNTRA Social Prototype 2.30" in source and '<span class="meta">2.30</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
