@@ -1125,6 +1125,9 @@ async function loadCloudProfileSettings(){
  if(!syntraSupabaseClient||!userId){
   status.textContent='Đăng nhập để chỉnh sửa hồ sơ SYNTRA Cloud.';
   [displayInput,usernameInput,visibilityInput,saveButton].forEach(el=>el.disabled=true);
+  const avatarFile=document.getElementById('cloudAvatarFile'),saveAvatar=document.getElementById('saveCloudAvatar'),removeAvatar=document.getElementById('removeCloudAvatar');
+  if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;
+  cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');
   return;
  }
  status.textContent='Đang tải hồ sơ tài khoản…';
