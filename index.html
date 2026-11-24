@@ -312,6 +312,24 @@ main{max-width:100%}
  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
 
+
+/* SYNTRA Social 1.9 — homepage editorial header */
+.home-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:9px 2px 17px}
+.home-heading-copy{min-width:0}
+.home-eyebrow{display:inline-flex;align-items:center;gap:7px;color:#cdb47f;font-size:10px;font-weight:800;letter-spacing:.19em}
+.home-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:#d8b56d;box-shadow:0 0 0 4px #d8b56d18}
+.home-heading h1{margin:5px 0 1px;font-size:clamp(25px,3vw,31px);line-height:1.18;letter-spacing:-.035em;font-weight:820;color:#f6f4f8}
+.home-heading p{margin:5px 0 0;color:#9c9daa;font-size:13px;line-height:1.5}
+.home-status{display:inline-flex;align-items:center;gap:7px;flex:none;margin-bottom:4px;padding:7px 10px;border:1px solid #3a3428;border-radius:999px;background:#d8b56d0d;color:#c9b78f;font-size:10px;font-weight:650;white-space:nowrap}
+.home-status span{width:6px;height:6px;border-radius:50%;background:#d8b56d}
+@media(max-width:700px){
+ .home-heading{align-items:center;padding:7px 2px 13px;gap:8px}
+ .home-heading h1{font-size:25px}
+ .home-heading p{max-width:270px;font-size:12px}
+ .home-status{padding:6px 8px;font-size:9px}
+}
+@media(max-width:380px){.home-heading p{max-width:220px}.home-status{font-size:8px}}
+
 </style>
 
 <style id="syntra-mobile-polish-1-4">
@@ -408,6 +426,14 @@ main{max-width:100%}
 <div class="search"><input id="search" placeholder="Tìm người, bài viết, hashtag..." aria-label="Tìm kiếm SYNTRA"></div>
 <button class="secondary top-action" id="notify" title="Thông báo" aria-label="Thông báo"><span class="notify-icon" aria-hidden="true"></span><span id="noticeCount" class="chat-unread" style="display:none">0</span></button>
 </div>
+<section class="home-heading" aria-label="Giới thiệu bảng tin">
+  <div class="home-heading-copy">
+    <span class="home-eyebrow"><span class="home-eyebrow-dot"></span> SYNTRA SOCIAL</span>
+    <h1>Bảng tin</h1>
+    <p>Một nơi để khám phá ý tưởng, câu chuyện và cộng đồng.</p>
+  </div>
+  <span class="home-status"><span></span> Đang thử nghiệm</span>
+</section>
 <div class="tabs" id="tabs">
 <button class="active" data-filter="all">Dành cho bạn</button><button data-filter="following">Theo dõi</button><button data-filter="text">Văn bản</button><button data-filter="video">Video</button><button data-filter="photos">Ảnh</button><button data-filter="communities">Cộng đồng</button>
 </div>
