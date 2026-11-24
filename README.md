@@ -620,3 +620,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - The client refreshes notifications after sign-in/account changes, when the notification panel opens, and when the app returns to the foreground. Read-all status is saved to Supabase across devices.
 - Private actor profiles are not exposed to notification readers; when profile visibility blocks actor lookup, the UI uses the neutral label “Thành viên SYNTRA”.
 - Static regression checks cover recipient scoping, badge aggregation, read state and the absence of direct client inserts. Runtime trigger delivery still needs a test using two real accounts and a public post.
+
+
+## Prototype 2.26 — Cloud Search
+
+- Added cross-device search for public/discoverable member profiles by display name and username, plus published public text posts.
+- Profile searches explicitly filter is_private = false and is_discoverable = true; database RLS remains the final access-control boundary.
+- Post searches explicitly filter visibility = 'public' and status = 'published'. Private posts are never queried by the search feature.
+- Search input is length-limited, strips wildcard/control characters, waits briefly before querying, and ignores stale responses. Results are bounded and rendered with escaped text.
+- No database schema changes or privileged RPCs were needed. Static checks cover privacy filters, bounded queries, escaped output, and stale-request handling. Real two-account search and private-profile tests still need to be completed.
