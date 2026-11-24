@@ -379,3 +379,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added consistent close, read-all, follow, edit, block, back, and send icon treatments.
 - Documented the update in `docs/ICON-SYSTEM-1.3.md`.
 - Static GitHub read-back checks passed; browser/mobile visual QA is still pending.
+
+
+## Mobile UI polish 1.4
+- Refined mobile feed bottom clearance, safe-area spacing, and navigation touch targets.
+- Replaced topic-story emoji with consistent SVG icons and improved secondary-text contrast.
+- Standardized composer and post-action control sizing without changing their handlers.
+- Details: `docs/MOBILE-UI-POLISH-1.4.md`. Static source checks passed; browser/device QA remains pending.
