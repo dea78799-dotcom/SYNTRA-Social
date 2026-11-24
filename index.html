@@ -778,6 +778,9 @@ let syntraSupabaseClient=null;
 let syntraCloudUser=null;
 let syntraCloudReady=false;
 let syntraCloudMessage='';
+let cloudSyncPromise=null;
+let cloudSyncUserId=null;
+let cloudLastSyncAt=0;
 function cloudPostFromRow(row,mediaRows=[]){
  const displayName=(syntraCloudUser&&syntraCloudUser.user_metadata&&syntraCloudUser.user_metadata.display_name)||localProfile.name||'Bạn';
  const mediaIds=mediaRows.map(item=>item.id);
@@ -798,22 +801,42 @@ function updateCloudAccountUI(message){
 }
 async function syncCloudPosts(silent){
  if(!syntraSupabaseClient||!syntraCloudUser)return false;
- const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('author_id',syntraCloudUser.id).eq('status','published').order('created_at',{ascending:false}).limit(100);
- if(error){console.warn('SYNTRA cloud sync failed:',error);updateCloudAccountUI('Không đồng bộ được bài viết: '+error.message);if(!silent)toast('Không đồng bộ được bài viết. Hãy thử lại.');return false}
- const rows=data||[];const postIds=rows.map(row=>row.id);let mediaRows=[];
- cloudMediaById.clear();
- if(postIds.length){const mediaResult=await syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size').in('post_id',postIds);if(mediaResult.error){console.warn('SYNTRA cloud media metadata sync failed:',mediaResult.error);updateCloudAccountUI('Đã tải bài viết nhưng chưa tải được danh sách ảnh/video: '+mediaResult.error.message);if(!silent)toast('Không tải được danh sách tệp đính kèm.');return false}mediaRows=mediaResult.data||[];mediaRows.forEach(item=>cloudMediaById.set(item.id,item));}
- const cloudPosts=rows.map(row=>cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id)));
- posts=[...cloudPosts,...posts.filter(post=>!post.cloud)];save();render();updateCloudAccountUI();
- if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết và '+mediaRows.length+' tệp ảnh/video.');
- return true;
+ const userId=syntraCloudUser.id;
+ if(cloudSyncPromise&&cloudSyncUserId===userId)return cloudSyncPromise;
+ const task=(async()=>{
+  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('author_id',userId).eq('status','published').order('created_at',{ascending:false}).limit(100);
+  if(error){console.warn('SYNTRA cloud sync failed:',error);if(syntraCloudUser&&syntraCloudUser.id===userId)updateCloudAccountUI('Không đồng bộ được bài viết: '+error.message);if(!silent)toast('Không đồng bộ được bài viết. Hãy thử lại.');return false}
+  const rows=data||[];const postIds=rows.map(row=>row.id);let mediaRows=[];
+  if(postIds.length){const mediaResult=await syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size').in('post_id',postIds);if(mediaResult.error){console.warn('SYNTRA cloud media metadata sync failed:',mediaResult.error);if(syntraCloudUser&&syntraCloudUser.id===userId)updateCloudAccountUI('Đã tải bài viết nhưng chưa tải được danh sách ảnh/video: '+mediaResult.error.message);if(!silent)toast('Không tải được danh sách tệp đính kèm.');return false}mediaRows=mediaResult.data||[]}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const nextMediaMap=new Map(mediaRows.map(item=>[item.id,item]));
+  const oldCloudIds=new Set(cloudMediaById.keys());
+  oldCloudIds.forEach(id=>{if(!nextMediaMap.has(id)){mediaItems.delete(id);revokeMediaUrl(id)}});
+  cloudMediaById.clear();nextMediaMap.forEach((value,key)=>cloudMediaById.set(key,value));
+  const cloudPosts=rows.map(row=>cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id)));
+  posts=[...cloudPosts,...posts.filter(post=>!post.cloud)];save();render();cloudLastSyncAt=Date.now();updateCloudAccountUI();
+  if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết và '+mediaRows.length+' tệp ảnh/video.');
+  return true;
+ })();
+ cloudSyncPromise=task;cloudSyncUserId=userId;
+ try{return await task}finally{if(cloudSyncPromise===task){cloudSyncPromise=null;cloudSyncUserId=null}}
+}
+async function autoSyncCloudPosts(){
+ if(!syntraCloudUser||!syntraSupabaseClient||document.visibilityState==='hidden')return false;
+ if(Date.now()-cloudLastSyncAt<30000)return false;
+ return syncCloudPosts(true);
 }
 async function setCloudSession(session){
  const previousId=syntraCloudUser&&syntraCloudUser.id;
- syntraCloudUser=session&&session.user?session.user:null;
+ const nextUser=session&&session.user?session.user:null;
+ if(previousId&&(!nextUser||previousId!==nextUser.id)){
+  cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)});
+  cloudMediaById.clear();cloudLastSyncAt=0;
+  posts=posts.filter(post=>!post.cloud);save();render();
+ }
+ syntraCloudUser=nextUser;
  cloudAccountMessage='';
  if(syntraCloudUser)await syncCloudPosts(true);
- else if(previousId){posts=posts.filter(post=>!post.cloud);save();render()}
  updateCloudAccountUI();
 }
 function cloudAuthErrorMessage(error,mode){
@@ -880,6 +903,9 @@ async function handleCloudSignOut(){
  await setCloudSession(null);toast('Đã đăng xuất SYNTRA Cloud.');
 }
 async function refreshCloudPosts(){if(!syntraCloudUser){toast('Hãy đăng nhập trước.');return}await syncCloudPosts(false)}
+window.addEventListener('focus',()=>{autoSyncCloudPosts()});
+window.addEventListener('online',()=>{autoSyncCloudPosts()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')autoSyncCloudPosts()});
 window.syntraCloudInit=async function(client){
  syntraSupabaseClient=client;syntraCloudReady=true;updateCloudAccountUI();
  const {data,error}=await client.auth.getSession();
