@@ -177,6 +177,9 @@ body{background:var(--bg);color:var(--text);font-size:14px;letter-spacing:.005em
 .cloud-auth-fields input{width:100%;min-width:0;background:#101116;border:1px solid #30313c;border-radius:9px;color:#f4f3f8;padding:11px;font:inherit;font-size:13px}
 .cloud-auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 .cloud-auth-actions .settings-button{flex:1;min-width:110px}
+.cloud-password-tools{display:flex;gap:8px;margin-top:7px}
+.cloud-password-tools .settings-button{flex:1}
+.cloud-auth-fields input:focus-visible{outline:2px solid #d8b56d;outline-offset:2px}
 .settings-button:disabled{opacity:.45;cursor:not-allowed}
 .settings-danger{border-color:#633343}.settings-danger h3{color:#ffb2c5}
 body.syntra-compact .post,body.syntra-compact .composer{padding:9px;margin-bottom:8px}
@@ -813,6 +816,32 @@ async function setCloudSession(session){
  else if(previousId){posts=posts.filter(post=>!post.cloud);save();render()}
  updateCloudAccountUI();
 }
+function cloudAuthErrorMessage(error,mode){
+ const message=String(error&&error.message||'').toLowerCase();
+ if(message.includes('invalid login credentials'))return 'Email hoặc mật khẩu chưa chính xác.';
+ if(message.includes('email not confirmed'))return 'Email chưa được xác nhận. Hãy mở thư xác nhận rồi thử lại.';
+ if(message.includes('user already registered')||message.includes('already been registered'))return 'Email này đã có tài khoản. Hãy đăng nhập hoặc dùng Quên mật khẩu.';
+ if(message.includes('password')&&(message.includes('weak')||message.includes('least')||message.includes('short')))return 'Mật khẩu chưa đạt yêu cầu bảo mật của hệ thống.';
+ if(message.includes('invalid email'))return 'Địa chỉ email không hợp lệ.';
+ if(message.includes('rate limit')||message.includes('too many requests'))return 'Bạn thao tác quá nhanh. Hãy đợi một lúc rồi thử lại.';
+ return (mode==='signup'?'Không tạo được tài khoản: ':'Không đăng nhập được: ')+(error&&error.message||'Lỗi kết nối. Hãy thử lại.');
+}
+function toggleCloudPassword(){
+ const input=document.getElementById('cloudPassword');const button=document.getElementById('cloudPasswordToggle');if(!input||!button)return;
+ const visible=input.type==='password';input.type=visible?'text':'password';button.textContent=visible?'Ẩn mật khẩu':'Hiện mật khẩu';button.setAttribute('aria-pressed',String(visible));
+}
+async function handleCloudPasswordReset(){
+ if(!syntraSupabaseClient||!syntraCloudReady){updateCloudAccountUI('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ if(!email){updateCloudAccountUI('Nhập email tài khoản trước khi yêu cầu đặt lại mật khẩu.');document.getElementById('cloudEmail')?.focus();return}
+ const button=document.getElementById('cloudResetPassword');if(button)button.disabled=true;
+ try{
+  const {error}=await syntraSupabaseClient.auth.resetPasswordForEmail(email);
+  if(error)throw error;
+  updateCloudAccountUI('Nếu email này đã đăng ký, SYNTRA sẽ gửi hướng dẫn đặt lại mật khẩu. Hãy kiểm tra cả thư rác.');
+ }catch(error){updateCloudAccountUI('Không gửi được email đặt lại mật khẩu: '+(error.message||'Hãy thử lại sau.'))}
+ finally{if(button)button.disabled=false}
+}
 async function handleCloudSignUp(){
  if(!syntraSupabaseClient||!syntraCloudReady){toast('SYNTRA Cloud đang khởi động.');return}
  const email=(document.getElementById('cloudEmail')?.value||'').trim();
@@ -826,7 +855,7 @@ async function handleCloudSignUp(){
   if(error)throw error;
   if(data.session){await setCloudSession(data.session);updateCloudAccountUI('Tạo tài khoản thành công. Bài viết mới sẽ được đồng bộ.');toast('Đã tạo tài khoản SYNTRA.')}
   else updateCloudAccountUI('Đã gửi yêu cầu tạo tài khoản. Nếu hệ thống yêu cầu xác nhận email, hãy mở thư xác nhận rồi quay lại đăng nhập.');
- }catch(error){updateCloudAccountUI('Không tạo được tài khoản: '+(error.message||'Lỗi không xác định'))}
+ }catch(error){updateCloudAccountUI(cloudAuthErrorMessage(error,'signup'))}
  finally{updateCloudAccountUI()}
 }
 async function handleCloudSignIn(){
@@ -841,7 +870,7 @@ async function handleCloudSignIn(){
   await setCloudSession(data.session);
   updateCloudAccountUI('Đăng nhập thành công. Bài viết đã được đồng bộ.');
   toast('Đã đăng nhập SYNTRA Cloud.');
- }catch(error){updateCloudAccountUI('Đăng nhập không thành công: '+(error.message||'Hãy kiểm tra thông tin đăng nhập.'))}
+ }catch(error){updateCloudAccountUI(cloudAuthErrorMessage(error,'signin'))}
  finally{updateCloudAccountUI()}
 }
 async function handleCloudSignOut(){
@@ -916,7 +945,7 @@ function renderSettings(){
  feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='block';settingsPage.classList.add('show');
  document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';
  settingsPage.innerHTML='<div class="settings-head"><button class="secondary" id="settingsBack">←</button><div><h2>Cài đặt</h2><p>SYNTRA Social · Tài khoản cloud và dữ liệu trên thiết bị</p></div></div>'+
- '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.10 đồng bộ riêng tư bài viết, ảnh và video trên các thiết bị dùng cùng tài khoản. Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau.</p></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
+ '<section class="settings-section"><h3>Tài khoản SYNTRA</h3><p class="settings-note" id="cloudAccountStatus" aria-live="polite">Đang kết nối SYNTRA Cloud…</p><div class="cloud-auth-fields"><input id="cloudDisplayName" type="text" maxlength="60" placeholder="Tên hiển thị khi tạo tài khoản" autocomplete="nickname"><input id="cloudEmail" type="email" maxlength="254" placeholder="Email" autocomplete="email"><input id="cloudPassword" type="password" minlength="8" maxlength="128" placeholder="Mật khẩu (ít nhất 8 ký tự)" autocomplete="current-password"></div><div class="cloud-password-tools"><button class="settings-button" type="button" id="cloudPasswordToggle" aria-pressed="false">Hiện mật khẩu</button><button class="settings-button" type="button" id="cloudResetPassword">Quên mật khẩu?</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSignUp">Tạo tài khoản</button><button class="settings-button" id="cloudSignIn">Đăng nhập</button></div><div class="cloud-auth-actions"><button class="settings-button" id="cloudSyncNow" disabled>Đồng bộ ngay</button><button class="settings-button" id="cloudSignOut" disabled>Đăng xuất</button></div><p class="settings-note">Đăng nhập bằng cùng email và mật khẩu trên cả hai điện thoại. Không gửi mật khẩu cho người khác. Bản 2.11 đồng bộ riêng tư bài viết, ảnh và video trên các thiết bị dùng cùng tài khoản. Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau.</p></section>'+'<section class="settings-section"><h3>Quyền riêng tư</h3>'+
  '<div class="settings-row"><div><b>Hiển thị hồ sơ</b><small>Điều khiển mô phỏng quyền xem hồ sơ</small></div><select id="visibility"><option value="public">Công khai</option><option value="followers">Người theo dõi</option><option value="private">Riêng tư</option></select></div>'+
  '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
  '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
@@ -926,6 +955,8 @@ function renderSettings(){
  '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.11</small></div><span class="meta">2.11</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
+ settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
+ settingsPage.querySelector('#cloudResetPassword').onclick=handleCloudPasswordReset;
  settingsPage.querySelector('#cloudSignIn').onclick=handleCloudSignIn;
  settingsPage.querySelector('#cloudSignOut').onclick=handleCloudSignOut;
  settingsPage.querySelector('#cloudSyncNow').onclick=refreshCloudPosts;
