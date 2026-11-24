@@ -744,3 +744,23 @@ GitHub Pages can host the static prototype. A real social network will require a
 - The report system records cases for later owner review. It does not automatically remove content, suspend accounts, or expose an administrative moderation console. Those actions require a separately authenticated moderator workflow.
 - Existing `reports` table and RLS policies were reused; no duplicate table was created. Migration: `20261124130000_syntra_social_235_report_validation.sql`.
 - Static checks cover report UI, authenticated ownership, target validation, rate limits, and version metadata. Real multi-account report submission and moderation operations still require manual testing.
+
+## Prototype 2.36 — Owner-only moderation and mandatory 2FA
+
+- Added a private `syntra_owner_roles` table. It has RLS enabled, no client read/write grants, and intentionally contains no pre-seeded owner. Owner assignment must be performed by the project owner in the Supabase SQL Editor after verifying the correct Auth user UUID.
+- Added a server-side Owner status check. The website cannot create or promote its own Owner role; user-editable profile metadata is not used for authorization.
+- Added TOTP enrollment and challenge in the Owner Console using Supabase Auth MFA. The moderation queue is shown only after the current session reaches `aal2`.
+- Enforced Owner membership and `aal2` in database policies and the private moderation function. Client-side visibility is only a convenience; the database remains the authorization boundary.
+- Added a private moderation audit table. Status changes and audit insertion occur atomically in the server-side function. Direct authenticated-client UPDATE on `public.reports` is revoked.
+- The Owner queue does not select the reporter's user ID. The existing reporter-only report-history policy remains in place.
+- Allowed transitions: `open` → `reviewing`, `resolved`, or `dismissed`; `reviewing` → `resolved` or `dismissed`. Closed reports cannot be reopened through the UI.
+- Owner assignment SQL (run only in the Supabase Dashboard SQL Editor after copying the correct UUID from Authentication → Users):
+
+```sql
+insert into private.syntra_owner_roles (user_id, role)
+values ('AUTH_USER_UUID', 'owner')
+on conflict (user_id) do nothing;
+```
+
+- No service-role key or secret is placed in browser code. The first Owner must be assigned manually before the TOTP setup screen becomes available.
+- Automated static checks cover private role storage, AAL2 enforcement, TOTP flow, report queue field selection, audit logging, and the prohibition on direct client status updates. Real TOTP enrollment and moderation still require a manual signed-in test.
