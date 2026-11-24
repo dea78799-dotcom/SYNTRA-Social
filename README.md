@@ -649,3 +649,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Public post content is re-fetched under the existing posts RLS policy; private or unpublished posts are excluded. Bookmarks remain account-scoped and are cleared from the local cloud state when switching accounts.
 - Local/demo posts keep their existing device-only save behavior.
 - Static regression checks cover ownership scoping, public-post filtering, stale-account protection, and cross-session restore. Actual two-account/device testing remains required.
+
+## Prototype 2.29 — Cloud Sync Reliability
+
+- Cloud sync now checks the active account again after loading likes/comments, before replacing the feed. A response started under a previous account is discarded instead of overwriting the current account's view.
+- Public feed hydration captures the session identity at request start and rejects the result if the session changes before completion.
+- Bookmark refresh applies saved-state changes only after the bookmark, post, profile, media and interaction reads have succeeded. A temporary query failure no longer clears the previously displayed saved state.
+- Bookmark media metadata is added to the in-memory cloud cache only after the account identity is revalidated.
+- The account status displays an **Ngoại tuyến** prefix when the browser reports no network connection. The manual sync control is disabled while offline; reconnecting updates the status and triggers the existing foreground sync.
+- Supabase JS is pinned to 2.119.2. Current Supabase documentation describes built-in exponential-backoff retries for idempotent PostgREST GET/HEAD/OPTIONS requests on network failures and HTTP 503/520. SYNTRA does not add a second retry wrapper, avoiding duplicate retry layers. Writes are not automatically retried by that documented mechanism.
+- No database migration was required.
+- Static regression checks cover stale-session protection, bookmark-state preservation, and offline UI behavior. Real Android network interruption and two-device account-switch tests remain required; CI does not simulate those device scenarios.
