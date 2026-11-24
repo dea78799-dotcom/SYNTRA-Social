@@ -828,3 +828,11 @@ on conflict (user_id) do nothing;
 - Blob URLs and in-memory Blob references are released when their media elements are no longer present in the document. The active image viewer retains its current media reference.
 - Existing authenticated Storage downloads and local IndexedDB media remain unchanged. Private media is not copied into a new persistent browser cache, avoiding cross-account persistence and additional storage growth.
 - Static regression checks cover viewport loading, concurrency limits, detached-node handling, lazy image/video behavior, and object URL cleanup. Manual Android scroll/playback and account-switch tests remain required.
+
+## Prototype 2.43 — Media Cache Manager
+
+- Expanded the existing media storage check to report the number and total size of local IndexedDB media files, the size of unreferenced local files, missing local attachments, and browser-reported origin storage usage/quota when supported.
+- Shows the browser's IndexedDB usage breakdown when `navigator.storage.estimate()` provides it. Browser storage figures are estimates and may include other SYNTRA Social site data; they are not an exact media-only measurement.
+- Added a manual cleanup action for local IndexedDB media records that are not referenced by the currently loaded post collection. The candidate set is recalculated immediately before deletion, and media currently open in the viewer is excluded.
+- Cleanup requires explicit confirmation and deletes only the local IndexedDB copies. It does not delete posts, account data, or original media objects in Supabase Storage. No automatic cleanup or persistent-storage permission request is performed.
+- Added static regression checks for storage reporting, orphan byte accounting, viewer protection, confirmation, and the local-only deletion boundary. Android browser testing is still required, especially after switching accounts, scrolling through older posts, and restoring a backup.
