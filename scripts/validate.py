@@ -99,7 +99,7 @@ checks = {
     "cloud sync fetches media metadata": "from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size')" in source,
     "remote media is downloaded on demand": ".storage.from(SYNTRA_MEDIA_BUCKET).download(remote.storage_path)" in source,
     "cloud deletion removes media objects": ".storage.from(SYNTRA_MEDIA_BUCKET).remove(paths)" in source,
-    "media size validation remains enabled": "video tối đa 12 MB" in source and "Tổng dung lượng album tối đa 20 MB" in source,
+    "media size validation remains enabled": "const max=kind==='image'?4*1024*1024:12*1024*1024" in source and "total>20*1024*1024" in source,
     "old media sync limitation is removed": "Đồng bộ ảnh/video sẽ được bổ sung" not in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
