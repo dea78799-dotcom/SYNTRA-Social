@@ -262,6 +262,31 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 .post:focus-within{border-color:#d8b56d35}
 @media(max-width:700px){.post{padding:14px;border-radius:17px;margin-bottom:13px}.post .more{width:42px;height:42px}.post-menu{width:min(230px,calc(100vw - 42px))}.post .post-actions button{font-size:12px;padding:7px 4px;gap:5px}.post .post-actions .s-icon{width:17px;height:17px}}
 </style>
+
+<style id="syntra-media-experience-1-6">
+/* Media presentation 1.6 */
+.post-gallery{gap:4px;background:#09090d}
+.post-gallery.count-2 .gallery-item{aspect-ratio:4/5}
+.post-gallery.count-3 .gallery-item:nth-child(3){grid-column:1/-1;aspect-ratio:16/9}
+.post-gallery.count-4 .gallery-item{aspect-ratio:1/1}
+.gallery-item{cursor:zoom-in;touch-action:manipulation}
+.gallery-item:focus-visible{outline:2px solid var(--accent2);outline-offset:-3px}
+.gallery-image{transition:transform .22s ease}
+.gallery-item:hover .gallery-image{transform:scale(1.025)}
+.media-video-shell{position:relative;margin:10px 0;border-radius:14px;overflow:hidden;background:#08080b;isolation:isolate}
+.media-video-shell .media-post-video{display:block;width:100%;max-height:min(68vh,620px);aspect-ratio:16/9;object-fit:contain;border-radius:0;margin:0}
+.media-fullscreen{position:absolute;right:10px;top:10px;width:40px;height:40px;border:1px solid #ffffff35;border-radius:12px;background:#08080bc9;color:#fff;display:grid;place-items:center;z-index:2;opacity:.9;touch-action:manipulation}
+.media-fullscreen .s-icon{width:19px;height:19px}
+.media-fullscreen:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.media-video-shell:fullscreen{width:100vw;height:100vh;border-radius:0;display:grid;place-items:center;background:#050507}
+.media-video-shell:fullscreen .media-post-video{width:100%;height:100%;max-height:100vh;aspect-ratio:auto;object-fit:contain}
+.media-video-shell:fullscreen .media-fullscreen{top:max(12px,env(safe-area-inset-top));right:12px}
+.media-viewer{overscroll-behavior:contain;touch-action:pan-y}
+.media-viewer .viewer-stage{touch-action:pan-y}
+.media-viewer .viewer-close,.media-viewer .viewer-nav,.media-viewer .viewer-tools button{min-width:42px;min-height:42px;display:grid;place-items:center}
+@media(max-width:700px){.media-video-shell .media-post-video{max-height:62vh}.media-fullscreen{width:42px;height:42px}.post-gallery.count-2 .gallery-item{aspect-ratio:3/4}}
+@media(prefers-reduced-motion:reduce){.gallery-image{transition:none}.gallery-item:hover .gallery-image{transform:none}}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -355,6 +380,7 @@ function synIcon(name){
   edit:'<path d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15z"/>',
   shield:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
   dots:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  expand:'<path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/>',
   idea:'<path d="M9 18h6M10 22h4M8.2 14.5A7 7 0 1 1 15.8 14.5c-.9.7-1.3 1.5-1.5 2.5h-4.6c-.2-1-.6-1.8-1.5-2.5Z"/><path d="M12 4v2m-5.7.3 1.4 1.4m10-1.4-1.4 1.4"/>',
   palette:'<path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.4-3.4 1.8 1.8 0 0 1 1.3-3.1H18a3 3 0 0 0 3-3c0-4.7-4-8.5-9-8.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/>',
   gamepad:'<path d="M6.5 9h11a4 4 0 0 1 3.8 5l-1 3.3a2.5 2.5 0 0 1-4.1 1.1L14 16h-4l-2.2 2.4a2.5 2.5 0 0 1-4.1-1.1l-1-3.3a4 4 0 0 1 3.8-5Z"/><path d="M7 12v4m-2-2h4m7-1h.01M18 15h.01"/>',
@@ -415,8 +441,8 @@ async function getMedia(id){const db=await openMediaDB();return new Promise((res
 function revokeMediaUrl(id){if(mediaUrls.has(id)){URL.revokeObjectURL(mediaUrls.get(id));mediaUrls.delete(id)}}
 async function deleteMedia(id){if(!id)return;revokeMediaUrl(id);mediaItems.delete(id);try{const db=await openMediaDB();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Không thể xóa tệp'))});db.close()}catch(e){console.warn('Không xóa được media:',e)}}
 function getPostMediaIds(post){if(Array.isArray(post.mediaIds)&&post.mediaIds.length)return post.mediaIds.filter(Boolean);return post.mediaId?[post.mediaId]:[]}
-function buildPostMedia(post){const ids=getPostMediaIds(post);if(ids.length){if(post.type==='video')return '<div class="media-file-wrap" data-media-id="'+esc(ids[0])+'"><div class="media-fallback">Đang tải video…</div></div>';const visible=ids.slice(0,4);return '<div class="post-gallery '+(ids.length===1?'single':'')+'">'+visible.map((id,index)=>'<button type="button" class="gallery-item" data-gallery-post="'+esc(post.id)+'" data-gallery-index="'+index+'" aria-label="Xem ảnh '+(index+1)+' trên '+ids.length+'"><span class="gallery-placeholder" data-media-id="'+esc(id)+'"><span class="media-fallback">Đang tải ảnh…</span></span>'+(index===3&&ids.length>4?'<span class="gallery-more">+'+(ids.length-4)+'</span>':'')+'</button>').join('')+'</div>'}if(post.type==='video')return '<div class="post-media">▶<br>Video demo · Chưa có tệp video</div>';if(post.type==='photos')return '<div class="post-media">▧<br>Ảnh demo · Chưa có tệp ảnh</div>';return ''}
-async function hydratePostMedia(root=feed){const nodes=Array.from(root.querySelectorAll('[data-media-id]'));for(const node of nodes){const id=node.dataset.mediaId;if(!id||node.dataset.loaded==='1')continue;node.dataset.loaded='1';try{let item=mediaItems.get(id);if(!item){item=await getMedia(id);if(item)mediaItems.set(id,item)}if(!node.isConnected)continue;if(!item){node.innerHTML='<div class="media-fallback">Tệp đính kèm không còn trong bộ nhớ trình duyệt.</div>';continue}let url=mediaUrls.get(id);if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}if(item.type.startsWith('image/')){const img=document.createElement('img');img.className=node.closest('.gallery-item')?'gallery-image':'media-post';img.alt='Ảnh trong bài viết';img.src=url;img.dataset.mediaId=id;img.dataset.mediaName=item.name||'syntra-image';node.replaceWith(img)}else if(item.type.startsWith('video/')){const video=document.createElement('video');video.className='media-post-video';video.controls=true;video.playsInline=true;video.preload='metadata';video.src=url;video.dataset.mediaId=id;video.dataset.mediaName=item.name||'syntra-video';node.replaceWith(video)}else node.textContent='Định dạng tệp không được hỗ trợ.'}catch(err){if(node.isConnected)node.textContent='Không thể đọc tệp đính kèm.'}}}
+function buildPostMedia(post){const ids=getPostMediaIds(post);if(ids.length){if(post.type==='video')return '<div class="media-file-wrap" data-media-id="'+esc(ids[0])+'"><div class="media-fallback">Đang tải video…</div></div>';const visible=ids.slice(0,4);return '<div class="post-gallery count-'+Math.min(ids.length,4)+' '+(ids.length===1?'single':'')+'">'+visible.map((id,index)=>'<button type="button" class="gallery-item" data-gallery-post="'+esc(post.id)+'" data-gallery-index="'+index+'" aria-label="Xem ảnh '+(index+1)+' trên '+ids.length+'"><span class="gallery-placeholder" data-media-id="'+esc(id)+'"><span class="media-fallback">Đang tải ảnh…</span></span>'+(index===3&&ids.length>4?'<span class="gallery-more">+'+(ids.length-4)+'</span>':'')+'</button>').join('')+'</div>'}if(post.type==='video')return '<div class="post-media">▶<br>Video demo · Chưa có tệp video</div>';if(post.type==='photos')return '<div class="post-media">▧<br>Ảnh demo · Chưa có tệp ảnh</div>';return ''}
+async function hydratePostMedia(root=feed){const nodes=Array.from(root.querySelectorAll('[data-media-id]'));for(const node of nodes){const id=node.dataset.mediaId;if(!id||node.dataset.loaded==='1')continue;node.dataset.loaded='1';try{let item=mediaItems.get(id);if(!item){item=await getMedia(id);if(item)mediaItems.set(id,item)}if(!node.isConnected)continue;if(!item){node.innerHTML='<div class="media-fallback">Tệp đính kèm không còn trong bộ nhớ trình duyệt.</div>';continue}let url=mediaUrls.get(id);if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}if(item.type.startsWith('image/')){const img=document.createElement('img');img.className=node.closest('.gallery-item')?'gallery-image':'media-post';img.alt='Ảnh trong bài viết';img.src=url;img.dataset.mediaId=id;img.dataset.mediaName=item.name||'syntra-image';node.replaceWith(img)}else if(item.type.startsWith('video/')){const shell=document.createElement('div');shell.className='media-video-shell';shell.dataset.mediaId=id;const video=document.createElement('video');video.className='media-post-video';video.controls=true;video.playsInline=true;video.preload='metadata';video.src=url;video.dataset.mediaId=id;video.dataset.mediaName=item.name||'syntra-video';const full=document.createElement('button');full.type='button';full.className='media-fullscreen';full.dataset.videoFullscreen='1';full.setAttribute('aria-label','Phóng to video toàn màn hình');full.title='Toàn màn hình';full.innerHTML=synIcon('expand');shell.append(video,full);node.replaceWith(shell)}else node.textContent='Định dạng tệp không được hỗ trợ.'}catch(err){if(node.isConnected)node.textContent='Không thể đọc tệp đính kèm.'}}}
 
 let viewerPostId=null;
 let viewerMediaIds=[];
@@ -653,6 +679,7 @@ function renderChat(){profilePage.classList.remove('show');profilePage.innerHTML
  chatPage.querySelector('#chatForm').onsubmit=e=>{e.preventDefault();const input=chatPage.querySelector('#chatInput');const value=input.value.trim();if(!value)return;if(!chats[activeChat])chats[activeChat]=[];chats[activeChat].push({from:'me',text:value,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});addNotice('message','Bạn đã gửi tin nhắn', 'Tin nhắn demo đã lưu trong cuộc trò chuyện với '+(demoContacts.find(c=>c.id===activeChat)?.name||'liên hệ')+'.');localStorage.setItem(CHAT_KEY,JSON.stringify(chats));renderChat();const box=chatPage.querySelector('#chatMessages');box.scrollTop=box.scrollHeight};
  chatPage.querySelector('#chatBack').onclick=()=>chatPage.classList.remove('thread-open');chatPage.querySelector('#chatSearch').oninput=e=>{const q=e.target.value.toLowerCase();chatPage.querySelectorAll('[data-chat]').forEach(b=>b.style.display=b.textContent.toLowerCase().includes(q)?'flex':'none')};
 }
+document.addEventListener('click',async e=>{const button=e.target.closest('[data-video-fullscreen]');if(!button)return;const shell=button.closest('.media-video-shell');const video=shell&&shell.querySelector('video');if(!shell||!video)return;try{if(shell.requestFullscreen){await shell.requestFullscreen()}else if(video.webkitEnterFullscreen){video.webkitEnterFullscreen()}else toast('Trình duyệt này chưa hỗ trợ toàn màn hình video.')}catch(err){toast('Không thể mở video toàn màn hình trên trình duyệt này.')}});
 function handleMediaGalleryClick(e){const hashtagBtn=e.target.closest('[data-hashtag]');if(hashtagBtn){e.preventDefault();e.stopPropagation();document.getElementById('search').value='#'+hashtagBtn.dataset.hashtag;filter('explore');return}const detailBtn=e.target.closest('[data-open-post]');if(detailBtn){openPostDetail(detailBtn.dataset.openPost);return}const profileBtn=e.target.closest('[data-profile]');if(profileBtn){renderProfile(profileBtn.dataset.profile);return}const galleryButton=e.target.closest('[data-gallery-post]');if(galleryButton){openImageViewer(galleryButton.dataset.galleryPost,Number(galleryButton.dataset.galleryIndex));}}
 feed.addEventListener('click',handleMediaGalleryClick);
 profilePage.addEventListener('click',handleMediaGalleryClick);
