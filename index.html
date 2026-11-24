@@ -952,7 +952,7 @@ function renderSecurityCenter(){
  const resend=document.getElementById('securityResendVerification'),signOutOthers=document.getElementById('securitySignOutOthers'),updatePassword=document.getElementById('securityUpdatePassword');
  const signedIn=!!syntraCloudUser;
  if(!signedIn){
-  if(status)status.textContent='Đăng nhập để xem trạng thái bảo mật và quản lý phiên.';
+  if(status){status.dataset.accountId='';status.textContent='Đăng nhập để xem trạng thái bảo mật và quản lý phiên.';}
   if(emailStatus)emailStatus.textContent='Chưa đăng nhập.';
   if(sessionStatus)sessionStatus.textContent='Không có phiên SYNTRA đang hoạt động.';
   [resend,signOutOthers,updatePassword].forEach(button=>{if(button)button.disabled=true});
@@ -961,7 +961,7 @@ function renderSecurityCenter(){
  const user=syntraCloudUser,verified=!!(user.email_confirmed_at||user.confirmed_at);
  const agent=navigator.userAgent||'',device=/android/i.test(agent)?'Android':/iphone|ipad|ipod/i.test(agent)?'iOS':/windows/i.test(agent)?'Windows':/macintosh/i.test(agent)?'macOS':'trình duyệt hiện tại';
  const browser=/edg\//i.test(agent)?'Edge':/firefox\//i.test(agent)?'Firefox':/chrome\//i.test(agent)?'Chrome':/safari\//i.test(agent)?'Safari':'browser';
- if(status)status.textContent='Đang quản lý tài khoản '+(user.email||'SYNTRA')+'.';
+ if(status&&status.dataset.accountId!==user.id){status.dataset.accountId=user.id;status.textContent='Đang quản lý tài khoản '+(user.email||'SYNTRA')+'.';}
  if(emailStatus){emailStatus.textContent=(user.email||'Không có email')+' · '+(verified?'Đã xác minh':'Chưa xác minh');emailStatus.className=verified?'security-status-good':'security-status-warn'}
  if(sessionStatus)sessionStatus.textContent='Phiên đang dùng trên '+device+' · '+browser+(user.last_sign_in_at?' · đăng nhập gần nhất '+new Date(user.last_sign_in_at).toLocaleString('vi-VN'):'');
  if(resend){resend.disabled=!syntraCloudReady||verified||navigator.onLine===false;resend.textContent=verified?'Email đã xác minh':'Gửi lại thư xác minh'}
