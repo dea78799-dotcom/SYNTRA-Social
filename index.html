@@ -401,6 +401,29 @@ main{max-width:100%}
 @media(max-width:700px){.media-video-shell .media-post-video{max-height:62vh}.media-fullscreen{width:42px;height:42px}.post-gallery.count-2 .gallery-item{aspect-ratio:3/4}}
 @media(prefers-reduced-motion:reduce){.gallery-image{transition:none}.gallery-item:hover .gallery-image{transform:none}}
 </style>
+
+<style id="syntra-composer-mobile-2-0">
+/* 2.0: composer behaves as a scroll-safe mobile sheet and remains keyboard accessible. */
+body.composer-open{overflow:hidden;overscroll-behavior:none}
+#modal{overscroll-behavior:contain}
+#modal .dialog{max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+#modal .dialog textarea{display:block;min-height:112px;max-height:34dvh;line-height:1.55}
+#modal .dialog select,#modal .dialog button{min-height:44px}
+#modal .dialog-actions{position:sticky;bottom:-18px;padding:12px 0 max(2px,env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--surface) 22%);z-index:1}
+#modal .dialog button:focus-visible,#modal .dialog textarea:focus-visible,#modal .dialog select:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+@media(max-width:700px){
+ #modal{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+ #modal .dialog{width:100%;max-width:560px;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:16px 14px;border-radius:22px 22px 16px 16px;box-shadow:0 18px 60px #000b}
+ #modal .dialog h2{font-size:19px;margin-bottom:12px}
+ #modal .dialog textarea{min-height:96px;max-height:28dvh;font-size:16px}
+ #modal .media-pick-row{display:grid!important;grid-template-columns:1fr 1fr}
+ #modal .media-pick-row button{padding:9px 8px;font-size:12px}
+ #modal .dialog-actions{bottom:-16px;gap:8px;padding-top:12px}
+ #modal .dialog-actions button{flex:1}
+ #modal .media-preview video{max-height:190px}
+}
+@media(max-height:560px) and (max-width:700px){#modal{align-items:flex-start}#modal .dialog{max-height:calc(100dvh - 12px);margin-top:4px}#modal .dialog textarea{min-height:72px;max-height:20dvh}}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -466,7 +489,7 @@ main{max-width:100%}
 </aside>
 </div>
 <nav class="bottomnav" id="bottomNav"><button class="active" data-filter="all" aria-label="Trang chủ">⌂</button><button data-filter="explore" aria-label="Khám phá">⌕</button><button data-filter="groups" aria-label="Cộng đồng">♧</button><button id="bottomCreate" aria-label="Tạo bài viết">＋</button><button data-filter="chat" aria-label="Tin nhắn">✉</button><button data-filter="profile" aria-label="Hồ sơ">◉</button><button data-filter="settings" aria-label="Cài đặt">⚙</button></nav>
-<div class="modal" id="modal"><div class="dialog"><h2>Tạo bài viết</h2><textarea id="postText" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Tối đa 8 ảnh (4 MB/ảnh, tổng 20 MB) hoặc 1 video (12 MB). Tệp chỉ lưu trên thiết bị này.</div><div class="media-pick-row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+<div class="modal" id="modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="composerTitle" tabindex="-1"><h2 id="composerTitle">Tạo bài viết</h2><textarea id="postText" aria-label="Nội dung bài viết" placeholder="Bạn đang nghĩ gì?"></textarea><label class="meta" for="postType">Loại bài viết</label><select id="postType" style="width:100%;margin-top:6px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:10px"><option value="all">Bài viết</option><option value="photos">Ảnh (demo)</option><option value="video">Video (demo)</option><option value="communities">Cộng đồng</option></select><div class="meta" style="margin-top:8px">Tối đa 8 ảnh (4 MB/ảnh, tổng 20 MB) hoặc 1 video (12 MB). Tệp chỉ lưu trên thiết bị này.</div><div class="media-pick-row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
 <button type="button" class="secondary" id="chooseImage">▧ Chọn nhiều ảnh</button><button type="button" class="secondary" id="chooseVideo">▷ Chọn video</button>
 <input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
 <input id="videoFile" type="file" accept="video/mp4,video/webm" hidden>
@@ -811,8 +834,9 @@ document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click'
 document.body.classList.toggle('syntra-compact',appSettings.compactMode);
 document.getElementById('search').addEventListener('input',()=>{activeTopic=null;if(document.getElementById('search').value.trim())filter('explore');else render()});
 document.getElementById('feedSort').addEventListener('change',e=>{sortMode=e.target.value;render()});
-const modal=document.getElementById('modal');function open(){modal.classList.add('show');document.getElementById('postText').focus()}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');clearSelectedMedia()}
+const modal=document.getElementById('modal');let composerReturnFocus=null;function open(){composerReturnFocus=document.activeElement;modal.classList.add('show');document.body.classList.add('composer-open');modal.setAttribute('aria-hidden','false');document.getElementById('postText').focus()}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');document.body.classList.remove('composer-open');modal.setAttribute('aria-hidden','true');clearSelectedMedia();if(composerReturnFocus&&composerReturnFocus.isConnected)composerReturnFocus.focus();composerReturnFocus=null}
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show')){e.preventDefault();close()}});
 document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.getElementById('publish').onclick=async()=>{const button=document.getElementById('publish');if(button.disabled)return;const textValue=document.getElementById('postText').value.trim();if(!textValue&&!selectedMedia.length){toast('Hãy nhập nội dung hoặc chọn tệp.');return}button.disabled=true;const mediaIds=[];try{for(const item of selectedMedia){const id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);await storeMedia(id,item.file);mediaIds.push(id)}const post={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),name:localProfile.name,tag:'@local · vừa xong',text:textValue,type:selectedMedia.length?(selectedMedia[0].kind==='image'?'photos':'video'):document.getElementById('postType').value,mediaIds,mediaId:mediaIds.length===1?mediaIds[0]:null,likes:0,liked:false,saved:false,comments:[]};posts.unshift(post);try{save()}catch(err){posts.shift();throw new Error('Bộ nhớ bài viết đã đầy.')}document.getElementById('postText').value='';close();filter('all');toast(mediaIds.length?'Đã lưu bài viết và '+mediaIds.length+' tệp trên thiết bị.':'Đã lưu bài viết trên thiết bị.')}catch(err){await Promise.all(mediaIds.map(deleteMedia));toast(err.message==='Bộ nhớ bài viết đã đầy.'?err.message:'Không lưu được tệp. Hãy kiểm tra dung lượng trình duyệt.')}finally{button.disabled=false}};
 async function handlePostActionClick(e){
