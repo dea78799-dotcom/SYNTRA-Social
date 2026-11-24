@@ -518,3 +518,11 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Clears cached cloud media when signing out or switching accounts so one account's downloaded media is not retained in the next account's in-memory view.
 - Static regression checks cover concurrency, stale-session protection, automatic refresh triggers and media-cache cleanup.
 - Real two-device verification still requires the user to sign in with the same account on both devices.
+
+## Prototype 2.14 — Sync status feedback
+
+- The account settings now show whether private cloud data is currently syncing, has never synced on this device, or the local time of the last successful sync.
+- The manual sync button changes to "Đang đồng bộ…" and is disabled while a sync request is running, preventing repeated taps.
+- A successful sync clears an earlier sync error message so the account status does not continue showing stale failure text.
+- Static regression checks cover sync progress, last-success timestamp, error clearing and button loading state.
+- The timestamp is local to the current browser session and is not a server audit record.
