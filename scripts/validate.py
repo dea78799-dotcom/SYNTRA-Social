@@ -8,7 +8,9 @@ source = HTML.read_text(encoding="utf-8")
 CLOUD_CLIENT = Path("supabase-client.js")
 PRIVACY_MIGRATION = Path("supabase/migrations/20261124120000_privacy_deletion_cancel_grant.sql")
 REPORT_MIGRATION = Path("supabase/migrations/20261124130000_syntra_social_235_report_validation.sql")
+OWNER_MIGRATION = Path("supabase/migrations/20261124140000_syntra_social_236_owner_moderation.sql")
 report_migration_source = REPORT_MIGRATION.read_text(encoding="utf-8") if REPORT_MIGRATION.exists() else ""
+owner_migration_source = OWNER_MIGRATION.read_text(encoding="utf-8") if OWNER_MIGRATION.exists() else ""
 privacy_migration_source = PRIVACY_MIGRATION.read_text(encoding="utf-8") if PRIVACY_MIGRATION.exists() else ""
 cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
 
@@ -114,7 +116,16 @@ checks = {
     "ordinary sign out only affects current device": "auth.signOut({scope:'local'})" in source,
     "security center controls are wired and account-aware": "renderCloudSecurityCenter()" in source and "cloudSecuritySignOutOthers" in source,
     "security center warns about leaked password protection": "Leaked Password Protection" in source,
-    "settings version reflects prototype 2.35": "SYNTRA Social Prototype 2.35" in source and '<span class="meta">2.35</span>' in source,
+    "settings version reflects prototype 2.36": "SYNTRA Social Prototype 2.36" in source and '<span class="meta">2.36</span>' in source,
+    "Owner Console requires server-side Owner status and TOTP MFA": "rpc('syntra_owner_status')" in source and "auth.mfa.enroll({factorType:'totp'" in source and "auth.mfa.challenge({factorId})" in source and "auth.mfa.verify({factorId,challengeId:challenge.id,code})" in source,
+    "Owner moderation queue does not select reporter identity": ".select('id,target_type,target_id,reason,details,status,created_at')" in source,
+    "moderation actions use the protected server RPC": "rpc('syntra_moderate_report'" in source and "rpc('syntra_get_moderation_audit'" in source and "from('reports').update(" not in source,
+    "Owner Console is wired into Settings and account changes": 'id="syntraOwnerConsole"' in source and "loadSyntraOwnerConsole();" in source,
+    "Owner migration keeps role table private and blocks direct writes": "private.syntra_owner_roles" in owner_migration_source and "revoke all on table private.syntra_owner_roles from public, anon, authenticated;" in owner_migration_source,
+    "Owner moderation requires AAL2 on the server": "auth.jwt()->>'aal','aal1') <> 'aal2'" in owner_migration_source and "reports_select_owner_aal2" in owner_migration_source,
+    "moderation audit is private and records every status transition": "private.syntra_report_moderation_audit" in owner_migration_source and "insert into private.syntra_report_moderation_audit" in owner_migration_source,
+    "reports cannot be updated directly by authenticated clients": "revoke update (id,reporter_id,target_type,target_id,reason,details,status,created_at)" in owner_migration_source,
+    "reporter identity is not selectable by authenticated clients": "revoke select (reporter_id) on table public.reports from authenticated;" in owner_migration_source,
     "cloud block records load across devices for the current account": "async function loadCloudBlocks" in source and "from('blocks').select('blocker_id,blocked_id,blocked_label,created_at')" in source,
     "cloud blocking stores stable account IDs and labels": "from('blocks').insert({blocker_id:userId,blocked_id:targetId,blocked_label:safeLabel})" in source,
     "cloud block list supports unblocking": "async function unblockCloudUser" in source and "data-cloud-unblock" in source,
@@ -134,7 +145,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.35": '<span class="meta">2.35</span>' in source,
+    "settings badge reflects prototype 2.36": '<span class="meta">2.36</span>' in source,
     "security center is present in Settings": 'id="securityCenter"' in source and 'id="securityAccountStatus"' in source,
     "security center reports verified email from Supabase Auth": "user.email_confirmed_at||user.confirmed_at" in source and 'id="securityEmailStatus"' in source,
     "unverified email can request a confirmation resend": "auth.resend({type:'signup',email:syntraCloudUser.email})" in source and "handleCloudResendVerification" in source,
