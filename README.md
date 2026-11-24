@@ -700,3 +700,15 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Reviewed the current Supabase RLS configuration: all 10 public tables have RLS enabled, and current policies scope private records to their owners/participants or explicitly published public content. This is a configuration review, not a substitute for runtime tests with separate accounts.
 - Supabase Security Advisor currently reports **Leaked Password Protection Disabled**. The app surfaces this warning and links to the official guidance; the setting still needs to be enabled in the Supabase dashboard.
 - No database migration or new table was required. Static regression checks cover the password update, email verification, session revocation controls, and security status rendering. Real Android and two-account tests remain required.
+
+
+## Prototype 2.33 — Account Security Center
+
+- Added a Security Center in Settings with the signed-in email, email-verification state, current-device session status, and the latest database RLS baseline.
+- Added authenticated password updates through Supabase Auth, including length and confirmation checks.
+- Added a resend-email-verification action for accounts that are not yet verified.
+- Added an explicit “Đăng xuất thiết bị khác” action using Supabase Auth's `others` scope. The current device remains signed in. Revoked refresh sessions may retain an access token until that token expires.
+- Corrected ordinary sign-out to use the `local` scope, so signing out on one phone does not intentionally terminate the other phone's refresh session.
+- Read-only database audit confirmed RLS is enabled on all 10 public application tables and found 35 table policies. Supabase Security Advisor still reports that leaked-password protection is disabled; the Settings panel explains where this must be enabled in the Supabase Dashboard.
+- The browser app does not expose a full device/IP session inventory, so SYNTRA does not claim to show one.
+- No database migration was required. Automated regression checks cover password updates, email verification resend, session scopes, and security UI wiring. Real email delivery and two-device session tests remain required.
