@@ -670,3 +670,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Cloud sync now records failures while loading posts, media metadata, and public likes/comments, and records successful completion.
 - No database migration or new table is required.
 - Static regression checks cover the minimal probe, diagnostic categories, latency display, operation status, and version metadata. Real Android offline/online testing and multi-account testing remain necessary.
+
+
+## Prototype 2.31 — Cloud Sync Center
+
+- Added a Sync Center to Settings with the 12 most recent local-device sync events and a manual “Đồng bộ lại tất cả” action.
+- The history is stored locally on the current device and capped at 20 events. It stores only a generic category, timestamp, success/failure state, and safe summary; it does not store post content, credentials, or account identifiers.
+- Retry refreshes the signed-in account's posts/media/interactions, public feed, notifications, and bookmarks, while preserving existing per-request account checks and sync de-duplication.
+- No database migration was required.
+- Static regression checks cover bounded history, local-only storage, privacy-safe summaries, and retry wiring. Actual Android and two-device testing remains required.
