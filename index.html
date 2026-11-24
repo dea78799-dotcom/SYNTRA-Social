@@ -925,6 +925,579 @@ async function renderPublicProfile(authorId){
   viewedProfile=displayName;
  }catch(error){console.error('SYNTRA public profile failed:',error);profilePage.innerHTML='<section class="public-profile-empty"><h2>Không tải được hồ sơ</h2><p>Hãy kiểm tra kết nối rồi thử lại.</p><button class="secondary" id="publicProfileBack">Về bảng tin</button></section>';profilePage.querySelector('#publicProfileBack').onclick=()=>filter('all')}
 }
+async function loadCloudPostInteractions(postRows,userId=null){
+ const ids=[...new Set((postRows||[]).map(row=>row.id).filter(Boolean))];
+ const result=new Map();if(!ids.length||!syntraSupabaseClient)return result;
+ const [likesResult,commentsResult]=await Promise.all([
+  syntraSupabaseClient.from('likes').select('post_id,user_id').in('post_id',ids),
+  syntraSupabaseClient.from('comments').select('id,post_id,author_id,body,created_at').in('post_id',ids).order('created_at',{ascending:true}).limit(1000)
+ ]);
+ if(likesResult.error)throw likesResult.error;if(commentsResult.error)throw commentsResult.error;
+ const comments=commentsResult.data||[];const authorIds=[...new Set(comments.map(row=>row.author_id).filter(Boolean))];let profiles=[];
+ if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name').in('id',authorIds);if(profileResult.error)throw profileResult.error;profiles=profileResult.data||[]}
+ const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
+ ids.forEach(id=>result.set(id,{likes:0,liked:false,comments:[]}));
+ (likesResult.data||[]).forEach(row=>{const item=result.get(row.post_id);if(item){item.likes++;if(userId&&row.user_id===userId)item.liked=true}});
+ comments.forEach(row=>{const item=result.get(row.post_id);if(!item)return;const profile=profileMap.get(row.author_id);item.comments.push({id:row.id,authorId:row.author_id,name:profile?.display_name||profile?.username||'Thành viên SYNTRA',text:row.body,createdAt:row.created_at,cloud:true})});
+ return result;
+}
+async function syncPublicFeed(silent=true){
+ if(!syntraSupabaseClient||document.visibilityState==='hidden')return false;
+ const syncUserId=syntraCloudUser?.id||null;
+ if(publicFeedSyncPromise)return publicFeedSyncPromise;
+ if(Date.now()-publicFeedLastSyncAt<30000)return false;
+ const task=(async()=>{
+  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('visibility','public').eq('status','published').order('created_at',{ascending:false}).limit(50);
+  if(error){console.warn('SYNTRA public feed failed:',error);if(!silent)toast('Chưa tải được bảng tin công khai.');return false}
+  const rows=data||[];if(syntraCloudUser){try{await refreshCloudFollowingIds(syntraCloudUser.id)}catch(followError){console.warn('SYNTRA cloud following list failed:',followError);cloudFollowingIds=new Set()}}else cloudFollowingIds=new Set();const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
+  if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(profileResult.error){console.warn('SYNTRA public profiles failed:',profileResult.error);if(!silent)toast('Chưa tải được hồ sơ người đăng.');return false}profiles=profileResult.data||[]}
+  const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
+  const interactions=await loadCloudPostInteractions(rows,syncUserId);
+  if((syntraCloudUser?.id||null)!==syncUserId)return false;
+  const publicPosts=rows.map(row=>({...cloudPostFromRow(row,[],profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{})}));
+  posts=[...publicPosts,...posts.filter(post=>!post.publicCloud)];save();publicFeedLastSyncAt=Date.now();
+  if(active==='all')render();
+  if(!silent)toast('Đã tải '+publicPosts.length+' bài viết công khai.');
+  return true;
+ })();
+ publicFeedSyncPromise=task;
+ try{return await task}finally{if(publicFeedSyncPromise===task)publicFeedSyncPromise=null}
+}
+async function loadCloudBookmarks(userId=syntraCloudUser?.id,silent=true){
+ if(!syntraSupabaseClient||!userId)return false;
+ if(cloudBookmarkLoadPromise&&cloudBookmarkLoadUserId===userId)return cloudBookmarkLoadPromise;
+ const task=(async()=>{
+  const {data:bookmarkRows,error}=await syntraSupabaseClient.from('post_bookmarks').select('post_id,created_at').eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
+  if(error){console.warn('SYNTRA cloud bookmarks failed:',error);if(!silent)toast('Không tải được danh sách bài đã lưu: '+error.message);return false}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const ids=(bookmarkRows||[]).map(row=>row.post_id).filter(Boolean);
+  const savedIds=new Set(ids);
+  if(ids.length){
+   const {data:rows,error:postError}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').in('id',ids).eq('visibility','public').eq('status','published');
+   if(postError){console.warn('SYNTRA bookmarked posts failed:',postError);if(!silent)toast('Không tải được bài viết đã lưu: '+postError.message);return false}
+   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+   const postRows=rows||[];
+   const authorIds=[...new Set(postRows.map(row=>row.author_id).filter(Boolean))];
+   let profiles=[];
+   if(authorIds.length){const result=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(result.error)throw result.error;profiles=result.data||[]}
+   const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
+   const postIds=postRows.map(row=>row.id);
+   let mediaRows=[];
+   if(postIds.length){const result=await syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size').in('post_id',postIds);if(result.error)throw result.error;mediaRows=result.data||[]}
+   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+   const interactions=await loadCloudPostInteractions(postRows,userId);
+   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+   mediaRows.forEach(item=>cloudMediaById.set(item.id,item));
+   posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)});
+   const existing=new Map(posts.map(post=>[post.id,post]));
+   postRows.forEach(row=>{
+    const next={...cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id),profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{}),saved:true};
+    const current=existing.get(row.id);
+    if(current)Object.assign(current,next);else{posts.push(next);existing.set(row.id,next)}
+   });
+  }
+  save();
+  if(active==='saved')render();
+  if(!silent)toast('Đã đồng bộ '+ids.length+' bài viết đã lưu.');
+  return true;
+ })();
+ cloudBookmarkLoadPromise=task;cloudBookmarkLoadUserId=userId;
+ try{return await task}catch(error){console.warn('SYNTRA cloud bookmarks load failed:',error);if(!silent)toast('Không tải được bài đã lưu: '+(error.message||'Hãy thử lại.'));return false}
+ finally{if(cloudBookmarkLoadPromise===task){cloudBookmarkLoadPromise=null;cloudBookmarkLoadUserId=null}}
+}
+function classifyCloudError(error){const code=String(error&&error.code||''),status=Number(error&&error.status||0),message=String(error&&error.message||'').toLowerCase();if(navigator.onLine===false||message.includes('failed to fetch')||message.includes('networkerror')||message.includes('network request failed'))return{category:'network',label:'Lỗi mạng',detail:'Không thể kết nối tới máy chủ. Kiểm tra Wi-Fi hoặc dữ liệu di động.'};if(status===401||status===403||code==='42501')return{category:'permission',label:'Quyền truy cập',detail:'Máy chủ từ chối yêu cầu. Kiểm tra phiên đăng nhập và quyền dữ liệu.'};if(code==='42P01'||code==='PGRST205'||status===404)return{category:'schema',label:'Thiếu tài nguyên',detail:'Không tìm thấy bảng hoặc endpoint cần thiết.'};if(status>=500)return{category:'server',label:'Lỗi máy chủ',detail:'Supabase đang trả về lỗi máy chủ. Thử lại sau.'};return{category:'api',label:'Lỗi API',detail:'Yêu cầu Supabase thất bại. Mã lỗi: '+(code||status||'không xác định')}}
+function cloudSyncCategory(operation){const value=String(operation||'').toLowerCase();if(value.includes('bookmark')||value.includes('đã lưu'))return{key:'bookmarks',label:'Bài đã lưu'};if(value.includes('thích')||value.includes('bình luận')||value.includes('interaction'))return{key:'interactions',label:'Lượt thích & bình luận'};if(value.includes('ảnh')||value.includes('media')||value.includes('tệp'))return{key:'media',label:'Ảnh/video'};if(value.includes('thông báo')||value.includes('notification'))return{key:'notifications',label:'Thông báo'};if(value.includes('kết nối'))return{key:'connection',label:'Kết nối'};return{key:'posts',label:'Bài viết'}};
+function renderCloudAutoSyncStatus(){const root=document.getElementById('cloudAutoSyncStatus');if(!root)return;if(!syntraSupabaseClient){root.textContent='Đang chờ khởi tạo kết nối SYNTRA Cloud.';return}if(navigator.onLine===false){root.textContent='Tạm dừng: thiết bị đang ngoại tuyến.';return}if(document.visibilityState==='hidden'){root.textContent='Tạm dừng khi ứng dụng ở nền; sẽ đồng bộ khi bạn quay lại.';return}if(cloudAutoSyncPromise){root.textContent='Đang thực hiện chu kỳ đồng bộ tự động.';return}if(cloudAutoSyncNextAt){root.textContent='Lần đồng bộ tự động tiếp theo dự kiến: '+new Date(cloudAutoSyncNextAt).toLocaleTimeString('vi-VN')+' (khoảng ngẫu nhiên 30–60 phút).';return}root.textContent='Đang chuẩn bị lịch đồng bộ tự động 30–60 phút.'}
+function scheduleCloudAutoSync(){if(cloudAutoSyncTimer){clearTimeout(cloudAutoSyncTimer);cloudAutoSyncTimer=null}cloudAutoSyncNextAt=0;cloudAutoSyncDelay=0;if(!syntraSupabaseClient||navigator.onLine===false||document.visibilityState==='hidden'){renderCloudAutoSyncStatus();return}cloudAutoSyncDelay=30*60*1000+Math.floor(Math.random()*(30*60*1000+1));cloudAutoSyncNextAt=Date.now()+cloudAutoSyncDelay;cloudAutoSyncTimer=setTimeout(()=>{cloudAutoSyncTimer=null;cloudAutoSyncNextAt=0;runCloudAutoSyncNow()},cloudAutoSyncDelay);renderCloudAutoSyncStatus()}
+async function runCloudAutoSyncNow(){if(cloudAutoSyncPromise)return cloudAutoSyncPromise;if(!syntraSupabaseClient||navigator.onLine===false||document.visibilityState==='hidden'){scheduleCloudAutoSync();return false}if(cloudAutoSyncTimer){clearTimeout(cloudAutoSyncTimer);cloudAutoSyncTimer=null}cloudAutoSyncNextAt=0;const task=(async()=>{try{return await autoSyncCloudPosts()}catch(error){recordCloudDiagnostic('Đồng bộ tự động',false,error);return false}finally{if(cloudAutoSyncPromise===task)cloudAutoSyncPromise=null;scheduleCloudAutoSync()}})();cloudAutoSyncPromise=task;renderCloudAutoSyncStatus();try{return await task}catch(error){return false}}
+function renderCloudSyncCenter(){const root=document.getElementById('cloudSyncHistory');if(!root)return;const items=cloudSyncHistory.slice(0,12);root.innerHTML=items.length?items.map(item=>'<div class="settings-row"><div><b>'+esc(item.categoryLabel)+'</b><small>'+esc(item.summary)+' · '+esc(new Date(item.at).toLocaleString('vi-VN'))+'</small></div><span class="meta">'+(item.ok?'Thành công':'Thất bại')+'</span></div>').join(''):'<p class="settings-note">Chưa có lịch sử đồng bộ trên thiết bị này.</p>';const button=document.getElementById('cloudSyncCenterRetry');if(button){button.disabled=cloudSyncCenterRunning||!syntraCloudUser||navigator.onLine===false;button.textContent=cloudSyncCenterRunning?'Đang đồng bộ…':navigator.onLine===false?'Đang ngoại tuyến':'Đồng bộ lại tất cả'}renderCloudAutoSyncStatus()};
+async function retryCloudSyncCenter(){if(cloudSyncCenterRunning||!syntraCloudUser||navigator.onLine===false)return false;cloudSyncCenterRunning=true;renderCloudSyncCenter();let ok=true;try{const userId=syntraCloudUser.id;const own=await syncCloudPosts(true);if(!own)ok=false;if(syntraCloudUser?.id===userId){const publicResult=await syncPublicFeed(true);if(!publicResult)ok=false;try{await loadCloudNotifications(userId,true)}catch(error){ok=false;recordCloudDiagnostic('Tải thông báo',false,error)}const bookmarks=await loadCloudBookmarks(userId,true);if(!bookmarks)ok=false}toast(ok?'Đã hoàn tất đồng bộ SYNTRA Cloud.':'Một số dữ liệu chưa đồng bộ được. Kiểm tra lịch sử để biết thêm.');return ok}catch(error){recordCloudDiagnostic('Đồng bộ tổng thể',false,error);toast('Đồng bộ chưa hoàn tất. Hãy thử lại sau.');return false}finally{cloudSyncCenterRunning=false;renderCloudSyncCenter()}}
+function recordCloudDiagnostic(operation,ok,error){const result=ok?{label:'Thành công',detail:'Yêu cầu hoàn tất.'}:classifyCloudError(error),category=cloudSyncCategory(operation);cloudDiagnostics.lastOperation=operation+' · '+result.label;cloudDiagnostics.lastOperationAt=Date.now();if(!ok)cloudDiagnostics.detail=result.detail;cloudSyncHistory.unshift({at:Date.now(),category:category.key,categoryLabel:category.label,summary:ok?'Đồng bộ hoàn tất':result.detail,ok:!!ok});cloudSyncHistory=cloudSyncHistory.slice(0,20);writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory);renderCloudDiagnostics();renderCloudSyncCenter()}
+function renderCloudDiagnostics(){const root=document.getElementById('cloudDiagnosticsStatus');if(!root)return;const d=cloudDiagnostics,checked=d.checkedAt?'Lần kiểm tra: '+new Date(d.checkedAt).toLocaleString('vi-VN')+(d.latencyMs!==null?' · '+d.latencyMs+' ms':''):'Chưa kiểm tra kết nối',operation=d.lastOperationAt?'Đồng bộ gần nhất: '+d.lastOperation+' · '+new Date(d.lastOperationAt).toLocaleTimeString('vi-VN'):'Chưa có thao tác đồng bộ';root.textContent=d.status+' · '+checked+' · '+operation+' · '+d.detail;const button=document.getElementById('cloudDiagnosticCheck');if(button){button.disabled=cloudDiagnosticRunning||!syntraSupabaseClient||navigator.onLine===false;button.textContent=cloudDiagnosticRunning?'Đang kiểm tra…':navigator.onLine===false?'Đang ngoại tuyến':'Kiểm tra kết nối'}}
+async function checkCloudConnection(){if(cloudDiagnosticRunning)return false;if(!syntraSupabaseClient){cloudDiagnostics.status='Chưa kết nối';cloudDiagnostics.category='config';cloudDiagnostics.detail='Ứng dụng chưa khởi tạo Supabase client.';renderCloudDiagnostics();return false}if(navigator.onLine===false){cloudDiagnostics.checkedAt=Date.now();cloudDiagnostics.latencyMs=null;cloudDiagnostics.status='Ngoại tuyến';cloudDiagnostics.category='network';cloudDiagnostics.detail='Thiết bị đang báo không có kết nối Internet.';renderCloudDiagnostics();return false}cloudDiagnosticRunning=true;renderCloudDiagnostics();const started=Date.now();try{const {error}=await syntraSupabaseClient.from('posts').select('id').eq('visibility','public').eq('status','published').limit(1);cloudDiagnostics.checkedAt=Date.now();cloudDiagnostics.latencyMs=Date.now()-started;if(error){const issue=classifyCloudError(error);cloudDiagnostics.status=issue.label;cloudDiagnostics.category=issue.category;cloudDiagnostics.detail=issue.detail+' Mã: '+(error.code||error.status||'không rõ');recordCloudDiagnostic('Kiểm tra kết nối',false,error);return false}cloudDiagnostics.status='Kết nối tốt';cloudDiagnostics.category='ok';cloudDiagnostics.detail='Data API phản hồi thành công. Không đọc nội dung bài viết trong bước kiểm tra.';recordCloudDiagnostic('Kiểm tra kết nối',true);return true}catch(error){cloudDiagnostics.checkedAt=Date.now();cloudDiagnostics.latencyMs=Date.now()-started;const issue=classifyCloudError(error);cloudDiagnostics.status=issue.label;cloudDiagnostics.category=issue.category;cloudDiagnostics.detail=issue.detail;recordCloudDiagnostic('Kiểm tra kết nối',false,error);return false}finally{cloudDiagnosticRunning=false;renderCloudDiagnostics()}}
+function renderSecurityCenter(){
+ const root=document.getElementById('securityCenter');if(!root)return;
+ const status=document.getElementById('securityAccountStatus'),emailStatus=document.getElementById('securityEmailStatus'),sessionStatus=document.getElementById('securityCurrentSession');
+ const resend=document.getElementById('securityResendVerification'),signOutOthers=document.getElementById('securitySignOutOthers'),updatePassword=document.getElementById('securityUpdatePassword');
+ const signedIn=!!syntraCloudUser;
+ if(!signedIn){
+  if(status){status.dataset.accountId='';status.textContent='Đăng nhập để xem trạng thái bảo mật và quản lý phiên.';}
+  if(emailStatus)emailStatus.textContent='Chưa đăng nhập.';
+  if(sessionStatus)sessionStatus.textContent='Không có phiên SYNTRA đang hoạt động.';
+  [resend,signOutOthers,updatePassword].forEach(button=>{if(button)button.disabled=true});
+  return;
+ }
+ const user=syntraCloudUser,verified=!!(user.email_confirmed_at||user.confirmed_at);
+ const agent=navigator.userAgent||'',device=/android/i.test(agent)?'Android':/iphone|ipad|ipod/i.test(agent)?'iOS':/windows/i.test(agent)?'Windows':/macintosh/i.test(agent)?'macOS':'trình duyệt hiện tại';
+ const browser=/edg\//i.test(agent)?'Edge':/firefox\//i.test(agent)?'Firefox':/chrome\//i.test(agent)?'Chrome':/safari\//i.test(agent)?'Safari':'browser';
+ if(status&&status.dataset.accountId!==user.id){status.dataset.accountId=user.id;status.textContent='Đang quản lý tài khoản '+(user.email||'SYNTRA')+'.';}
+ if(emailStatus){emailStatus.textContent=(user.email||'Không có email')+' · '+(verified?'Đã xác minh':'Chưa xác minh');emailStatus.className=verified?'security-status-good':'security-status-warn'}
+ if(sessionStatus)sessionStatus.textContent='Phiên đang dùng trên '+device+' · '+browser+(user.last_sign_in_at?' · đăng nhập gần nhất '+new Date(user.last_sign_in_at).toLocaleString('vi-VN'):'');
+ if(resend){resend.disabled=!syntraCloudReady||verified||navigator.onLine===false;resend.textContent=verified?'Email đã xác minh':'Gửi lại thư xác minh'}
+ if(signOutOthers)signOutOthers.disabled=!syntraCloudReady||navigator.onLine===false;
+ if(updatePassword)updatePassword.disabled=!syntraCloudReady||navigator.onLine===false;
+}
+async function handleCloudPasswordUpdate(){
+ if(!syntraSupabaseClient||!syntraCloudUser){toast('Hãy đăng nhập trước.');return}
+ const nextPassword=document.getElementById('securityNewPassword')?.value||'';
+ const confirmPassword=document.getElementById('securityConfirmPassword')?.value||'';
+ const status=document.getElementById('securityAccountStatus'),button=document.getElementById('securityUpdatePassword');
+ if(nextPassword.length<8){if(status)status.textContent='Mật khẩu mới cần có ít nhất 8 ký tự.';return}
+ if(nextPassword!==confirmPassword){if(status)status.textContent='Hai mật khẩu không khớp.';return}
+ if(button)button.disabled=true;
+ try{
+  const {data,error}=await syntraSupabaseClient.auth.updateUser({password:nextPassword});
+  if(error)throw error;
+  if(data?.user&&syntraCloudUser)syntraCloudUser=data.user;
+  const first=document.getElementById('securityNewPassword'),second=document.getElementById('securityConfirmPassword');
+  if(first)first.value='';if(second)second.value='';
+  if(status)status.textContent='Đã cập nhật mật khẩu cho tài khoản hiện tại.';
+  toast('Đã cập nhật mật khẩu SYNTRA.');
+ }catch(error){if(status)status.textContent='Không đổi được mật khẩu: '+(error.message||'Hãy thử lại.')}
+ finally{renderSecurityCenter()}
+}
+async function handleCloudResendVerification(){
+ if(!syntraSupabaseClient||!syntraCloudUser?.email)return;
+ const button=document.getElementById('securityResendVerification'),status=document.getElementById('securityAccountStatus');
+ if(button)button.disabled=true;
+ try{
+  const {error}=await syntraSupabaseClient.auth.resend({type:'signup',email:syntraCloudUser.email});
+  if(error)throw error;
+  if(status)status.textContent='Đã yêu cầu gửi lại email xác minh. Hãy kiểm tra hộp thư đến và thư rác.';
+  toast('Đã gửi yêu cầu xác minh email.');
+ }catch(error){if(status)status.textContent='Không gửi được email xác minh: '+(error.message||'Hãy thử lại sau.')}
+ finally{renderSecurityCenter()}
+}
+async function handleCloudSignOutOthers(){
+ if(!syntraSupabaseClient||!syntraCloudUser)return;
+ if(!confirm('Đăng xuất các phiên SYNTRA khác? Thiết bị hiện tại vẫn được giữ đăng nhập.'))return;
+ const button=document.getElementById('securitySignOutOthers'),status=document.getElementById('securityAccountStatus');
+ if(button)button.disabled=true;
+ try{
+  const {error}=await syntraSupabaseClient.auth.signOut({scope:'others'});
+  if(error)throw error;
+  if(status)status.textContent='Đã yêu cầu thu hồi các phiên khác. Một access token cũ có thể còn hiệu lực đến khi hết hạn.';
+  toast('Đã yêu cầu đăng xuất các phiên khác.');
+ }catch(error){if(status)status.textContent='Không đăng xuất được phiên khác: '+(error.message||'Hãy thử lại.')}
+ finally{renderSecurityCenter()}
+}
+function updateCloudAccountUI(message){
+ if(message)cloudAccountMessage=message;
+ const status=document.getElementById('cloudAccountStatus');
+ if(status){
+  if(cloudAccountMessage)status.textContent=cloudAccountMessage;
+  else if(!syntraCloudReady)status.textContent='Đang kết nối SYNTRA Cloud…';
+  else if(syntraCloudUser){
+   const syncStatus=cloudSyncing?'Đang đồng bộ…':cloudLastSyncAt?'Đã đồng bộ lúc '+new Date(cloudLastSyncAt).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):'Chưa đồng bộ trên thiết bị này.';
+   status.textContent='Đã đăng nhập · '+(syntraCloudUser.email||'Tài khoản SYNTRA')+' · '+syncStatus+' Bài viết riêng tư, lượt thích và bình luận công khai được đồng bộ.';
+  }
+  else status.textContent='Chưa đăng nhập. Bạn vẫn xem được bài viết, lượt thích và bình luận công khai. Đăng nhập để tương tác và đồng bộ trên các thiết bị; ảnh/video công khai chưa được bật.';
+  if(navigator.onLine===false)status.textContent='Ngoại tuyến · '+status.textContent;
+ }
+ const signedIn=!!syntraCloudUser;
+ ['cloudSignUp','cloudSignIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!syntraCloudReady||signedIn});
+ const syncButton=document.getElementById('cloudSyncNow');
+ if(syncButton){syncButton.disabled=!syntraCloudReady||!signedIn||cloudSyncing||navigator.onLine===false;syncButton.textContent=cloudSyncing?'Đang đồng bộ…':navigator.onLine===false?'Đang ngoại tuyến':'Đồng bộ ngay'}
+ const signOutButton=document.getElementById('cloudSignOut');
+ if(signOutButton)signOutButton.disabled=!syntraCloudReady||!signedIn;
+ renderSecurityCenter();
+ renderCloudSecurityCenter();
+}
+async function syncCloudPosts(silent){
+ if(!syntraSupabaseClient||!syntraCloudUser)return false;
+ const userId=syntraCloudUser.id;
+ if(cloudSyncPromise&&cloudSyncUserId===userId)return cloudSyncPromise;
+ const task=(async()=>{
+  cloudSyncing=true;cloudAccountMessage='';updateCloudAccountUI();
+  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('author_id',userId).eq('status','published').order('created_at',{ascending:false}).limit(100);
+  if(error){recordCloudDiagnostic('Tải bài viết',false,error);console.warn('SYNTRA cloud sync failed:',error);if(syntraCloudUser&&syntraCloudUser.id===userId)updateCloudAccountUI('Không đồng bộ được bài viết: '+error.message);if(!silent)toast('Không đồng bộ được bài viết. Hãy thử lại.');return false}
+  const rows=data||[];const postIds=rows.map(row=>row.id);let mediaRows=[];
+  if(postIds.length){const mediaResult=await syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size').in('post_id',postIds);if(mediaResult.error){recordCloudDiagnostic('Tải metadata ảnh/video',false,mediaResult.error);console.warn('SYNTRA cloud media metadata sync failed:',mediaResult.error);if(syntraCloudUser&&syntraCloudUser.id===userId)updateCloudAccountUI('Đã tải bài viết nhưng chưa tải được danh sách ảnh/video: '+mediaResult.error.message);if(!silent)toast('Không tải được danh sách tệp đính kèm.');return false}mediaRows=mediaResult.data||[]}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const nextMediaMap=new Map(mediaRows.map(item=>[item.id,item]));
+  const oldCloudIds=new Set(cloudMediaById.keys());
+  oldCloudIds.forEach(id=>{if(!nextMediaMap.has(id)){mediaItems.delete(id);revokeMediaUrl(id)}});
+  cloudMediaById.clear();nextMediaMap.forEach((value,key)=>cloudMediaById.set(key,value));
+  const publicRows=rows.filter(row=>row.visibility==='public');
+  let interactions;
+  try{interactions=await loadCloudPostInteractions(publicRows,userId)}catch(error){recordCloudDiagnostic('Tải lượt thích/bình luận',false,error);throw error}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const cloudPosts=rows.map(row=>({...cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id)),...(interactions.get(row.id)||{})}));
+  posts=[...cloudPosts,...posts.filter(post=>post.publicCloud||!post.cloud)];save();render();cloudLastSyncAt=Date.now();cloudAccountMessage='';recordCloudDiagnostic('Đồng bộ bài viết và media',true);updateCloudAccountUI();
+  if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết và '+mediaRows.length+' tệp ảnh/video.');
+  return true;
+ })();
+ cloudSyncPromise=task;cloudSyncUserId=userId;
+ try{return await task}finally{if(cloudSyncPromise===task){cloudSyncPromise=null;cloudSyncUserId=null;cloudSyncing=false;if(syntraCloudUser&&syntraCloudUser.id===userId)updateCloudAccountUI()}}
+}
+async function autoSyncCloudPosts(){
+ if(!syntraSupabaseClient||document.visibilityState==='hidden')return false;
+ const publicResult=await syncPublicFeed(true);
+ if(!syntraCloudUser)return publicResult;
+ await loadCloudNotifications(syntraCloudUser.id,true);
+ await loadCloudBookmarks(syntraCloudUser.id,true);
+ if(Date.now()-cloudLastSyncAt<30000)return publicResult;
+ return syncCloudPosts(true);
+}
+async function setCloudSession(session){
+ const previousId=syntraCloudUser&&syntraCloudUser.id;
+ const nextUser=session&&session.user?session.user:null;
+ if(previousId&&(!nextUser||previousId!==nextUser.id)){
+  cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)});
+  cloudMediaById.clear();cloudLastSyncAt=0;
+  posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=false});
+  posts=posts.filter(post=>post.publicCloud||!post.cloud);save();render();
+ }
+ syntraCloudUser=nextUser;
+ cloudAccountMessage='';
+ if(syntraCloudUser){try{await refreshCloudFollowingIds(syntraCloudUser.id)}catch(error){console.warn('SYNTRA following list refresh failed:',error);cloudFollowingIds=new Set()}try{await loadCloudBlocks(syntraCloudUser.id)}catch(error){console.warn('SYNTRA block list refresh failed:',error);cloudBlockRecords=[];cloudBlockedUserIds=new Set()}await syncCloudPosts(true);await loadCloudNotifications(syntraCloudUser.id,true)}
+ else{cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();cloudDeletionRequest=null;cloudNotifications=[];renderNoticeCount()}
+ await syncPublicFeed(true);
+ if(syntraCloudUser)await loadCloudBookmarks(syntraCloudUser.id,true);
+ if(!syntraCloudUser)render();
+ updateCloudAccountUI();
+ if(settingsPage.classList.contains('show'))loadCloudProfileSettings();
+ scheduleCloudAutoSync();
+}
+function cloudAuthErrorMessage(error,mode){
+ const message=String(error&&error.message||'').toLowerCase();
+ if(message.includes('invalid login credentials'))return 'Email hoặc mật khẩu chưa chính xác.';
+ if(message.includes('email not confirmed'))return 'Email chưa được xác nhận. Hãy mở thư xác nhận rồi thử lại.';
+ if(message.includes('user already registered')||message.includes('already been registered'))return 'Email này đã có tài khoản. Hãy đăng nhập hoặc dùng Quên mật khẩu.';
+ if(message.includes('password')&&(message.includes('weak')||message.includes('least')||message.includes('short')))return 'Mật khẩu chưa đạt yêu cầu bảo mật của hệ thống.';
+ if(message.includes('invalid email'))return 'Địa chỉ email không hợp lệ.';
+ if(message.includes('rate limit')||message.includes('too many requests'))return 'Bạn thao tác quá nhanh. Hãy đợi một lúc rồi thử lại.';
+ return (mode==='signup'?'Không tạo được tài khoản: ':'Không đăng nhập được: ')+(error&&error.message||'Lỗi kết nối. Hãy thử lại.');
+}
+function toggleCloudPassword(){
+ const input=document.getElementById('cloudPassword');const button=document.getElementById('cloudPasswordToggle');if(!input||!button)return;
+ const visible=input.type==='password';input.type=visible?'text':'password';button.textContent=visible?'Ẩn mật khẩu':'Hiện mật khẩu';button.setAttribute('aria-pressed',String(visible));
+}
+async function handleCloudSecurityUpdatePassword(){
+ if(!syntraSupabaseClient||!syntraCloudUser){updateCloudSecurityStatus('Hãy đăng nhập để đổi mật khẩu.');return}
+ const password=document.getElementById('cloudSecurityNewPassword')?.value||'';
+ const confirmPassword=document.getElementById('cloudSecurityConfirmPassword')?.value||'';
+ if(password.length<8||password.length>128){updateCloudSecurityStatus('Mật khẩu mới phải có từ 8 đến 128 ký tự.');return}
+ if(password!==confirmPassword){updateCloudSecurityStatus('Hai mật khẩu không khớp.');return}
+ const button=document.getElementById('cloudSecurityUpdatePassword');if(button)button.disabled=true;
+ updateCloudSecurityStatus('Đang cập nhật mật khẩu…');
+ try{
+  const {error}=await syntraSupabaseClient.auth.updateUser({password});
+  if(error)throw error;
+  const first=document.getElementById('cloudSecurityNewPassword'),second=document.getElementById('cloudSecurityConfirmPassword');
+  if(first)first.value='';if(second)second.value='';
+  updateCloudSecurityStatus('Đã cập nhật mật khẩu. Hãy dùng mật khẩu mới ở lần đăng nhập tiếp theo.');
+ }catch(error){updateCloudSecurityStatus('Không đổi được mật khẩu: '+(error.message||'Hãy đăng nhập lại rồi thử lại.'))}
+ finally{renderCloudSecurityCenter()}
+}
+async function handleCloudSecurityResendEmail(){
+ if(!syntraSupabaseClient||!syntraCloudUser?.email){updateCloudSecurityStatus('Hãy đăng nhập trước.');return}
+ const button=document.getElementById('cloudSecurityResend');if(button)button.disabled=true;
+ try{
+  const {error}=await syntraSupabaseClient.auth.resend({type:'signup',email:syntraCloudUser.email});
+  if(error)throw error;
+  updateCloudSecurityStatus('Đã yêu cầu gửi lại thư xác nhận. Hãy kiểm tra hộp thư đến và thư rác.');
+ }catch(error){updateCloudSecurityStatus('Không gửi được thư xác nhận: '+(error.message||'Hãy thử lại sau.'))}
+ finally{renderCloudSecurityCenter()}
+}
+async function handleCloudSecuritySignOutOthers(){
+ if(!syntraSupabaseClient||!syntraCloudUser){updateCloudSecurityStatus('Hãy đăng nhập trước.');return}
+ if(!confirm('Đăng xuất tài khoản SYNTRA khỏi tất cả thiết bị khác? Thiết bị hiện tại vẫn được giữ đăng nhập.'))return;
+ const button=document.getElementById('cloudSecuritySignOutOthers');if(button)button.disabled=true;
+ updateCloudSecurityStatus('Đang thu hồi các phiên đăng nhập khác…');
+ try{
+  const {error}=await syntraSupabaseClient.auth.signOut({scope:'others'});
+  if(error)throw error;
+  updateCloudSecurityStatus('Đã yêu cầu đăng xuất các phiên khác. Phiên trên thiết bị hiện tại vẫn hoạt động.');
+ }catch(error){updateCloudSecurityStatus('Không đăng xuất được các phiên khác: '+(error.message||'Hãy thử lại.'))}
+ finally{renderCloudSecurityCenter()}
+}
+function updateCloudSecurityStatus(message){
+ const el=document.getElementById('cloudSecurityStatus');if(el)el.textContent=message;
+}
+function renderCloudSecurityCenter(){
+ const root=document.getElementById('cloudSecuritySection');if(!root)return;
+ const user=syntraCloudUser;
+ const email=root.querySelector('#cloudSecurityEmail'),verified=root.querySelector('#cloudSecurityEmailState'),session=root.querySelector('#cloudSecuritySession');
+ const resend=root.querySelector('#cloudSecurityResend'),update=root.querySelector('#cloudSecurityUpdatePassword'),others=root.querySelector('#cloudSecuritySignOutOthers');
+ if(email)email.textContent=user?.email||'Chưa đăng nhập';
+ const isVerified=!!(user?.email_confirmed_at||user?.confirmed_at);
+ if(verified){verified.textContent=user?(isVerified?'Đã xác minh':'Chưa xác minh'):'Chưa đăng nhập';verified.className=isVerified?'security-good':user?'security-warning':''}
+ if(session)session.textContent=user?'Đang hoạt động trên thiết bị này':'Chưa đăng nhập';
+ if(resend)resend.disabled=!user||isVerified;
+ if(update)update.disabled=!user;
+ if(others)others.disabled=!user;
+ const warning=root.querySelector('#cloudSecurityWarning');if(warning)warning.hidden=!user;
+}
+async function handleCloudPasswordReset(){
+ if(!syntraSupabaseClient||!syntraCloudReady){updateCloudAccountUI('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ if(!email){updateCloudAccountUI('Nhập email tài khoản trước khi yêu cầu đặt lại mật khẩu.');document.getElementById('cloudEmail')?.focus();return}
+ const button=document.getElementById('cloudResetPassword');if(button)button.disabled=true;
+ try{
+  const {error}=await syntraSupabaseClient.auth.resetPasswordForEmail(email);
+  if(error)throw error;
+  updateCloudAccountUI('Nếu email này đã đăng ký, SYNTRA sẽ gửi hướng dẫn đặt lại mật khẩu. Hãy kiểm tra cả thư rác.');
+ }catch(error){updateCloudAccountUI('Không gửi được email đặt lại mật khẩu: '+(error.message||'Hãy thử lại sau.'))}
+ finally{if(button)button.disabled=false}
+}
+async function handleCloudSignUp(){
+ if(!syntraSupabaseClient||!syntraCloudReady){toast('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ const password=document.getElementById('cloudPassword')?.value||'';
+ const displayName=(document.getElementById('cloudDisplayName')?.value||'').trim();
+ if(!displayName||!email||!password){updateCloudAccountUI('Hãy nhập tên hiển thị, email và mật khẩu.');return}
+ if(password.length<8){updateCloudAccountUI('Mật khẩu cần có ít nhất 8 ký tự.');return}
+ const button=document.getElementById('cloudSignUp');if(button)button.disabled=true;
+ try{
+  const {data,error}=await syntraSupabaseClient.auth.signUp({email,password,options:{data:{display_name:displayName}}});
+  if(error)throw error;
+  if(data.session){await setCloudSession(data.session);updateCloudAccountUI('Tạo tài khoản thành công. Bài viết mới sẽ được đồng bộ.');toast('Đã tạo tài khoản SYNTRA.')}
+  else updateCloudAccountUI('Đã gửi yêu cầu tạo tài khoản. Nếu hệ thống yêu cầu xác nhận email, hãy mở thư xác nhận rồi quay lại đăng nhập.');
+ }catch(error){updateCloudAccountUI(cloudAuthErrorMessage(error,'signup'))}
+ finally{updateCloudAccountUI()}
+}
+async function handleCloudSignIn(){
+ if(!syntraSupabaseClient||!syntraCloudReady){toast('SYNTRA Cloud đang khởi động.');return}
+ const email=(document.getElementById('cloudEmail')?.value||'').trim();
+ const password=document.getElementById('cloudPassword')?.value||'';
+ if(!email||!password){updateCloudAccountUI('Hãy nhập email và mật khẩu.');return}
+ const button=document.getElementById('cloudSignIn');if(button)button.disabled=true;
+ try{
+  const {data,error}=await syntraSupabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  await setCloudSession(data.session);
+  updateCloudAccountUI('Đăng nhập thành công. Bài viết đã được đồng bộ.');
+  toast('Đã đăng nhập SYNTRA Cloud.');
+ }catch(error){updateCloudAccountUI(cloudAuthErrorMessage(error,'signin'))}
+ finally{updateCloudAccountUI()}
+}
+async function handleCloudSignOut(){
+ if(!syntraSupabaseClient)return;
+ const {error}=await syntraSupabaseClient.auth.signOut({scope:'local'});
+ if(error){updateCloudAccountUI('Không đăng xuất được: '+error.message);return}
+ await setCloudSession(null);toast('Đã đăng xuất SYNTRA Cloud.');
+}
+async function refreshCloudPosts(){if(!syntraCloudUser){toast('Hãy đăng nhập trước.');return}await syncCloudPosts(false)}
+window.addEventListener('focus',()=>{if(document.visibilityState==='visible')runCloudAutoSyncNow()});
+window.addEventListener('offline',()=>{scheduleCloudAutoSync();updateCloudAccountUI()});
+window.addEventListener('online',()=>{updateCloudAccountUI();runCloudAutoSyncNow()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')runCloudAutoSyncNow();else scheduleCloudAutoSync()});
+window.syntraCloudInit=async function(client){
+ syntraSupabaseClient=client;syntraCloudReady=true;updateCloudAccountUI();
+ const {data,error}=await client.auth.getSession();
+ if(error){updateCloudAccountUI('Không đọc được phiên đăng nhập: '+error.message);return}
+ await setCloudSession(data.session);
+ client.auth.onAuthStateChange((event,session)=>{
+  if(event==='INITIAL_SESSION')return;
+  Promise.resolve().then(()=>setCloudSession(session));
+ });
+};
+
+function saveNotices(){writeLocalJSON(NOTICE_KEY,notices);renderNoticeCount()}
+async function loadCloudNotifications(userId=syntraCloudUser?.id,silent=true){
+ if(!syntraSupabaseClient||!userId){cloudNotifications=[];renderNoticeCount();return true}
+ if(cloudNoticeLoadPromise&&cloudNoticeLoadUserId===userId)return cloudNoticeLoadPromise;
+ const task=(async()=>{
+  const {data,error}=await syntraSupabaseClient.from('notifications').select('id,recipient_id,actor_id,notification_type,entity_type,entity_id,payload,read_at,created_at').eq('recipient_id',userId).order('created_at',{ascending:false}).limit(60);
+  if(error)throw error;
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const rows=data||[],actorIds=[...new Set(rows.map(row=>row.actor_id).filter(Boolean))];
+  let profiles=[];
+  if(actorIds.length){const result=await syntraSupabaseClient.from('profiles').select('id,username,display_name').in('id',actorIds);if(result.error)throw result.error;profiles=result.data||[]}
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+  const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
+  cloudNotifications=rows.map(row=>{
+   const profile=profileMap.get(row.actor_id),actor=profile?.display_name||profile?.username||'Thành viên SYNTRA';
+   let kind='activity',title='Thông báo SYNTRA',body='Bạn có một thông báo mới.';
+   if(row.notification_type==='like'){kind='like';title='Lượt thích mới';body=actor+' đã thích bài viết công khai của bạn.'}
+   else if(row.notification_type==='comment'){kind='comment';title='Bình luận mới';body=actor+' đã bình luận trên bài viết công khai của bạn.'}
+   else if(row.notification_type==='follow_request'){kind='follow';title='Yêu cầu theo dõi mới';body=actor+' muốn theo dõi bạn.'}
+   else if(row.notification_type==='follow_accepted'&&row.actor_id===row.entity_id){kind='follow';title='Yêu cầu theo dõi được chấp nhận';body=actor+' đã chấp nhận yêu cầu theo dõi của bạn.'}
+   else if(row.notification_type==='follow_accepted'){kind='follow';title='Người theo dõi mới';body=actor+' đã bắt đầu theo dõi bạn.'}
+   else if(row.notification_type==='system'){kind='system';title='Thông báo hệ thống';body=String(row.payload?.message||'Bạn có một thông báo từ SYNTRA.')}
+   return {id:row.id,kind,title,body,read:!!row.read_at,demo:false,cloud:true,createdAt:row.created_at,time:new Date(row.created_at).toLocaleString('vi-VN')};
+  });
+  renderNoticeCount();return true;
+ })();
+ cloudNoticeLoadPromise=task;cloudNoticeLoadUserId=userId;
+ try{return await task}catch(error){console.warn('SYNTRA cloud notifications failed:',error);if(!silent)toast('Không tải được thông báo Cloud: '+(error.message||'Hãy thử lại.'));return false}
+ finally{if(cloudNoticeLoadPromise===task){cloudNoticeLoadPromise=null;cloudNoticeLoadUserId=null}}
+}
+function addNotice(kind,title,body){notices.unshift({id:'n'+Date.now()+Math.random().toString(16).slice(2,6),kind,title,body,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),read:false,demo:false});notices=notices.slice(0,60);saveNotices()}
+function renderNoticeCount(){const n=notices.filter(x=>!x.read).length+cloudNotifications.filter(x=>!x.read).length;const el=document.getElementById('noticeCount');if(el){el.textContent=n>99?'99+':String(n);el.style.display=n?'inline-block':'none'}}
+function renderNotices(){
+ const panel=document.getElementById('noticePanel'),icons={system:'settings',like:'heart',comment:'comment',follow:'profile',message:'mail',activity:'bell'};
+ const items=[...cloudNotifications,...notices].sort((a,b)=>(Date.parse(b.createdAt||'')||0)-(Date.parse(a.createdAt||'')||0));
+ panel.innerHTML='<div class="notice-head"><h2>'+synIcon('bell')+' Thông báo</h2><div class="notice-tools"><button class="secondary" id="readAll">'+synIcon('mail')+' Đọc tất cả</button><button class="secondary icon-only" id="closeNotices" aria-label="Đóng">'+synIcon('close')+'</button></div></div>'+(items.length?items.map(n=>'<article class="notice-item '+(!n.read?'unread':'')+'"><div class="notice-icon">'+synIcon(icons[n.kind]||'bell')+'</div><div class="notice-copy"><b>'+esc(n.title)+'</b>'+(n.demo?'<span class="notice-dot" title="Mẫu mô phỏng"></span>':'')+'<p>'+esc(n.body)+'</p><small>'+esc(n.time)+(n.cloud?' · SYNTRA Cloud':n.demo?' · Mẫu mô phỏng':'')+'</small></div></article>').join(''):'<div class="notice-empty">Chưa có thông báo.</div>');
+ panel.classList.add('show');panel.querySelector('#closeNotices').onclick=()=>panel.classList.remove('show');
+ panel.querySelector('#readAll').onclick=async()=>{const button=panel.querySelector('#readAll');button.disabled=true;notices.forEach(n=>n.read=true);saveNotices();const userId=syntraCloudUser?.id;if(userId&&cloudNotifications.some(n=>!n.read)){const {error}=await syntraSupabaseClient.from('notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',userId).is('read_at',null);if(error){toast('Không đánh dấu được thông báo Cloud: '+error.message);button.disabled=false;return}cloudNotifications=cloudNotifications.map(n=>({...n,read:true}))}renderNoticeCount();renderNotices()};
+}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function formatPostText(value){
+ const safe=esc(String(value||''));
+ return safe.replace(/(^|[\s([{])#([\p{L}\p{N}_]{1,40})/gu,(match,prefix,tag)=>prefix+'<button type="button" class="hashtag-link" data-hashtag="'+esc(tag)+'">#'+tag+'</button>');
+}
+
+function renderProfile(name){
+ viewedProfile=name;
+ const own=name===localProfile.name;
+ // 2.16: enter the profile screen explicitly so creator content is visible.
+ profilePage.classList.add('show');
+ feed.style.display='none';
+ document.getElementById('feedTools').style.display='none';
+ document.querySelector('.composer').style.display='none';
+ document.querySelector('.stories').style.display='none';
+ document.querySelector('.tabs').style.display='none';
+ discoverPage.style.display='none';
+ settingsPage.classList.remove('show');settingsPage.style.display='none';
+ chatPage.classList.remove('show','thread-open');
+ postDetailPage.classList.remove('show');
+ groupsPage.classList.remove('show');
+ if(!own&&isBlocked(name)){profilePage.classList.add('show');feed.style.display='none';discoverPage.style.display='none';settingsPage.style.display='none';postDetailPage.classList.remove('show');document.querySelector('.composer').style.display='none';document.querySelector('.stories').style.display='none';document.querySelector('.tabs').style.display='none';chatPage.classList.remove('show','thread-open');profilePage.innerHTML='<section class="blocked-profile"><h2>Hồ sơ đã bị chặn</h2><p>Bạn đã chặn hồ sơ này trên thiết bị hiện tại. Nội dung và tương tác của hồ sơ sẽ được ẩn trong bản demo.</p><button class="secondary" data-unblock-profile="'+esc(name)+'">Bỏ chặn</button><button class="secondary" id="backFeed">Về bảng tin</button></section>';profilePage.querySelector('#backFeed').onclick=()=>filter('all');return}
+ const ownPosts=posts.filter(p=>(own&&p.cloud)||p.name===name);
+ const totalLikes=ownPosts.reduce((sum,p)=>sum+(Number(p.likes)||0),0);
+ const totalComments=ownPosts.reduce((sum,p)=>sum+(Array.isArray(p.comments)?p.comments.length:0),0);
+ const mediaPosts=ownPosts.filter(p=>getPostMediaIds(p).length||['photos','video'].includes(p.type)).length;
+ const byType={all:ownPosts.length,text:ownPosts.filter(p=>!getPostMediaIds(p).length&&!['photos','video','communities'].includes(p.type)).length,photos:ownPosts.filter(p=>p.type==='photos').length,video:ownPosts.filter(p=>p.type==='video').length,communities:ownPosts.filter(p=>p.type==='communities').length};
+ profilePage.innerHTML='<div class="cover">'+(own&&localProfile.cover?'<img src="'+localProfile.cover+'">':'')+'</div><div class="profile-top"><div class="profile-avatar">'+(own&&localProfile.avatar?'<img src="'+localProfile.avatar+'">':esc(name.slice(0,1).toUpperCase()))+'</div><div class="profile-name">'+esc(name)+'</div><div class="profile-bio">'+esc(own?(localProfile.bio||'Chưa có giới thiệu.'): 'Hồ sơ người dùng demo.')+'</div><div class="profile-stats"><span><b>'+ownPosts.length+'</b> bài viết</span><span><b>'+(own?follows.length:0)+'</b> đang theo dõi</span><span><b>—</b> người theo dõi</span></div><div class="profile-actions">'+(own?'<button class="secondary" id="editProfile">'+synIcon('edit')+' Chỉnh sửa hồ sơ</button>':'<button class="primary" data-follow="'+esc(name)+'">'+(follows.includes(name)?''+synIcon('profile')+' Đang theo dõi':''+synIcon('userPlus')+' Theo dõi')+'</button><button class="secondary" data-block-profile="'+esc(name)+'">' +synIcon('shield')+' Chặn hồ sơ</button>')+'<button class="secondary" id="backFeed">'+synIcon('back')+' Về bảng tin</button></div>'+(own?'<div class="profile-edit" id="profileEdit" style="display:none"><input id="editName" maxlength="32" value="'+esc(localProfile.name)+'" placeholder="Tên hiển thị"><textarea id="editBio" maxlength="160" placeholder="Giới thiệu ngắn">'+esc(localProfile.bio||'')+'</textarea><label class="meta">Ảnh đại diện <input id="avatarFile" type="file" accept="image/*"></label><label class="meta">Ảnh bìa <input id="coverFile" type="file" accept="image/*"></label><button class="primary" id="saveProfile">Lưu hồ sơ</button><small class="meta">Ảnh lưu trên thiết bị, giới hạn 700 KB mỗi ảnh.</small></div>':'')+'</div>';
+ if(own){
+  profilePage.insertAdjacentHTML('beforeend','<section class="creator-dashboard"><div class="creator-heading"><div><span class="explore-kicker">SYNTRA CREATOR</span><h3>Bảng điều khiển nhà sáng tạo</h3></div><span class="creator-local-badge">Dữ liệu demo</span></div><div class="creator-metrics"><div><b>'+ownPosts.length+'</b><span>Bài viết</span></div><div><b>'+totalLikes+'</b><span>Lượt thích</span></div><div><b>'+totalComments+'</b><span>Bình luận</span></div><div><b>'+mediaPosts+'</b><span>Bài có media</span></div></div><p class="creator-note">Số liệu tính từ nội dung đang lưu trên thiết bị này. Chưa có lượt xem, phân tích thời gian thực hoặc dữ liệu từ người dùng khác.</p></section>');
+ }
+ const filterBar='<div class="creator-content-head"><h3>Nội dung đã đăng</h3><div class="creator-filters" role="group" aria-label="Lọc nội dung nhà sáng tạo"><button class="active" data-creator-filter="all">Tất cả ('+byType.all+')</button><button data-creator-filter="text">Văn bản ('+byType.text+')</button><button data-creator-filter="photos">Ảnh ('+byType.photos+')</button><button data-creator-filter="video">Video ('+byType.video+')</button><button data-creator-filter="communities">Cộng đồng ('+byType.communities+')</button></div></div><div id="creatorPosts">'+(ownPosts.length?ownPosts.map(p=>'<article class="post creator-post" data-creator-type="'+(p.type||'text')+'"><div class="post-text">'+formatPostText(p.text)+'</div>'+buildPostMedia(p)+'<div class="meta">'+(p.likes||0)+' lượt thích · '+(p.comments||[]).length+' bình luận</div><div class="creator-post-actions"><button class="secondary" data-open-post="'+esc(p.id)+'">Xem bài viết</button><button class="secondary" type="button" data-edit-own-post="'+esc(p.id)+'">Chỉnh sửa</button></div><div class="creator-post-editor" data-creator-editor="'+esc(p.id)+'" hidden><label class="meta" for="creator-edit-'+esc(p.id)+'">Nội dung bài viết</label><textarea id="creator-edit-'+esc(p.id)+'" maxlength="5000" rows="4">'+esc(p.text||'')+'</textarea><div class="creator-post-actions"><button class="primary" type="button" data-save-own-post="'+esc(p.id)+'">Lưu thay đổi</button><button class="secondary" type="button" data-cancel-own-post="'+esc(p.id)+'">Hủy</button></div><small class="meta">'+(p.cloud?'Bài Cloud: thay đổi sẽ đồng bộ sang thiết bị khác.':'Bài lưu cục bộ: chỉ thay đổi trên thiết bị này.')+'</small></div></article>').join(''):'<div class="empty">Chưa có bài viết.</div>')+'</div>';
+ profilePage.insertAdjacentHTML('beforeend','<section class="creator-content">'+filterBar+'</section>');
+ hydratePostMedia(profilePage);
+ profilePage.querySelectorAll('[data-edit-own-post]').forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.editOwnPost;
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  if(editor){editor.hidden=false;const field=editor.querySelector('textarea');if(field)field.focus()}
+ });
+ profilePage.querySelectorAll('[data-cancel-own-post]').forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.cancelOwnPost;
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  const post=ownPosts.find(item=>item.id===id);
+  if(editor&&post){const field=editor.querySelector('textarea');if(field)field.value=post.text||'';editor.hidden=true}
+ });
+ profilePage.querySelectorAll('[data-save-own-post]').forEach(btn=>btn.onclick=async()=>{
+  const id=btn.dataset.saveOwnPost;
+  const post=ownPosts.find(item=>item.id===id);
+  const editor=profilePage.querySelector('[data-creator-editor="'+CSS.escape(id)+'"]');
+  const field=editor&&editor.querySelector('textarea');
+  if(!post||!field)return;
+  const nextText=field.value.trim();
+  if(!nextText){toast('Nội dung bài viết không được để trống.');field.focus();return}
+  if(nextText.length>5000){toast('Nội dung tối đa 5.000 ký tự.');return}
+  const oldText=post.text||'';
+  if(nextText===oldText){editor.hidden=true;return}
+  btn.disabled=true;btn.textContent='Đang lưu…';
+  try{
+   if(post.cloud){
+    if(!syntraSupabaseClient||!syntraCloudUser){toast('Hãy đăng nhập lại để sửa bài Cloud.');return}
+    const {data,error}=await syntraSupabaseClient.from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id).select('id,body').maybeSingle();
+    if(error)throw error;
+    if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.');
+   }
+   post.text=nextText;
+   const saved=save();
+   editor.hidden=true;
+   renderProfile(localProfile.name);
+   toast(post.cloud?'Đã cập nhật bài Cloud. Thiết bị khác sẽ nhận nội dung mới khi đồng bộ.':saved?'Đã cập nhật bài viết trên thiết bị này.':'Đã cập nhật trong phiên hiện tại nhưng bộ nhớ thiết bị không ghi được.');
+  }catch(error){toast('Không sửa được bài viết: '+(error.message||'Lỗi kết nối'))}
+  finally{btn.disabled=false;btn.textContent='Lưu thay đổi'}
+ });
+ profilePage.querySelector('#backFeed').onclick=()=>filter('all');
+ profilePage.querySelectorAll('[data-creator-filter]').forEach(btn=>btn.onclick=()=>{
+  profilePage.querySelectorAll('[data-creator-filter]').forEach(x=>x.classList.toggle('active',x===btn));
+  profilePage.querySelectorAll('.creator-post').forEach(card=>{
+   const type=card.dataset.creatorType||'text';
+   const isText=!['photos','video','communities'].includes(type);
+   const show=btn.dataset.creatorFilter==='all'||(btn.dataset.creatorFilter==='text'&&isText)||type===btn.dataset.creatorFilter;
+   card.style.display=show?'':'none';
+  });
+ });
+ if(own){
+  profilePage.querySelector('#editProfile').onclick=()=>profilePage.querySelector('#profileEdit').style.display='grid';
+  const readImage=(input,old)=>new Promise(resolve=>{const file=input.files[0];if(!file){resolve(old||'');return}if(file.size>700*1024){toast('Ảnh vượt 700 KB; hãy chọn ảnh nhỏ hơn.');resolve(old||'');return}const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>resolve(old||'');reader.readAsDataURL(file)});
+  profilePage.querySelector('#saveProfile').onclick=async()=>{const newName=profilePage.querySelector('#editName').value.trim();if(!newName){toast('Tên không được để trống.');return}const oldName=localProfile.name;localProfile.name=newName;localProfile.bio=profilePage.querySelector('#editBio').value.trim();localProfile.avatar=await readImage(profilePage.querySelector('#avatarFile'),localProfile.avatar);localProfile.cover=await readImage(profilePage.querySelector('#coverFile'),localProfile.cover);posts.forEach(p=>{if(p.name===oldName)p.name=newName});writeLocalJSON(PROFILE_KEY,localProfile);save();toast('Đã lưu hồ sơ cục bộ.');renderProfile(localProfile.name)};
+ }else{
+  profilePage.querySelector('[data-follow]').onclick=()=>{if(!appSettings.allowDemoFollow){toast('Đã tắt theo dõi demo trong Cài đặt.');return}const n=name;const wasFollowing=follows.includes(n);follows=wasFollowing?follows.filter(v=>v!==n):follows.concat(n);if(!wasFollowing)addNotice('follow','Bạn đã theo dõi hồ sơ', 'Bạn hiện đang theo dõi '+n+'.');writeLocalJSON(FOLLOW_KEY,follows);renderProfile(n)};
+ }
+}
+
+const SETTINGS_KEY='syntra_social_settings_demo_v1';
+let appSettings=Object.assign({profileVisibility:'public',showActivity:true,allowDemoFollow:true,compactMode:false},readLocalJSON(SETTINGS_KEY,{}));
+function saveAppSettings(){writeLocalJSON(SETTINGS_KEY,appSettings)}
+
+function cloudBlockPairFor(userId,targetId){return cloudBlockRecords.find(row=>(row.blocker_id===userId&&row.blocked_id===targetId)||(row.blocker_id===targetId&&row.blocked_id===userId))||null}
+async function loadCloudBlocks(userId=syntraCloudUser?.id){
+ const root=document.getElementById('cloudBlockContent');
+ if(!syntraSupabaseClient||!userId){cloudBlockRecords=[];cloudBlockedUserIds=new Set();if(root)root.innerHTML='<p class="settings-note">Đăng nhập để xem danh sách chặn Cloud.</p>';return false}
+ const {data,error}=await syntraSupabaseClient.from('blocks').select('blocker_id,blocked_id,blocked_label,created_at').or('blocker_id.eq.'+userId+',blocked_id.eq.'+userId).order('created_at',{ascending:false}).limit(200);
+ if(error)throw error;if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+ cloudBlockRecords=data||[];cloudBlockedUserIds=new Set(cloudBlockRecords.map(row=>row.blocker_id===userId?row.blocked_id:row.blocker_id));
+ if(root){const own=cloudBlockRecords.filter(row=>row.blocker_id===userId);root.innerHTML=own.length?'<div class="cloud-privacy-list">'+own.map(row=>'<div class="cloud-privacy-row"><div><b>'+esc(row.blocked_label||'Thành viên SYNTRA')+'</b><small>Đã chặn · '+esc(new Date(row.created_at).toLocaleString('vi-VN'))+'</small></div><div class="cloud-privacy-actions"><button class="settings-button" data-cloud-unblock="'+esc(row.blocked_id)+'">Bỏ chặn</button></div></div>').join('')+'</div>':'<p class="settings-note">Bạn chưa chặn tài khoản Cloud nào.</p>';root.querySelectorAll('[data-cloud-unblock]').forEach(button=>button.onclick=async()=>{button.disabled=true;const ok=await unblockCloudUser(button.dataset.cloudUnblock);if(!ok)button.disabled=false})}
+ return true;
+}
+async function blockCloudUser(targetId,label){
+ if(!syntraSupabaseClient||!syntraCloudUser){toast('Đăng nhập để chặn tài khoản Cloud.');return false}
+ const userId=syntraCloudUser.id;if(!targetId||targetId===userId){toast('Không thể chặn chính tài khoản của bạn.');return false}
+ if(cloudBlockPairFor(userId,targetId)?.blocker_id===userId){toast('Tài khoản này đã nằm trong danh sách chặn.');return true}
+ const safeLabel=String(label||'Thành viên SYNTRA').trim().slice(0,60)||'Thành viên SYNTRA';
+ try{const {error}=await syntraSupabaseClient.from('blocks').insert({blocker_id:userId,blocked_id:targetId,blocked_label:safeLabel});if(error&&error.code!=='23505')throw error;await loadCloudBlocks(userId);cloudFollowingIds.delete(targetId);posts=posts.filter(post=>!(post.cloud&&post.authorId===targetId));save();toast('Đã chặn tài khoản Cloud và ẩn nội dung liên quan.');await syncPublicFeed(true);await loadCloudFollowInbox(userId);return true}
+ catch(error){console.warn('SYNTRA cloud block failed:',error);toast('Không chặn được tài khoản: '+(error.message||'Hãy thử lại.'));return false}
+}
+async function unblockCloudUser(targetId){
+ if(!syntraSupabaseClient||!syntraCloudUser)return false;const userId=syntraCloudUser.id;
+ try{const {error}=await syntraSupabaseClient.from('blocks').delete().eq('blocker_id',userId).eq('blocked_id',targetId);if(error)throw error;await loadCloudBlocks(userId);toast('Đã bỏ chặn tài khoản Cloud.');await syncPublicFeed(true);if(profilePage.classList.contains('show'))await renderPublicProfile(targetId);return true}
+ catch(error){console.warn('SYNTRA cloud unblock failed:',error);toast('Không bỏ chặn được: '+(error.message||'Hãy thử lại.'));return false}
+}
+async function loadCloudDeletionRequestStatus(userId=syntraCloudUser?.id){
+ const status=document.getElementById('cloudDeletionStatus'),requestButton=document.getElementById('cloudRequestDeletion'),cancelButton=document.getElementById('cloudCancelDeletion');
+ if(!syntraSupabaseClient||!userId){cloudDeletionRequest=null;if(status)status.textContent='Đăng nhập để xem trạng thái yêu cầu xóa.';if(requestButton)requestButton.disabled=true;if(cancelButton)cancelButton.hidden=true;return false}
+ const {data,error}=await syntraSupabaseClient.from('account_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id',userId).order('requested_at',{ascending:false}).limit(1).maybeSingle();if(error)throw error;if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+ cloudDeletionRequest=data||null;if(status){if(!data)status.textContent='Chưa có yêu cầu xóa tài khoản.';else status.textContent='Trạng thái: '+({pending:'Đang chờ xử lý',processing:'Đang được xử lý',completed:'Đã xử lý',cancelled:'Đã hủy'}[data.status]||data.status)+' · '+new Date(data.requested_at).toLocaleString('vi-VN')+'.'}
+ const active=!!data&&['pending','processing'].includes(data.status);if(requestButton)requestButton.disabled=active;if(cancelButton)cancelButton.hidden=!(data&&data.status==='pending');return true;
+}
+async function submitCloudDeletionRequest(){
+ if(!syntraSupabaseClient||!syntraCloudUser){toast('Đăng nhập trước khi gửi yêu cầu.');return}
+ if(!confirm('Gửi yêu cầu xóa tài khoản SYNTRA Cloud? Yêu cầu sẽ được ghi nhận để chủ dự án xử lý; tài khoản KHÔNG bị xóa ngay.'))return;
+ const button=document.getElementById('cloudRequestDeletion');if(button)button.disabled=true;
+ try{const {error}=await syntraSupabaseClient.from('account_deletion_requests').insert({user_id:syntraCloudUser.id,status:'pending'});if(error)throw error;toast('Đã gửi yêu cầu. Tài khoản chưa bị xóa.');await loadCloudDeletionRequestStatus(syntraCloudUser.id)}
+ catch(error){console.warn('SYNTRA deletion request failed:',error);toast(error.code==='23505'?'Bạn đã có một yêu cầu đang chờ xử lý.':'Không gửi được yêu cầu: '+(error.message||'Hãy thử lại.'));await loadCloudDeletionRequestStatus(syntraCloudUser.id)}
+}
+async function cancelCloudDeletionRequest(){
+ if(!syntraSupabaseClient||!syntraCloudUser||!cloudDeletionRequest||cloudDeletionRequest.status!=='pending')return;if(!confirm('Hủy yêu cầu xóa tài khoản đang chờ?'))return;
+ const button=document.getElementById('cloudCancelDeletion');if(button)button.disabled=true;
+ try{const {data,error}=await syntraSupabaseClient.from('account_deletion_requests').update({status:'cancelled'}).eq('id',cloudDeletionRequest.id).eq('user_id',syntraCloudUser.id).eq('status','pending').select('id').maybeSingle();if(error)throw error;if(!data)throw new Error('Yêu cầu đã được xử lý hoặc không còn ở trạng thái chờ.');toast('Đã hủy yêu cầu xóa tài khoản.')}
+ catch(error){toast('Không hủy được yêu cầu: '+(error.message||'Hãy thử lại.'))}
+ finally{if(button)button.disabled=false;await loadCloudDeletionRequestStatus(syntraCloudUser.id)}
+}
+async function exportCloudAccountData(){
+ if(!syntraSupabaseClient||!syntraCloudUser){toast('Đăng nhập để xuất dữ liệu Cloud.');return}
+ const userId=syntraCloudUser.id,button=document.getElementById('cloudExportData'),status=document.getElementById('cloudExportStatus');if(button)button.disabled=true;if(status)status.textContent='Đang thu thập dữ liệu tài khoản…';
+ try{
+  const rows=async query=>{const {data,error}=await query;if(error)throw error;return data||[]};
+  const [profileResult,ownPosts,follows,blocks,notifications,bookmarks,media,deletionRequests]=await Promise.all([
+   syntraSupabaseClient.from('profiles').select('id,username,display_name,bio,avatar_path,is_private,is_discoverable,created_at,updated_at').eq('id',userId).maybeSingle(),
+   rows(syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at,updated_at').eq('author_id',userId).order('created_at',{ascending:false})),
+   rows(syntraSupabaseClient.from('follows').select('follower_id,following_id,status,created_at,accepted_at').or('follower_id.eq.'+userId+',following_id.eq.'+userId)),
+   rows(syntraSupabaseClient.from('blocks').select('blocker_id,blocked_id,blocked_label,created_at').or('blocker_id.eq.'+userId+',blocked_id.eq.'+userId)),
+   rows(syntraSupabaseClient.from('notifications').select('id,recipient_id,actor_id,notification_type,entity_type,entity_id,payload,read_at,created_at').eq('recipient_id',userId).order('created_at',{ascending:false})),
+   rows(syntraSupabaseClient.from('post_bookmarks').select('post_id,created_at').eq('user_id',userId)),
+   rows(syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size,width,height,duration_seconds,created_at').eq('owner_id',userId)),
+   rows(syntraSupabaseClient.from('account_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id',userId))
+  ]);
+  if(profileResult.error)throw profileResult.error;if(!syntraCloudUser||syntraCloudUser.id!==userId)throw new Error('Tài khoản đã thay đổi trong lúc xuất dữ liệu.');
+  const postIds=ownPosts.map(row=>row.id),commentQueries=[rows(syntraSupabaseClient.from('comments').select('id,post_id,author_id,body,created_at,updated_at').eq('author_id',userId))],likeQueries=[rows(syntraSupabaseClient.from('likes').select('post_id,user_id,created_at').eq('user_id',userId))];
+  if(postIds.length){commentQueries.push(rows(syntraSupabaseClient.from('comments').select('id,post_id,author_id,body,created_at,updated_at').in('post_id',postIds)));likeQueries.push(rows(syntraSupabaseClient.from('likes').select('post_id,user_id,created_at').in('post_id',postIds)))}
+  const [commentSets,likeSets]=await Promise.all([Promise.all(commentQueries),Promise.all(likeQueries)]);
+  const unique=items=>[...new Map(items.flat().map(item=>[item.id||item.post_id+':'+item.user_id,item])).values()];
+  const payload={format:'syntra-social-cloud-export',version:1,exported_at:new Date().toISOString(),account:{id:userId,email:syntraCloudUser.email||null},profile:profileResult.data||null,posts:ownPosts,post_media_metadata:media,comments:unique(commentSets),likes:unique(likeSets),bookmarks,follows,blocks,notifications,deletion_requests:deletionRequests,limitations:['Không bao gồm mật khẩu, access token hoặc refresh token.','Không bao gồm nội dung nhị phân của ảnh/video; chỉ có metadata và storage path.','Chỉ xuất dữ liệu tài khoản hiện có quyền đọc theo chính sách RLS.']};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='syntra-social-cloud-export-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);if(status)status.textContent='Đã tạo bản xuất dữ liệu Cloud. Kiểm tra thư mục Tải xuống trên thiết bị.';toast('Đã xuất dữ liệu SYNTRA Cloud.');
+ }catch(error){console.warn('SYNTRA Cloud export failed:',error);if(status)status.textContent='Không xuất được dữ liệu: '+(error.message||'Hãy thử lại.')}
+ finally{if(button)button.disabled=!syntraCloudUser}
+}
+
 async function loadCloudProfileSettings(){
  const status=document.getElementById('cloudProfileStatus');
  const saveButton=document.getElementById('saveCloudProfile');
