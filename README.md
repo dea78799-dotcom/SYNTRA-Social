@@ -808,3 +808,13 @@ on conflict (user_id) do nothing;
 - Stored records are validated when read. Storage and quota errors are caught and surfaced in the composer; malformed collections are not silently overwritten.
 - Named drafts remain local to the current browser origin and device. They do not sync through SYNTRA Cloud. Attachments are not stored and must be selected again.
 - Added static regression checks for collection bounds, CRUD actions, validation, UI wiring, and responsive styling. Real Android interaction still requires manual verification.
+
+
+## Prototype 2.41 — Public feed pagination
+
+- Reduced the initial public-feed request from 50 posts to 20 posts to limit the amount of data fetched and hydrated when opening the home feed.
+- Added deterministic ordering by `created_at` and post ID, then keyset pagination using the last loaded row as a composite cursor. Older posts are fetched in additional batches of 20.
+- Added a small “Tải thêm bài viết” control; the rest of the interface is unchanged.
+- Appended pages are deduplicated by database post ID. Requests reject results if the signed-in account changes while they are in flight.
+- Pagination state resets when the Cloud account changes or the profile is updated. No database schema, RLS policy, or storage permission was changed.
+- Static regression checks cover page bounds, stable ordering, cursor filtering, duplicate prevention, account-change protection, and the load-more control. Real Android scrolling, two-account privacy, and high-volume feed tests remain required.
