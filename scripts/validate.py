@@ -54,6 +54,12 @@ checks = {
     "no undefined updateAuthStatus call": "updateAuthStatus()" not in source,
     "mobile viewport is configured": "width=device-width" in source,
     "local-only data limitation is visible in README": "Core content remains local to the current browser" in Path("README.md").read_text(encoding="utf-8"),
+    "full backup export is implemented": "async function exportFullBackup()" in source,
+    "backup includes media blobs": "dataUrl:await blobToDataURL(item.blob)" in source,
+    "restore validates backup version": "payload.backupVersion!==SYNTRA_BACKUP_VERSION" in source,
+    "restore uses an IndexedDB transaction": "store.clear();records.forEach(item=>store.put(item))" in source,
+    "restore restricts local storage keys": "const allowed=new Set(getBackupKeys())" in source,
+    "backup restore controls are wired": "restoreFullBackup(file)" in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
