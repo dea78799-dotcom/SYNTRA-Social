@@ -460,3 +460,17 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Công cụ chạy trong trình duyệt hiện tại; kết quả chỉ phản ánh dữ liệu trên thiết bị đó.
 
 **Kiểm chứng:** GitHub Actions kiểm tra cú pháp JavaScript nhúng và các điều kiện tĩnh của tính năng. Kiểm thử thao tác thực tế trên Android vẫn cần thực hiện trên thiết bị; chưa thể coi báo cáo là bằng chứng dữ liệu đã được sửa.
+
+
+## Prototype 2.9 — SYNTRA Cloud và đồng bộ bài viết giữa thiết bị
+
+- Kết nối dự án Supabase `SYNTRA-Social` bằng publishable key; không đưa service-role key vào website.
+- Thêm tạo tài khoản và đăng nhập email/mật khẩu. Phiên đăng nhập được Supabase lưu trên từng trình duyệt; người dùng cần đăng nhập cùng một tài khoản trên các điện thoại.
+- Bài viết văn bản mới được ghi vào bảng `public.posts` với `author_id` là tài khoản đang đăng nhập, trạng thái `published` và quyền riêng tư `private`.
+- Khi đăng nhập hoặc bấm “Đồng bộ ngay”, website tải tối đa 100 bài viết của tài khoản hiện tại. Chính sách RLS hiện có chỉ cho tài khoản đọc, tạo, sửa và xóa bài viết của chính mình.
+- Xóa bài viết SYNTRA Cloud sẽ xóa bản trên máy chủ, do đó bài viết cũng biến mất trên các thiết bị khác sau lần đồng bộ tiếp theo.
+- Chưa đồng bộ ảnh/video, bình luận, lượt thích, tin nhắn, nhóm hoặc dữ liệu demo cũ. Các nội dung này vẫn có thể chỉ nằm trên thiết bị.
+- Không tự động tải dữ liệu cũ lên máy chủ. Chỉ bài viết văn bản được đăng sau khi đăng nhập mới được ghi vào cloud.
+- Dùng cùng tài khoản trên nhiều thiết bị là điều kiện để xem cùng một tập bài viết. Không chia sẻ mật khẩu qua chat hoặc mã nguồn.
+
+**Kiểm chứng trước khi phát hành:** dự án Supabase đang hoạt động; bảng `posts` bật RLS; quyền `authenticated` có SELECT/INSERT, còn `anon` không có SELECT/INSERT; chính sách `posts_select_own` và `posts_insert_own` giới hạn theo `auth.uid() = author_id`. Cơ sở dữ liệu hiện chưa có tài khoản hoặc bài viết. Đăng ký/đăng nhập thật và kiểm tra hai điện thoại vẫn cần thử bằng tài khoản của người dùng.
