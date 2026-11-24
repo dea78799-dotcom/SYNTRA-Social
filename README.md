@@ -386,3 +386,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Replaced topic-story emoji with consistent SVG icons and improved secondary-text contrast.
 - Standardized composer and post-action control sizing without changing their handlers.
 - Details: `docs/MOBILE-UI-POLISH-1.4.md`. Static source checks passed; browser/device QA remains pending.
+
+
+## Post card and overflow menu 1.5
+- Refined feed/discovery card surfaces, typography, spacing, and mobile action sizing.
+- Added contextual three-dot menus: delete own posts (with confirmation and media cleanup) or show the report placeholder for other posts.
+- Menus close on outside click or Escape and restore focus to the opener.
+- Reporting is not connected to a moderation server yet. Details: `docs/POST-CARD-MENU-1.5.md`.
