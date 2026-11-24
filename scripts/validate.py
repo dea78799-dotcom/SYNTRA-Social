@@ -274,6 +274,7 @@ checks = {
     "post media loads only near the viewport using IntersectionObserver": "new IntersectionObserver(entries=>" in source and "rootMargin:'360px 0px'" in source and "mediaLoadObserver.observe(node)" in source,
     "post media download concurrency is capped": "const MEDIA_MAX_CONCURRENT_LOADS=3;" in source and "while(mediaLoadActive<MEDIA_MAX_CONCURRENT_LOADS&&mediaLoadQueue.length)" in source,
     "post media queue avoids duplicate and detached nodes": "node.dataset.queued==='1'" in source and "!node.isConnected" in source and "function pumpPostMediaQueue()" in source,
+    "post media observer releases disconnected placeholders": "const mediaObservedNodes=new Set();" in source and "mediaObservedNodes.forEach(node=>{if(!node.isConnected)" in source and "mediaObservedNodes.delete(entry.target)" in source,
     "images decode asynchronously and videos defer media loading": "img.loading='lazy'" in source and "img.decoding='async'" in source and "video.preload='none'" in source,
     "detached media releases object URLs and blob references": "function cleanupDetachedMediaCache()" in source and "URL.revokeObjectURL(url);mediaUrls.delete(id);mediaItems.delete(id)" in source,
     "media viewer keeps its active media cache reference": "viewerImage.dataset.mediaId=id" in source and "delete viewerImage.dataset.mediaId" in source,
