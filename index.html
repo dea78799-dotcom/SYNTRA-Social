@@ -497,7 +497,7 @@ body.composer-open{overflow:hidden;overscroll-behavior:none}
 /* Prototype 2.26 — cloud search */
 .cloud-search-results{margin:0 0 16px;padding:15px;background:var(--surface);border:1px solid var(--border);border-radius:16px}.cloud-search-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.cloud-search-heading h3{font-size:15px;margin:0}.cloud-search-heading small{font-size:12px;color:var(--muted)}.cloud-search-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cloud-search-member{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);text-align:left}.cloud-search-member .avatar{width:38px;height:38px}.cloud-search-member span:last-child{min-width:0}.cloud-search-member b,.cloud-search-member small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cloud-search-member small{color:var(--muted);font-size:11px}.cloud-search-post{padding:12px 0;border-top:1px solid var(--border)}.cloud-search-post:first-child{border-top:0}.cloud-search-post-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}.cloud-search-post-head button{background:none;border:0;padding:0;text-align:left;font-weight:700}.cloud-search-post-head small{color:var(--muted);font-size:11px}.cloud-search-post-body{width:100%;display:block;border:0;background:none;color:var(--text);text-align:left;padding:2px 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}.cloud-search-empty,.cloud-search-status{padding:10px 0;color:var(--muted);font-size:13px}@media(max-width:520px){.cloud-search-grid{grid-template-columns:1fr}.cloud-search-results{padding:12px}}
 </style>
-<style id="syntra-composer-draft-2-41">
+<style id="syntra-composer-draft-2-42">
 .composer-draft-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:7px 0 2px}
 .composer-draft-row #clearDraft{padding:5px 9px;font-size:12px;min-height:34px}
  .composer-draft-note{margin:2px 0 10px;opacity:.8}
@@ -763,7 +763,90 @@ function revokeMediaUrl(id){if(mediaUrls.has(id)){URL.revokeObjectURL(mediaUrls.
 async function deleteMedia(id){if(!id)return;revokeMediaUrl(id);mediaItems.delete(id);let db;try{db=await openMediaDB();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Không thể xóa tệp'))})}catch(e){console.warn('Không xóa được media:',e)}finally{if(db)db.close()}}
 function getPostMediaIds(post){if(Array.isArray(post.mediaIds)&&post.mediaIds.length)return post.mediaIds.filter(Boolean);return post.mediaId?[post.mediaId]:[]}
 function buildPostMedia(post){const ids=getPostMediaIds(post);if(ids.length){if(post.type==='video')return '<div class="media-file-wrap" data-media-id="'+esc(ids[0])+'"><div class="media-fallback">Đang tải video…</div></div>';const visible=ids.slice(0,4);return '<div class="post-gallery count-'+Math.min(ids.length,4)+' '+(ids.length===1?'single':'')+'">'+visible.map((id,index)=>'<button type="button" class="gallery-item" data-gallery-post="'+esc(post.id)+'" data-gallery-index="'+index+'" aria-label="Xem ảnh '+(index+1)+' trên '+ids.length+'"><span class="gallery-placeholder" data-media-id="'+esc(id)+'"><span class="media-fallback">Đang tải ảnh…</span></span>'+(index===3&&ids.length>4?'<span class="gallery-more">+'+(ids.length-4)+'</span>':'')+'</button>').join('')+'</div>'}if(post.type==='video')return '<div class="post-media">▶<br>Video demo · Chưa có tệp video</div>';if(post.type==='photos')return '<div class="post-media">▧<br>Ảnh demo · Chưa có tệp ảnh</div>';return ''}
-async function hydratePostMedia(root=feed){const nodes=Array.from(root.querySelectorAll('[data-media-id]'));for(const node of nodes){const id=node.dataset.mediaId;if(!id||node.dataset.loaded==='1')continue;node.dataset.loaded='1';try{let item=mediaItems.get(id);if(!item){item=await getMedia(id);if(item)mediaItems.set(id,item)}if(!node.isConnected)continue;if(!item){node.innerHTML='<div class="media-fallback">Tệp đính kèm không còn trong bộ nhớ trình duyệt.</div>';continue}let url=mediaUrls.get(id);if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}if(item.type.startsWith('image/')){const img=document.createElement('img');img.className=node.closest('.gallery-item')?'gallery-image':'media-post';img.alt='Ảnh trong bài viết';img.src=url;img.dataset.mediaId=id;img.dataset.mediaName=item.name||'syntra-image';node.replaceWith(img)}else if(item.type.startsWith('video/')){const shell=document.createElement('div');shell.className='media-video-shell';shell.dataset.mediaId=id;const video=document.createElement('video');video.className='media-post-video';video.controls=true;video.playsInline=true;video.preload='metadata';video.src=url;video.dataset.mediaId=id;video.dataset.mediaName=item.name||'syntra-video';const full=document.createElement('button');full.type='button';full.className='media-fullscreen';full.dataset.videoFullscreen='1';full.setAttribute('aria-label','Phóng to video toàn màn hình');full.title='Toàn màn hình';full.innerHTML=synIcon('expand');shell.append(video,full);node.replaceWith(shell)}else node.textContent='Định dạng tệp không được hỗ trợ.'}catch(err){if(node.isConnected)node.textContent='Không thể đọc tệp đính kèm.'}}}
+const MEDIA_MAX_CONCURRENT_LOADS=3;
+const mediaLoadQueue=[];
+let mediaLoadActive=0;
+let mediaLoadObserver=null;
+function cleanupDetachedMediaCache(){
+ const activeIds=new Set(Array.from(document.querySelectorAll('[data-media-id]')).map(node=>node.dataset.mediaId).filter(Boolean));
+ mediaUrls.forEach((url,id)=>{if(!activeIds.has(id)){URL.revokeObjectURL(url);mediaUrls.delete(id);mediaItems.delete(id)}});
+ mediaItems.forEach((item,id)=>{if(!activeIds.has(id))mediaItems.delete(id)});
+}
+function queuePostMedia(node){
+ if(!node||!node.isConnected||!node.dataset.mediaId||node.dataset.loaded==='1'||node.dataset.queued==='1')return;
+ node.dataset.queued='1';
+ mediaLoadQueue.push(node);
+ pumpPostMediaQueue();
+}
+async function loadPostMediaNode(node){
+ const id=node.dataset.mediaId;
+ if(!id||!node.isConnected)return;
+ node.dataset.loaded='1';
+ delete node.dataset.queued;
+ try{
+  let item=mediaItems.get(id);
+  if(!item)item=await getMedia(id);
+  if(!node.isConnected)return;
+  if(!item){node.innerHTML='<div class="media-fallback">Tệp đính kèm không còn trong bộ nhớ trình duyệt.</div>';return}
+  mediaItems.set(id,item);
+  let url=mediaUrls.get(id);
+  if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}
+  if(item.type.startsWith('image/')){
+   const img=document.createElement('img');
+   img.className=node.closest('.gallery-item')?'gallery-image':'media-post';
+   img.alt='Ảnh trong bài viết';
+   img.loading='lazy';
+   img.decoding='async';
+   img.src=url;
+   img.dataset.mediaId=id;
+   img.dataset.mediaName=item.name||'syntra-image';
+   img.onerror=()=>{if(img.isConnected){const fallback=document.createElement('div');fallback.className='media-fallback';fallback.textContent='Không thể hiển thị ảnh.';img.replaceWith(fallback)}};
+   node.replaceWith(img);
+  }else if(item.type.startsWith('video/')){
+   const shell=document.createElement('div');
+   shell.className='media-video-shell';
+   shell.dataset.mediaId=id;
+   const video=document.createElement('video');
+   video.className='media-post-video';
+   video.controls=true;
+   video.playsInline=true;
+   video.preload='none';
+   video.src=url;
+   video.dataset.mediaId=id;
+   video.dataset.mediaName=item.name||'syntra-video';
+   const full=document.createElement('button');
+   full.type='button';
+   full.className='media-fullscreen';
+   full.dataset.videoFullscreen='1';
+   full.setAttribute('aria-label','Phóng to video toàn màn hình');
+   full.title='Toàn màn hình';
+   full.innerHTML=synIcon('expand');
+   shell.append(video,full);
+   node.replaceWith(shell);
+  }else node.textContent='Định dạng tệp không được hỗ trợ.';
+ }catch(err){
+  console.warn('SYNTRA media load failed:',id,err);
+  if(node.isConnected){node.innerHTML='<div class="media-fallback">Không thể đọc tệp đính kèm. Hãy tải lại bảng tin để thử lại.</div>';delete node.dataset.loaded}
+ }
+}
+function pumpPostMediaQueue(){
+ while(mediaLoadActive<MEDIA_MAX_CONCURRENT_LOADS&&mediaLoadQueue.length){
+  const node=mediaLoadQueue.shift();
+  if(!node||!node.isConnected){if(node)delete node.dataset.queued;continue}
+  mediaLoadActive++;
+  loadPostMediaNode(node).finally(()=>{mediaLoadActive--;pumpPostMediaQueue()});
+ }
+}
+function hydratePostMedia(root=feed){
+ const nodes=Array.from(root.querySelectorAll('[data-media-id]'));
+ if('IntersectionObserver' in window){
+  if(!mediaLoadObserver)mediaLoadObserver=new IntersectionObserver(entries=>{
+   entries.forEach(entry=>{if(!entry.isIntersecting)return;mediaLoadObserver.unobserve(entry.target);queuePostMedia(entry.target)});
+  },{root:null,rootMargin:'360px 0px',threshold:0.01});
+  nodes.forEach(node=>{if(node.dataset.loaded!=='1'&&node.dataset.queued!=='1')mediaLoadObserver.observe(node)});
+ }else nodes.forEach(queuePostMedia);
+ cleanupDetachedMediaCache();
+}
 
 let viewerPostId=null;
 let viewerMediaIds=[];
@@ -772,9 +855,9 @@ let viewerTouchStartX=null;
 const mediaViewer=document.getElementById('mediaViewer');
 const viewerImage=document.getElementById('viewerImage');
 const viewerCounter=document.getElementById('viewerCounter');
-async function showViewerImage(){const id=viewerMediaIds[viewerIndex];if(!id)return;let item=mediaItems.get(id);if(!item){try{item=await getMedia(id);if(item)mediaItems.set(id,item)}catch(e){toast('Không đọc được ảnh trong bộ nhớ.');return}}if(!item){toast('Ảnh không còn trong bộ nhớ trình duyệt.');return}let url=mediaUrls.get(id);if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}if(!mediaViewer.classList.contains('show')||viewerMediaIds[viewerIndex]!==id)return;viewerImage.src=url;viewerImage.alt=item.name||'Ảnh trong album';viewerCounter.textContent=(viewerIndex+1)+' / '+viewerMediaIds.length;document.getElementById('viewerPrev').disabled=viewerMediaIds.length<2;document.getElementById('viewerNext').disabled=viewerMediaIds.length<2}
+async function showViewerImage(){const id=viewerMediaIds[viewerIndex];if(!id)return;let item=mediaItems.get(id);if(!item){try{item=await getMedia(id);if(item)mediaItems.set(id,item)}catch(e){toast('Không đọc được ảnh trong bộ nhớ.');return}}if(!item){toast('Ảnh không còn trong bộ nhớ trình duyệt.');return}let url=mediaUrls.get(id);if(!url){url=URL.createObjectURL(item.blob);mediaUrls.set(id,url)}if(!mediaViewer.classList.contains('show')||viewerMediaIds[viewerIndex]!==id)return;viewerImage.dataset.mediaId=id;viewerImage.src=url;viewerImage.alt=item.name||'Ảnh trong album';viewerCounter.textContent=(viewerIndex+1)+' / '+viewerMediaIds.length;document.getElementById('viewerPrev').disabled=viewerMediaIds.length<2;document.getElementById('viewerNext').disabled=viewerMediaIds.length<2}
 async function openImageViewer(postId,index){const post=posts.find(p=>p.id===postId);if(!post)return;viewerPostId=postId;viewerMediaIds=getPostMediaIds(post);if(post.type==='video'||!viewerMediaIds.length)return;viewerIndex=Math.max(0,Math.min(Number(index)||0,viewerMediaIds.length-1));mediaViewer.classList.add('show');document.body.style.overflow='hidden';await showViewerImage()}
-function closeImageViewer(){mediaViewer.classList.remove('show');viewerImage.removeAttribute('src');document.body.style.overflow='';viewerPostId=null;viewerMediaIds=[];viewerIndex=0}
+function closeImageViewer(){mediaViewer.classList.remove('show');delete viewerImage.dataset.mediaId;viewerImage.removeAttribute('src');document.body.style.overflow='';viewerPostId=null;viewerMediaIds=[];viewerIndex=0}
 function stepViewer(direction){if(viewerMediaIds.length<2)return;viewerIndex=(viewerIndex+direction+viewerMediaIds.length)%viewerMediaIds.length;showViewerImage()}
 document.getElementById('viewerClose').addEventListener('click',closeImageViewer);
 document.getElementById('viewerPrev').addEventListener('click',()=>stepViewer(-1));
@@ -1838,7 +1921,7 @@ function renderSettings(){
  '</section><section class="settings-section"><h3>Người dùng demo đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Đây là danh sách chặn cục bộ cho nội dung demo. Danh sách tài khoản Cloud được quản lý riêng ở Trung tâm quyền riêng tư.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Bài viết, ảnh và video được đồng bộ riêng tư khi bạn đăng nhập cùng tài khoản. Các dữ liệu demo như bình luận, lượt thích, tin nhắn và một số cài đặt vẫn chỉ lưu trên trình duyệt hiện tại.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.41</small></div><span class="meta">2.41</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.42</small></div><span class="meta">2.42</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
  settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
