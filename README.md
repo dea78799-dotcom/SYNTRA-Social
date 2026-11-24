@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
-> Status: **Prototype 1.8** — mobile-first local prototype with discovery, creator dashboard, community groups, local social interactions, and safety controls including block, community rules, and content warnings.
+> Status: **Prototype 1.9** — mobile-first local prototype with discovery, creator dashboard, community groups, local social interactions, and safety controls including block, community rules, and content warnings.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -420,3 +420,14 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Refined the mobile spacing and bottom navigation surface while retaining the existing dark, warm-gold, and violet identity.
 - Respects reduced-motion preferences.
 - Verification: updated index.html was fetched again from GitHub and the new visual rules were confirmed by static read-back. No live browser/device screenshot test was run.
+
+
+## Prototype 1.9 — Homepage visual refinement
+
+- Added a clear editorial heading to the home feed: “Bảng tin”.
+- Added a short Vietnamese description to explain the purpose of the feed.
+- Added a restrained beta-status indicator so visitors understand the product is still being tested.
+- Tuned desktop and mobile spacing, typography and responsive behavior for the new heading.
+- Existing feed tabs and filtering controls remain in place.
+
+**Validation:** the updated HTML was read back from GitHub and checked for the heading, status indicator, responsive styles, preserved feed tabs and duplicate insertion. A real Android/browser visual test has not yet been performed.
