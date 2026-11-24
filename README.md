@@ -372,3 +372,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Standardized SVG icons for feed post actions (like, comment, save) and post detail actions (like, comment, save, share).
 - Notification bell now uses the shared icon renderer. Interaction icons have consistent alignment, gaps, and minimum touch height.
 - Visual-only change; no behavior/data changes. Browser QA remains pending.
+
+
+## Icon system 1.3 — messaging, notifications and profiles
+- Extended the custom SVG icon set for notification types, profile actions, and chat controls.
+- Added consistent close, read-all, follow, edit, block, back, and send icon treatments.
+- Documented the update in `docs/ICON-SYSTEM-1.3.md`.
+- Static GitHub read-back checks passed; browser/mobile visual QA is still pending.
