@@ -216,6 +216,35 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 .post-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px}
 .post-actions .s-icon{width:18px;height:18px;stroke-width:1.8}
 .top-action .s-icon{width:20px;height:20px}
+
+/* SYNTRA Social 1.7 — responsive and notification markup repair */
+#notify .notify-icon{display:grid;place-items:center;width:20px;height:20px;line-height:1}
+#notify .notify-icon .s-icon{width:20px;height:20px}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.layout,main,.topbar,.search{min-width:0}
+.search input{min-width:0}
+.post img,.post video,.media-video-shell,.media-post,.gallery-item{max-width:100%}
+.media-post-video{width:100%;height:auto}
+.tabs,.stories,.creator-filters{overscroll-behavior-x:contain;scrollbar-width:thin}
+@media(max-width:950px) and (min-width:701px){
+ .layout{grid-template-columns:170px minmax(0,1fr);gap:14px;padding:14px}
+ .rightbar{display:none}
+ main{min-width:0;width:100%}
+ .topbar{gap:8px}
+ .search{min-width:0}
+ .post,.composer,.stories{min-width:0}
+}
+@media(max-width:700px){
+ .layout{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr);padding-left:10px;padding-right:10px}
+ main{width:100%;min-width:0}
+ .topbar{width:100%;min-width:0;gap:7px}
+ .search{flex:1 1 auto;min-width:0}
+ .tabs{max-width:100%;width:100%}
+ .post,.composer,.stories{max-width:100%;min-width:0}
+ .post-text{overflow-wrap:anywhere}
+ .post-media img,.post-media video,.gallery-image,.media-post{max-width:100%;height:auto}
+}
+
 </style>
 
 <style id="syntra-mobile-polish-1-4">
@@ -310,7 +339,7 @@ body.syntra-compact .post-text{margin:7px 0;line-height:1.45}
 <div class="topbar">
 <div class="mobile-brand"><img class="mobile-logo" src="https://raw.githubusercontent.com/dea78799-dotcom/Hinh-anh/main/file_0000000076408209a2b7b2c33b416b28.png" alt="SYNTRA GROUP"></div>
 <div class="search"><input id="search" placeholder="Tìm người, bài viết, hashtag..." aria-label="Tìm kiếm SYNTRA"></div>
-<button class="secondary top-action" id="notify" title="Thông báo" aria-label="Thông báo">'+synIcon('bell')+'<span id="noticeCount" class="chat-unread" style="display:none">0</span></button>
+<button class="secondary top-action" id="notify" title="Thông báo" aria-label="Thông báo"><span class="notify-icon" aria-hidden="true"></span><span id="noticeCount" class="chat-unread" style="display:none">0</span></button>
 </div>
 <div class="tabs" id="tabs">
 <button class="active" data-filter="all">Dành cho bạn</button><button data-filter="following">Theo dõi</button><button data-filter="text">Văn bản</button><button data-filter="video">Video</button><button data-filter="photos">Ảnh</button><button data-filter="communities">Cộng đồng</button>
@@ -394,6 +423,7 @@ function synIcon(name){
  document.querySelectorAll('#stories .story-ring>div').forEach((el,i)=>{if(storyIcons[i])el.innerHTML=synIcon(storyIcons[i]);});
  document.querySelectorAll('#desktopNav .icon').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
  document.querySelectorAll('#bottomNav button').forEach(el=>{const n=glyphs[el.textContent.trim()];if(n)el.innerHTML=synIcon(n)});
+ const notifyIcon=document.querySelector('#notify .notify-icon');if(notifyIcon)notifyIcon.innerHTML=synIcon('bell');
  const photo=document.getElementById('photoBtn'), video=document.getElementById('videoBtn'), community=document.getElementById('communityBtn');
  if(photo)photo.innerHTML=synIcon('image')+'Ảnh';
  if(video)video.innerHTML=synIcon('video')+'Video';
