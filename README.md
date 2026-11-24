@@ -539,8 +539,9 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added a post visibility selector; new posts default to **Private**.
 - Public text posts are written with `visibility = 'public'`; private posts remain restricted to their owner.
 - Added a public feed query for published public posts, plus public profile lookup restricted by `is_private = false` and `is_discoverable = true`.
-- Added database grants and RLS policies so anonymous and signed-in visitors can read only published public posts and discoverable, non-private profiles. Existing owner policies remain in place.
+- Added database grants and RLS policies so anonymous and signed-in visitors can read only published public posts and discoverable, non-private profiles. Existing owner policies remain in place. Public profile reads are column-limited to ID, username, display name and visibility flags; bio and avatar path are not exposed.
 - Public posts are read-only in this prototype: likes and comments are not presented as server-backed interactions.
 - Public image/video publishing is blocked for now. The media bucket and media metadata remain private to the owner until a separate public-media authorization design is completed.
-- Static regression checks cover visibility selection, public-only queries, private-post filtering, profile visibility and safe media restrictions.
+- Signed-out visitors load the public feed after the cloud client initializes; public posts are preserved when accounts switch.
+- Static regression checks cover visibility selection, public-only queries, private-post filtering, profile visibility, signed-out initialization and safe media restrictions.
 - Requires a real two-account / signed-out browser test before treating public visibility as production-ready.
