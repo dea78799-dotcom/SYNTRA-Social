@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.33** — mobile-first hybrid prototype with Supabase authentication, cross-device social features, sync diagnostics, and an account security center. This remains a limited prototype, not a production-ready public social network.
+ > Status: **Prototype 2.36** — mobile-first hybrid prototype with Supabase authentication, cross-device social features, sync diagnostics, and an account security center. This remains a limited prototype, not a production-ready public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -771,3 +771,11 @@ on conflict (user_id) do nothing;
 - Updated report history to rely on the existing reporter-only RLS policy rather than filtering by the protected `reporter_id` column.
 - Revoked authenticated DELETE on reports. Owner-role table remains inaccessible directly; a self-row SELECT policy is present as defense in depth, but no SELECT grant is given.
 - Live ACL verification confirms authenticated users cannot read `reporter_id`, cannot directly update report status, cannot insert or read Owner roles, and cannot call moderation functions anonymously.
+
+## Prototype 2.37 — Mobile interaction quality checks
+
+- Improved the fixed mobile bottom navigation with a minimum 44 × 44 CSS-pixel target for each navigation control and explicit touch interaction handling.
+- Constrained the post composer dialog to the dynamic viewport height and enabled internal scrolling so the action buttons remain reachable on shorter screens and when the on-screen keyboard is open.
+- Added a visible keyboard-focus indicator for interactive controls.
+- Expanded GitHub static regression checks for mobile navigation, composer actions, media viewer semantics, notification labeling, and the new responsive CSS.
+- Added [the Android mobile regression checklist](docs/MOBILE-REGRESSION-TEST-2.37.md) for real-device checks. Automated checks cannot replace testing on physical Android phones; account sign-in, cross-device sync, media upload, and MFA still require manual verification.
