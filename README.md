@@ -410,3 +410,13 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added mobile overflow safeguards for the page, search, posts, and media; horizontal scrollers remain independently scrollable.
 - Verification: fetched the updated index.html from GitHub and confirmed the broken literal is absent and the new icon initializer and responsive rules are present.
 - Limitation: no real Android/browser visual test was run in this change.
+
+
+## 1.8 — Visual experience polish
+
+- Refined the visual hierarchy across the search header, feed filters, stories, composer, post cards, and action controls.
+- Improved text contrast, line height, control sizing, focus visibility, and touch feedback.
+- Added clearer styling for the feed sorting control and active filter state.
+- Refined the mobile spacing and bottom navigation surface while retaining the existing dark, warm-gold, and violet identity.
+- Respects reduced-motion preferences.
+- Verification: updated index.html was fetched again from GitHub and the new visual rules were confirmed by static read-back. No live browser/device screenshot test was run.
