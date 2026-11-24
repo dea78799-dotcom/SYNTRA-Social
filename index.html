@@ -623,6 +623,80 @@ async function restoreFullBackup(file){const status=document.getElementById('bac
 async function inspectMediaStorage(){const db=await openMediaDB();try{const stored=await new Promise((resolve,reject)=>{const tx=db.transaction('files','readonly');const req=tx.objectStore('files').getAll();let records=[];req.onsuccess=()=>{records=req.result||[]};req.onerror=()=>reject(req.error);tx.oncomplete=()=>resolve(records);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Không thể kiểm tra tệp'))});const referenced=new Set(posts.flatMap(getPostMediaIds));const storedIds=new Set(stored.map(item=>item.id));return{count:stored.length,bytes:stored.reduce((sum,item)=>sum+(Number(item.size)||Number(item.blob&&item.blob.size)||0),0),missing:[...referenced].filter(id=>!storedIds.has(id)),orphans:stored.filter(item=>!referenced.has(item.id)).length}}finally{db.close()}}
 function formatStorageBytes(bytes){if(!Number.isFinite(bytes)||bytes<0)return'Không rõ';if(bytes<1024)return bytes+' B';const units=['KB','MB','GB'];let value=bytes/1024,index=0;while(value>=1024&&index<units.length-1){value/=1024;index++}return value.toFixed(1)+' '+units[index]}
 async function refreshMediaStorageStatus(){const output=document.getElementById('mediaStorageStatus');if(!output)return;output.textContent='Đang kiểm tra…';try{const [media,estimate,persistent]=await Promise.all([inspectMediaStorage(),navigator.storage&&navigator.storage.estimate?navigator.storage.estimate():Promise.resolve(null),navigator.storage&&navigator.storage.persisted?navigator.storage.persisted():Promise.resolve(null)]);const usage=estimate&&Number.isFinite(estimate.usage)?formatStorageBytes(estimate.usage):'Không rõ';const quota=estimate&&Number.isFinite(estimate.quota)?formatStorageBytes(estimate.quota):'Không rõ';output.textContent='Tệp media: '+media.count+' · Dung lượng tệp: '+formatStorageBytes(media.bytes)+' · Bộ nhớ website: '+usage+' / '+quota+' · Tệp thiếu: '+media.missing.length+' · Tệp không còn bài viết tham chiếu: '+media.orphans+' · Lưu trữ bảo vệ: '+(persistent===null?'Không hỗ trợ':persistent?'Được cấp':'Chưa được cấp');if(media.missing.length)output.textContent+=' · Có bài viết thiếu tệp đính kèm.';if(media.orphans)output.textContent+=' · Tệp thừa chưa bị xóa tự động.'}catch(error){console.warn('Không kiểm tra được media storage:',error);output.textContent='Không thể kiểm tra bộ nhớ media trên trình duyệt này.'}}
+
+let lastIntegrityReport=null;
+async function auditDataIntegrity(){
+ const output=document.getElementById('integrityStatus');
+ const exportButton=document.getElementById('exportIntegrityReport');
+ if(output)output.textContent='Đang kiểm tra dữ liệu…';
+ if(exportButton)exportButton.disabled=true;
+ try{
+  const invalidStoredKeys=[];
+  for(const key of getBackupKeys()){
+   const raw=localStorage.getItem(key);
+   if(raw!==null){try{JSON.parse(raw)}catch(error){invalidStoredKeys.push(key)}}
+  }
+  const invalidPosts=[];
+  const postIds=[];
+  const mediaRefs=new Set();
+  posts.forEach((post,index)=>{
+   if(!post||typeof post!=='object'||Array.isArray(post)||post.id===undefined||post.id===null||String(post.id).trim()===''){
+    invalidPosts.push({index,reason:'Bản ghi bài viết thiếu ID hợp lệ'});
+    return;
+   }
+   postIds.push(String(post.id));
+   getPostMediaIds(post).forEach(id=>mediaRefs.add(String(id)));
+  });
+  const postCounts=new Map();
+  postIds.forEach(id=>postCounts.set(id,(postCounts.get(id)||0)+1));
+  const duplicatePostIds=[...postCounts.entries()].filter(([,count])=>count>1).map(([id])=>id);
+  const media=await readAllMedia();
+  const storedIds=new Set(media.filter(item=>item&&item.id!==undefined&&item.id!==null).map(item=>String(item.id)));
+  const missingMediaIds=[...mediaRefs].filter(id=>!storedIds.has(id));
+  const orphanMediaIds=media.filter(item=>item&&item.id!==undefined&&item.id!==null&&!mediaRefs.has(String(item.id))).map(item=>String(item.id));
+  const invalidMedia=media.filter(item=>!item||item.id===undefined||item.id===null||String(item.id).trim()===''||!(item.blob instanceof Blob)).map(item=>({id:item&&item.id!==undefined?String(item.id):null,name:item&&item.name?String(item.name):'Không rõ'}));
+  const report={
+   app:'SYNTRA Social',
+   reportVersion:1,
+   createdAt:new Date().toISOString(),
+   summary:{
+    posts:posts.length,
+    invalidPosts:invalidPosts.length,
+    duplicatePostIds:duplicatePostIds.length,
+    mediaFiles:media.length,
+    missingMedia:missingMediaIds.length,
+    orphanMedia:orphanMediaIds.length,
+    invalidMedia:invalidMedia.length,
+    malformedLocalStorageKeys:invalidStoredKeys.length
+   },
+   details:{invalidPosts,duplicatePostIds,missingMediaIds,orphanMediaIds,invalidMedia,malformedLocalStorageKeys:invalidStoredKeys}
+  };
+  lastIntegrityReport=report;
+  if(exportButton)exportButton.disabled=false;
+  if(output){
+   const x=report.summary;
+   const issues=x.invalidPosts+x.duplicatePostIds+x.missingMedia+x.invalidMedia+x.malformedLocalStorageKeys;
+   output.textContent='Đã kiểm tra · '+x.posts+' bài viết · '+x.mediaFiles+' tệp media · '+issues+' vấn đề cần xem lại · '+x.orphanMedia+' tệp media không còn được tham chiếu. '+(issues===0?'Chưa phát hiện lỗi trong các mục đã kiểm tra.':'Có dữ liệu cần xem lại; báo cáo không tự thay đổi dữ liệu.');
+  }
+  return report;
+ }catch(error){
+  console.warn('Integrity audit failed:',error);
+  if(output)output.textContent=error.message||'Không thể kiểm tra toàn vẹn dữ liệu.';
+  return null;
+ }
+}
+function exportIntegrityReport(){
+ if(!lastIntegrityReport){toast('Hãy kiểm tra dữ liệu trước.');return}
+ const blob=new Blob([JSON.stringify(lastIntegrityReport,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement('a');
+ link.href=url;
+ link.download='syntra-social-integrity-'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+ toast('Đã xuất báo cáo kiểm tra dữ liệu.');
+}
+
 function revokeMediaUrl(id){if(mediaUrls.has(id)){URL.revokeObjectURL(mediaUrls.get(id));mediaUrls.delete(id)}}
 async function deleteMedia(id){if(!id)return;revokeMediaUrl(id);mediaItems.delete(id);let db;try{db=await openMediaDB();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('Không thể xóa tệp'))})}catch(e){console.warn('Không xóa được media:',e)}finally{if(db)db.close()}}
 function getPostMediaIds(post){if(Array.isArray(post.mediaIds)&&post.mediaIds.length)return post.mediaIds.filter(Boolean);return post.mediaId?[post.mediaId]:[]}
@@ -748,11 +822,13 @@ function renderSettings(){
  '<div class="settings-row"><div><b>Hiển thị hoạt động</b><small>Lượt thích và thông báo demo</small></div><input id="activityToggle" type="checkbox"></div>'+
  '<div class="settings-row"><div><b>Cho phép theo dõi demo</b><small>Cho phép thao tác theo dõi trên hồ sơ mô phỏng</small></div><input id="followToggle" type="checkbox"></div>'+
  '</section><section class="settings-section"><h3>Người dùng đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Danh sách chặn chỉ áp dụng trên trình duyệt hiện tại và dùng tên hiển thị; chưa có tài khoản hoặc ID người dùng ổn định.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
- '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Dữ liệu hiện chỉ lưu trên trình duyệt này. Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật.</p></section>'+
+ '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Dữ liệu hiện chỉ lưu trên trình duyệt này. Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 1.4</small></div><span class="meta">1.4</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Frontend demo · Local storage</small></div><span class="meta">Offline demo</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.8</small></div><span class="meta">2.8</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Frontend demo · Local storage</small></div><span class="meta">Offline demo</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#refreshMediaStorage').onclick=refreshMediaStorageStatus;
+ settingsPage.querySelector('#runIntegrityAudit').onclick=auditDataIntegrity;
+ settingsPage.querySelector('#exportIntegrityReport').onclick=exportIntegrityReport;
  settingsPage.querySelector('#exportData').onclick=exportFullBackup;
  const restoreInput=settingsPage.querySelector('#restoreDataFile');
  settingsPage.querySelector('#restoreDataButton').onclick=()=>restoreInput.click();
