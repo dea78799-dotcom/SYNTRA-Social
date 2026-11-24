@@ -135,7 +135,7 @@ checks = {
     "ordinary sign out only affects current device": "auth.signOut({scope:'local'})" in source,
     "security center controls are wired and account-aware": "renderCloudSecurityCenter()" in source and "cloudSecuritySignOutOthers" in source,
     "security center warns about leaked password protection": "Leaked Password Protection" in source,
-    "settings version reflects prototype 2.42": "SYNTRA Social Prototype 2.42" in source and '<span class="meta">2.42</span>' in source,
+    "settings version reflects prototype 2.43": "SYNTRA Social Prototype 2.43" in source and '<span class="meta">2.43</span>' in source,
     "Owner Console requires server-side Owner status and TOTP MFA": "rpc('syntra_owner_status')" in source and "auth.mfa.enroll({factorType:'totp'" in source and "auth.mfa.challenge({factorId})" in source and "auth.mfa.verify({factorId,challengeId:challenge.id,code})" in source,
     "Owner moderation queue does not select reporter identity": ".select('id,target_type,target_id,reason,details,status,created_at')" in source,
     "moderation actions use the protected server RPC": "rpc('syntra_moderate_report'" in source and "rpc('syntra_get_moderation_audit'" in source and "from('reports').update(" not in source,
