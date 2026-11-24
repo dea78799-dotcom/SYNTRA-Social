@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.15** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
+ > Status: **Prototype 2.16** — mobile-first prototype with Supabase email authentication, private cross-device post editing, text-post sync, and private image/video storage. This remains a limited prototype, not a public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
