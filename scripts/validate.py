@@ -7,6 +7,8 @@ HTML = Path("index.html")
 source = HTML.read_text(encoding="utf-8")
 CLOUD_CLIENT = Path("supabase-client.js")
 PRIVACY_MIGRATION = Path("supabase/migrations/20261124120000_privacy_deletion_cancel_grant.sql")
+REPORT_MIGRATION = Path("supabase/migrations/20261124130000_syntra_social_235_report_validation.sql")
+report_migration_source = REPORT_MIGRATION.read_text(encoding="utf-8") if REPORT_MIGRATION.exists() else ""
 privacy_migration_source = PRIVACY_MIGRATION.read_text(encoding="utf-8") if PRIVACY_MIGRATION.exists() else ""
 cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
 
@@ -64,6 +66,17 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "report migration validates authenticated ownership and public target": "new.reporter_id <> auth.uid()" in report_migration_source and "p.visibility = 'public'" in report_migration_source and "p.is_discoverable = true" in report_migration_source,
+    "report migration enforces a daily submission limit": "recent_count >= 10" in report_migration_source and "interval '24 hours'" in report_migration_source,
+    "report migration rejects self-reporting and locks status": "target_owner = new.reporter_id" in report_migration_source and "new.status := 'open'" in report_migration_source,
+    "report trigger function is not executable directly by client roles": "revoke all on function public.validate_syntra_report() from public, anon, authenticated;" in report_migration_source,
+    "cloud report dialog submits only supported report target types": "function openCloudReportDialog(targetType,targetId,targetLabel)" in source and "!['post','comment','profile'].includes(targetType)" in source,
+    "cloud report dialog sends authenticated reports with bounded details": "from('reports').insert({reporter_id:userId,target_type:targetType,target_id:targetId,reason,details})" in source and 'maxlength="1000"' in source,
+    "report history reads only the signed-in reporter's records": "from('reports').select('id,target_type,target_id,reason,details,status,created_at').eq('reporter_id',userId)" in source,
+    "public post menu opens the cloud report dialog": "openCloudReportDialog('post',p.id,p.name)" in source,
+    "public profile has a report action": 'id="cloudReportProfile"' in source and "openCloudReportDialog('profile',id,displayName)" in source,
+    "cloud comments have report actions": "data-report-comment" in source and "openCloudReportDialog('comment',b.dataset.reportComment" in source,
+    "report center is present in settings": 'id="cloudReportsList"' in source and "loadCloudReports();" in source,
     "privacy cancellation migration grants status only": "GRANT UPDATE (status) ON TABLE public.account_deletion_requests TO authenticated;" in privacy_migration_source and "GRANT UPDATE ON TABLE public.account_deletion_requests" not in privacy_migration_source,
     "local reset clears the posts key": "[KEY," in source and "BLOCKED_USERS_KEY].forEach(k=>localStorage.removeItem(k))" in source,
     "local reset clears the notices collection": "notices=[]" in source,
@@ -101,7 +114,7 @@ checks = {
     "ordinary sign out only affects current device": "auth.signOut({scope:'local'})" in source,
     "security center controls are wired and account-aware": "renderCloudSecurityCenter()" in source and "cloudSecuritySignOutOthers" in source,
     "security center warns about leaked password protection": "Leaked Password Protection" in source,
-    "settings version reflects prototype 2.34": "SYNTRA Social Prototype 2.34" in source and '<span class="meta">2.34</span>' in source,
+    "settings version reflects prototype 2.35": "SYNTRA Social Prototype 2.35" in source and '<span class="meta">2.35</span>' in source,
     "cloud block records load across devices for the current account": "async function loadCloudBlocks" in source and "from('blocks').select('blocker_id,blocked_id,blocked_label,created_at')" in source,
     "cloud blocking stores stable account IDs and labels": "from('blocks').insert({blocker_id:userId,blocked_id:targetId,blocked_label:safeLabel})" in source,
     "cloud block list supports unblocking": "async function unblockCloudUser" in source and "data-cloud-unblock" in source,
@@ -121,7 +134,7 @@ checks = {
     "cloud post edits update Supabase under current owner": "from('posts').update({body:nextText}).eq('id',post.id).eq('author_id',syntraCloudUser.id)" in source,
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
-    "settings badge reflects prototype 2.34": '<span class="meta">2.34</span>' in source,
+    "settings badge reflects prototype 2.35": '<span class="meta">2.35</span>' in source,
     "security center is present in Settings": 'id="securityCenter"' in source and 'id="securityAccountStatus"' in source,
     "security center reports verified email from Supabase Auth": "user.email_confirmed_at||user.confirmed_at" in source and 'id="securityEmailStatus"' in source,
     "unverified email can request a confirmation resend": "auth.resend({type:'signup',email:syntraCloudUser.email})" in source and "handleCloudResendVerification" in source,
