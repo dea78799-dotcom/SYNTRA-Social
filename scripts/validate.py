@@ -197,7 +197,7 @@ checks = {
     "public feed pagination uses bounded 20-post pages and deterministic ordering": "const PUBLIC_FEED_PAGE_SIZE=20;" in source and ".order('created_at',{ascending:false}).order('id',{ascending:false}).limit(PUBLIC_FEED_PAGE_SIZE)" in source,
     "public feed pagination uses a composite created-at and id cursor": "function loadMorePublicFeed()" in source and "created_at.lt." in source and "and(created_at.eq." in source and ".or(cursorFilter)" in source,
     "public feed pagination deduplicates appended posts and guards account changes": "const existingIds=new Set(posts.filter(post=>post.publicCloud).map(post=>post.id))" in source and "if((syntraCloudUser?.id||null)!==syncUserId)return false;" in source,
-    "public feed pagination exposes a minimal accessible load-more control": 'id="loadMorePublicFeed"' in source and "Tải thêm bài viết" in source and ".feed-pagination button{min-height:44px" in source,
+    "public feed pagination exposes a minimal accessible load-more control": 'id="loadMorePublicFeed"' in source and "Tải thêm bài viết" in source and "&&publicFeedCursor&&publicFeedHasMore" in source and ".feed-pagination button{min-height:44px" in source,
     "public feed pagination resets when the Cloud account changes": "publicFeedLastSyncAt=0;publicFeedCursor=null;publicFeedHasMore=true" in source,
     "public feed fetches published public posts only": ".eq('visibility','public').eq('status','published')" in source,
     "public feed loads only discoverable profiles": "is_private,is_discoverable" in source and ".from('profiles').select('id,username,display_name,is_private,is_discoverable')" in source,
