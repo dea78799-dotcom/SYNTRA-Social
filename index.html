@@ -767,7 +767,9 @@ const MEDIA_MAX_CONCURRENT_LOADS=3;
 const mediaLoadQueue=[];
 let mediaLoadActive=0;
 let mediaLoadObserver=null;
+const mediaObservedNodes=new Set();
 function cleanupDetachedMediaCache(){
+ mediaObservedNodes.forEach(node=>{if(!node.isConnected){if(mediaLoadObserver)mediaLoadObserver.unobserve(node);mediaObservedNodes.delete(node);delete node.dataset.queued}});
  const activeIds=new Set(Array.from(document.querySelectorAll('[data-media-id]')).map(node=>node.dataset.mediaId).filter(Boolean));
  mediaUrls.forEach((url,id)=>{if(!activeIds.has(id)){URL.revokeObjectURL(url);mediaUrls.delete(id);mediaItems.delete(id)}});
  mediaItems.forEach((item,id)=>{if(!activeIds.has(id))mediaItems.delete(id)});
@@ -841,9 +843,9 @@ function hydratePostMedia(root=feed){
  const nodes=Array.from(root.querySelectorAll('[data-media-id]'));
  if('IntersectionObserver' in window){
   if(!mediaLoadObserver)mediaLoadObserver=new IntersectionObserver(entries=>{
-   entries.forEach(entry=>{if(!entry.isIntersecting)return;mediaLoadObserver.unobserve(entry.target);queuePostMedia(entry.target)});
+   entries.forEach(entry=>{if(!entry.isIntersecting)return;mediaLoadObserver.unobserve(entry.target);mediaObservedNodes.delete(entry.target);queuePostMedia(entry.target)});
   },{root:null,rootMargin:'360px 0px',threshold:0.01});
-  nodes.forEach(node=>{if(node.dataset.loaded!=='1'&&node.dataset.queued!=='1')mediaLoadObserver.observe(node)});
+  nodes.forEach(node=>{if(node.dataset.loaded!=='1'&&node.dataset.queued!=='1'){mediaLoadObserver.observe(node);mediaObservedNodes.add(node)}});
  }else nodes.forEach(queuePostMedia);
  cleanupDetachedMediaCache();
 }
