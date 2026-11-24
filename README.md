@@ -629,3 +629,12 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Post searches explicitly filter visibility = 'public' and status = 'published'. Private posts are never queried by the search feature.
 - Search input is length-limited, strips wildcard/control characters, waits briefly before querying, and ignores stale responses. Results are bounded and rendered with escaped text.
 - No database schema changes or privileged RPCs were needed. Static checks cover privacy filters, bounded queries, escaped output, and stale-request handling. Real two-account search and private-profile tests still need to be completed.
+
+
+## Prototype 2.27 — Search navigation continuity
+
+- Fixed Cloud Search result navigation so opening a public post and returning restores the previous screen instead of always sending the user to the home feed.
+- The previous view is preserved for other post-detail entry points as well, including profile and discovery screens.
+- Changed the detail-page back label to the neutral “Quay lại”.
+- No database or Supabase policy changes were needed.
+- Static regression checks cover return-view preservation and the back control label. Device-level navigation testing remains recommended.
