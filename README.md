@@ -818,3 +818,13 @@ on conflict (user_id) do nothing;
 - Appended pages are deduplicated by database post ID. Requests reject results if the signed-in account changes while they are in flight.
 - Pagination state resets when the Cloud account changes or the profile is updated. No database schema, RLS policy, or storage permission was changed.
 - Static regression checks cover page bounds, stable ordering, cursor filtering, duplicate prevention, account-change protection, and the load-more control. Real Android scrolling, two-account privacy, and high-volume feed tests remain required.
+
+
+## Prototype 2.42 — Media loading and memory management
+
+- Post images and videos are now queued through `IntersectionObserver`; media is fetched only when its placeholder approaches the viewport (360 px preload margin).
+- Concurrent media reads/downloads are capped at three to avoid opening many IndexedDB/Storage operations at once on mobile devices.
+- Images use asynchronous decoding and native lazy loading. Videos use `preload="none"` so metadata and video data are not requested until playback is needed.
+- Blob URLs and in-memory Blob references are released when their media elements are no longer present in the document. The active image viewer retains its current media reference.
+- Existing authenticated Storage downloads and local IndexedDB media remain unchanged. Private media is not copied into a new persistent browser cache, avoiding cross-account persistence and additional storage growth.
+- Static regression checks cover viewport loading, concurrency limits, detached-node handling, lazy image/video behavior, and object URL cleanup. Manual Android scroll/playback and account-switch tests remain required.
