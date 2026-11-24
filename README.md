@@ -726,3 +726,10 @@ GitHub Pages can host the static prototype. A real social network will require a
 - No credentials or service-role key are exposed in the browser. The new public table has explicit authenticated grants and RLS. Anonymous SELECT on `blocks` is granted only because public RLS expressions reference the table; its RLS policy returns no block rows to anonymous users.
 - No automatic account deletion, password changes, or data erasure are performed by this feature.
 - Static regression checks cover Cloud block syncing, block controls, follower removal, export boundaries, and deletion-request state. Two-account Android tests and a manual deletion-request processing test remain required.
+
+
+### 2.34.1 — Privacy permission correction
+
+- Granted authenticated users column-level UPDATE permission on `account_deletion_requests.status` so the existing cancel-pending-request action can work.
+- The existing RLS policy still limits cancellation to the signed-in owner of a pending request and requires the resulting status to be `cancelled`; users cannot update `user_id` or other columns.
+- Applied and verified against the live Supabase project. The privilege check confirms UPDATE on `status` is allowed while UPDATE on `user_id` and table-wide UPDATE remain unavailable.
