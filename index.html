@@ -424,6 +424,31 @@ body.composer-open{overflow:hidden;overscroll-behavior:none}
 }
 @media(max-height:560px) and (max-width:700px){#modal{align-items:flex-start}#modal .dialog{max-height:calc(100dvh - 12px);margin-top:4px}#modal .dialog textarea{min-height:72px;max-height:20dvh}}
 </style>
+<style id="syntra-composer-keyboard-2-1">
+/* 2.1: follow the Android visual viewport when the on-screen keyboard opens. */
+#modal.show{
+  top:var(--syntra-vv-top,0px);
+  bottom:auto;
+  height:var(--syntra-vv-height,100dvh);
+  min-height:0;
+}
+#modal .dialog{
+  max-height:calc(var(--syntra-vv-height,100dvh) - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+#modal .dialog-actions{
+  position:sticky;
+  bottom:0;
+  margin-bottom:-14px;
+  padding:12px 0 max(12px,env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent,var(--surface) 20%);
+}
+@media(max-width:700px){
+  #modal.show{align-items:flex-end}
+  #modal .dialog{
+    max-height:calc(var(--syntra-vv-height,100dvh) - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -834,7 +859,7 @@ document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click'
 document.body.classList.toggle('syntra-compact',appSettings.compactMode);
 document.getElementById('search').addEventListener('input',()=>{activeTopic=null;if(document.getElementById('search').value.trim())filter('explore');else render()});
 document.getElementById('feedSort').addEventListener('change',e=>{sortMode=e.target.value;render()});
-const modal=document.getElementById('modal');let composerReturnFocus=null;function open(){composerReturnFocus=document.activeElement;modal.classList.add('show');document.body.classList.add('composer-open');modal.setAttribute('aria-hidden','false');document.getElementById('postText').focus()}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');document.body.classList.remove('composer-open');modal.setAttribute('aria-hidden','true');clearSelectedMedia();if(composerReturnFocus&&composerReturnFocus.isConnected)composerReturnFocus.focus();composerReturnFocus=null}
+const modal=document.getElementById('modal');let composerReturnFocus=null;function syncComposerViewport(){const vv=window.visualViewport;const h=vv?vv.height:window.innerHeight;const top=vv?Math.max(0,vv.offsetTop):0;modal.style.setProperty('--syntra-vv-height',Math.round(h)+'px');modal.style.setProperty('--syntra-vv-top',Math.round(top)+'px')}if(window.visualViewport){window.visualViewport.addEventListener('resize',syncComposerViewport);window.visualViewport.addEventListener('scroll',syncComposerViewport)}window.addEventListener('resize',syncComposerViewport);function open(){composerReturnFocus=document.activeElement;syncComposerViewport();modal.classList.add('show');document.body.classList.add('composer-open');modal.setAttribute('aria-hidden','false');document.getElementById('postText').focus();requestAnimationFrame(syncComposerViewport)}function clearSelectedMedia(){selectedMedia.forEach(item=>{if(item.previewUrl)URL.revokeObjectURL(item.previewUrl)});selectedMedia=[];document.getElementById('imageFile').value='';document.getElementById('videoFile').value='';document.getElementById('mediaPreview').classList.remove('show');document.getElementById('mediaPreviewContent').innerHTML='';document.getElementById('mediaPreviewContent').className='';document.getElementById('mediaInfo').textContent=''}function close(){modal.classList.remove('show');document.body.classList.remove('composer-open');modal.setAttribute('aria-hidden','true');clearSelectedMedia();if(composerReturnFocus&&composerReturnFocus.isConnected)composerReturnFocus.focus();composerReturnFocus=null}
 ['openComposer','openComposer2','bottomCreate'].forEach(id=>document.getElementById(id).addEventListener('click',open));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show')){e.preventDefault();close()}});
 document.getElementById('cancel').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});
