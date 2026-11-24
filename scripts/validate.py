@@ -93,6 +93,7 @@ checks = {
     "settings badge reflects prototype 2.21": '<span class="meta">2.21</span>' in source,
     "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
 
+    "cloud avatar controls are disabled and cleared when signed out": "if(avatarFile)avatarFile.disabled=true;if(saveAvatar)saveAvatar.disabled=true;if(removeAvatar)removeAvatar.disabled=true;" in source and "cloudCurrentAvatarPath=null;releaseCloudAvatarPreview();setCloudAvatarPreview('','SYNTRA');" in source,
     "cloud avatar editor and file constraints are present": 'id="cloudAvatarFile"' in source and 'accept="image/jpeg,image/png,image/webp"' in source and 'id="saveCloudAvatar"' in source and 'id="removeCloudAvatar"' in source,
     "cloud avatar uses private storage bucket and cached download": "storage.from('syntra-avatars').download(path)" in source and "storage.from('syntra-avatars').upload(newPath,file" in source,
     "cloud avatar enforces image MIME and 2 MB client limit": "file.size>2*1024*1024" in source and "image/jpeg','image/png','image/webp" in source,
