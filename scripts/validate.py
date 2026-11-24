@@ -94,7 +94,7 @@ checks = {
     "auth errors are translated to clear Vietnamese messages": "function cloudAuthErrorMessage(error,mode)" in source and "Email hoặc mật khẩu chưa chính xác." in source,
     "password tools are mobile-friendly": ".cloud-password-tools{display:flex;gap:8px;margin-top:7px}" in source,
     "cloud client bootstrap is referenced": 'type="module" src="./supabase-client.js"' in source,
-    "Supabase client uses pinned version": "@supabase/supabase-js@2.129.2" in cloud_source,
+    "Supabase client uses pinned version": "@supabase/supabase-js@2.119.2" in cloud_source,
     "only publishable key is configured": "sb_publishable_" in cloud_source and "service_role" not in cloud_source,
     "cloud sign up uses email auth": "auth.signUp({email,password" in source,
     "cloud sign in uses password auth": "auth.signInWithPassword({email,password})" in source,
