@@ -710,10 +710,12 @@ async function inspectMediaBlobIntegrity(records,output){
   try{
    if(canHash&&blob.size<=20*1024*1024){
     const buffer=await blob.arrayBuffer();
-    const digest=await crypto.subtle.digest('SHA-256',buffer);
-    const fingerprint=Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,'0')).join('');
-    if(!hashGroups.has(fingerprint))hashGroups.set(fingerprint,[]);
-    hashGroups.get(fingerprint).push(String(item.id));
+    try{
+     const digest=await crypto.subtle.digest('SHA-256',buffer);
+     const fingerprint=Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,'0')).join('');
+     if(!hashGroups.has(fingerprint))hashGroups.set(fingerprint,[]);
+     hashGroups.get(fingerprint).push(String(item.id));
+    }catch(hashError){hashSkippedMediaIds.push(String(item.id))}
    }else{
     hashSkippedMediaIds.push(String(item.id));
     await blob.slice(0,Math.min(1,blob.size)).arrayBuffer();
