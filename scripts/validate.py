@@ -82,7 +82,10 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.30": "SYNTRA Social Prototype 2.30" in source and '<span class="meta">2.30</span>' in source,
+    "cloud sync center stores bounded local-only event history": "CLOUD_SYNC_HISTORY_KEY='syntra_cloud_sync_history_v1'" in source and "cloudSyncHistory=cloudSyncHistory.slice(0,20)" in source and "writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory)" in source,
+    "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source and "async function retryCloudSyncCenter()" in source,
+    "cloud sync center avoids storing account credentials or post content": "Không lưu nội dung bài viết hoặc thông tin đăng nhập." in source and "summary:ok?'Đồng bộ hoàn tất':result.detail" in source,
+    "settings version reflects prototype 2.31": "SYNTRA Social Prototype 2.31" in source and '<span class="meta">2.31</span>' in source,
     "own profile includes account-owned cloud posts": "posts.filter(p=>(own&&p.cloud)||p.name===name)" in source,
     "profile screen is explicitly shown and feed hidden": "profilePage.classList.add('show')" in source and "feed.style.display='none'" in source,
     "creator post editor is rendered with safe escaped content": "data-creator-editor=" in source and 'maxlength="5000"' in source and "esc(p.text||" in source,
@@ -217,7 +220,10 @@ checks = {
 
     "post detail remembers the previous screen": "let postDetailReturnView='all'" in source and "postDetailReturnView=active;activePostId=id" in source and "active=postDetailReturnView||'all'" in source,
     "post detail back action has neutral label": 'id="detailBack">← Quay lại</button>' in source,
-    "settings version reflects prototype 2.30": "SYNTRA Social Prototype 2.30" in source and '<span class="meta">2.30</span>' in source,
+    "cloud sync center stores bounded local-only event history": "CLOUD_SYNC_HISTORY_KEY='syntra_cloud_sync_history_v1'" in source and "cloudSyncHistory=cloudSyncHistory.slice(0,20)" in source and "writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory)" in source,
+    "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source and "async function retryCloudSyncCenter()" in source,
+    "cloud sync center avoids storing account credentials or post content": "Không lưu nội dung bài viết hoặc thông tin đăng nhập." in source and "summary:ok?'Đồng bộ hoàn tất':result.detail" in source,
+    "settings version reflects prototype 2.31": "SYNTRA Social Prototype 2.31" in source and '<span class="meta">2.31</span>' in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
