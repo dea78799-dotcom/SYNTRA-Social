@@ -154,7 +154,7 @@ checks = {
     "cloud sync rejects stale account responses": "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false" in source,
     "cloud sync refreshes when returning online or to tab": "window.addEventListener('focus',()=>{autoSyncCloudPosts()})" in source and "window.addEventListener('online',()=>{updateCloudAccountUI();autoSyncCloudPosts()})" in source and "document.addEventListener('visibilitychange'" in source,
     "cloud sync cleans old account media cache": "cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)})" in source,
-    "cloud sync rejects stale response after interaction hydration": "let interactions;\\n  try{interactions=await loadCloudPostInteractions(publicRows,userId)}" in source and "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in source,
+    "cloud sync rejects stale response after interaction hydration": "let interactions;" in source and "loadCloudPostInteractions(publicRows,userId)" in source and "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in source,
     "public feed rejects stale account response before replacing feed": "const syncUserId=syntraCloudUser?.id||null;" in source and "loadCloudPostInteractions(rows,syncUserId)" in source and "if((syntraCloudUser?.id||null)!==syncUserId)return false;" in source,
     "offline state is visible and disables manual sync": "Ngoại tuyến · " in source and "navigator.onLine===false" in source and "window.addEventListener('offline'" in source,
     "cloud diagnostics panel and manual action are present": 'id="cloudDiagnosticsStatus"' in source and 'id="cloudDiagnosticCheck"' in source and "onclick=checkCloudConnection" in source,
