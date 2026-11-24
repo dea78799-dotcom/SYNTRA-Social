@@ -6,6 +6,8 @@ import tempfile
 HTML = Path("index.html")
 source = HTML.read_text(encoding="utf-8")
 CLOUD_CLIENT = Path("supabase-client.js")
+PRIVACY_MIGRATION = Path("supabase/migrations/20261124120000_privacy_deletion_cancel_grant.sql")
+privacy_migration_source = PRIVACY_MIGRATION.read_text(encoding="utf-8") if PRIVACY_MIGRATION.exists() else ""
 cloud_source = CLOUD_CLIENT.read_text(encoding="utf-8") if CLOUD_CLIENT.exists() else ""
 
 class InlineScripts(HTMLParser):
@@ -62,6 +64,7 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "privacy cancellation migration grants status only": "GRANT UPDATE (status) ON TABLE public.account_deletion_requests TO authenticated;" in privacy_migration_source and "GRANT UPDATE ON TABLE public.account_deletion_requests" not in privacy_migration_source,
     "local reset clears the posts key": "[KEY," in source and "BLOCKED_USERS_KEY].forEach(k=>localStorage.removeItem(k))" in source,
     "local reset clears the notices collection": "notices=[]" in source,
     "no stale POST_KEY reference": "POST_KEY" not in source,
