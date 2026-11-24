@@ -91,7 +91,7 @@ checks = {
     "local post edits save to local storage": "post.text=nextText;" in source and "const saved=save();" in source,
     "cloud edit result is verified before local update": "if(!data)throw new Error('Không tìm thấy bài viết hoặc bạn không có quyền chỉnh sửa.')" in source,
     "settings badge reflects prototype 2.17": '<span class="meta">2.17</span>' in source,
-    "settings icon has scoped optical alignment": "#desktopNav button[data-filter=\\"settings\\"] .s-icon" in source and "#bottomNav button[data-filter=\\"settings\\"] .s-icon" in source and "top:-1px" in source,
+    "settings icon has scoped optical alignment": '#desktopNav button[data-filter="settings"] .s-icon' in source and '#bottomNav button[data-filter="settings"] .s-icon' in source and "top:-1px" in source,
     "public feed is clearly deferred": "Bảng tin công khai và xem bài của người khác sẽ làm ở giai đoạn sau." in source,
     "private multi-device sync is clearly explained": "Đăng nhập cùng tài khoản trên các thiết bị để đồng bộ riêng tư." in source,
     "hybrid cloud status copy is accurate": "Tài khoản và bài viết riêng tư dùng SYNTRA Cloud" in source and "Không có tài khoản thật, máy chủ, đồng bộ hay xác thực bảo mật." not in source,
