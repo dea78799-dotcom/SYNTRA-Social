@@ -863,6 +863,7 @@ async function loadCloudPostInteractions(postRows,userId=null){
 }
 async function syncPublicFeed(silent=true){
  if(!syntraSupabaseClient||document.visibilityState==='hidden')return false;
+ const syncUserId=syntraCloudUser?.id||null;
  if(publicFeedSyncPromise)return publicFeedSyncPromise;
  if(Date.now()-publicFeedLastSyncAt<30000)return false;
  const task=(async()=>{
@@ -871,7 +872,8 @@ async function syncPublicFeed(silent=true){
   const rows=data||[];if(syntraCloudUser){try{await refreshCloudFollowingIds(syntraCloudUser.id)}catch(followError){console.warn('SYNTRA cloud following list failed:',followError);cloudFollowingIds=new Set()}}else cloudFollowingIds=new Set();const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
   if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(profileResult.error){console.warn('SYNTRA public profiles failed:',profileResult.error);if(!silent)toast('Chưa tải được hồ sơ người đăng.');return false}profiles=profileResult.data||[]}
   const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
-  const interactions=await loadCloudPostInteractions(rows,syntraCloudUser?.id||null);
+  const interactions=await loadCloudPostInteractions(rows,syncUserId);
+  if((syntraCloudUser?.id||null)!==syncUserId)return false;
   const publicPosts=rows.map(row=>({...cloudPostFromRow(row,[],profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{})}));
   posts=[...publicPosts,...posts.filter(post=>!post.publicCloud)];save();publicFeedLastSyncAt=Date.now();
   if(active==='all')render();
@@ -890,7 +892,6 @@ async function loadCloudBookmarks(userId=syntraCloudUser?.id,silent=true){
   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
   const ids=(bookmarkRows||[]).map(row=>row.post_id).filter(Boolean);
   const savedIds=new Set(ids);
-  posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)});
   if(ids.length){
    const {data:rows,error:postError}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').in('id',ids).eq('visibility','public').eq('status','published');
    if(postError){console.warn('SYNTRA bookmarked posts failed:',postError);if(!silent)toast('Không tải được bài viết đã lưu: '+postError.message);return false}
@@ -903,9 +904,11 @@ async function loadCloudBookmarks(userId=syntraCloudUser?.id,silent=true){
    const postIds=postRows.map(row=>row.id);
    let mediaRows=[];
    if(postIds.length){const result=await syntraSupabaseClient.from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size').in('post_id',postIds);if(result.error)throw result.error;mediaRows=result.data||[]}
-   mediaRows.forEach(item=>cloudMediaById.set(item.id,item));
+   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
    const interactions=await loadCloudPostInteractions(postRows,userId);
    if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
+   mediaRows.forEach(item=>cloudMediaById.set(item.id,item));
+   posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)});
    const existing=new Map(posts.map(post=>[post.id,post]));
    postRows.forEach(row=>{
     const next={...cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id),profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{}),saved:true};
@@ -933,11 +936,12 @@ function updateCloudAccountUI(message){
    status.textContent='Đã đăng nhập · '+(syntraCloudUser.email||'Tài khoản SYNTRA')+' · '+syncStatus+' Bài viết riêng tư, lượt thích và bình luận công khai được đồng bộ.';
   }
   else status.textContent='Chưa đăng nhập. Bạn vẫn xem được bài viết, lượt thích và bình luận công khai. Đăng nhập để tương tác và đồng bộ trên các thiết bị; ảnh/video công khai chưa được bật.';
+  if(navigator.onLine===false)status.textContent='Ngoại tuyến · '+status.textContent;
  }
  const signedIn=!!syntraCloudUser;
  ['cloudSignUp','cloudSignIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!syntraCloudReady||signedIn});
  const syncButton=document.getElementById('cloudSyncNow');
- if(syncButton){syncButton.disabled=!syntraCloudReady||!signedIn||cloudSyncing;syncButton.textContent=cloudSyncing?'Đang đồng bộ…':'Đồng bộ ngay'}
+ if(syncButton){syncButton.disabled=!syntraCloudReady||!signedIn||cloudSyncing||navigator.onLine===false;syncButton.textContent=cloudSyncing?'Đang đồng bộ…':navigator.onLine===false?'Đang ngoại tuyến':'Đồng bộ ngay'}
  const signOutButton=document.getElementById('cloudSignOut');
  if(signOutButton)signOutButton.disabled=!syntraCloudReady||!signedIn;
 }
@@ -958,6 +962,7 @@ async function syncCloudPosts(silent){
   cloudMediaById.clear();nextMediaMap.forEach((value,key)=>cloudMediaById.set(key,value));
   const publicRows=rows.filter(row=>row.visibility==='public');
   const interactions=await loadCloudPostInteractions(publicRows,userId);
+  if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
   const cloudPosts=rows.map(row=>({...cloudPostFromRow(row,mediaRows.filter(item=>item.post_id===row.id)),...(interactions.get(row.id)||{})}));
   posts=[...cloudPosts,...posts.filter(post=>post.publicCloud||!post.cloud)];save();render();cloudLastSyncAt=Date.now();cloudAccountMessage='';updateCloudAccountUI();
   if(!silent)toast('Đã đồng bộ '+cloudPosts.length+' bài viết và '+mediaRows.length+' tệp ảnh/video.');
@@ -1059,7 +1064,8 @@ async function handleCloudSignOut(){
 }
 async function refreshCloudPosts(){if(!syntraCloudUser){toast('Hãy đăng nhập trước.');return}await syncCloudPosts(false)}
 window.addEventListener('focus',()=>{autoSyncCloudPosts()});
-window.addEventListener('online',()=>{autoSyncCloudPosts()});
+window.addEventListener('offline',()=>{updateCloudAccountUI()});
+window.addEventListener('online',()=>{updateCloudAccountUI();autoSyncCloudPosts()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')autoSyncCloudPosts()});
 window.syntraCloudInit=async function(client){
  syntraSupabaseClient=client;syntraCloudReady=true;updateCloudAccountUI();
@@ -1340,7 +1346,7 @@ function renderSettings(){
  '</section><section class="settings-section"><h3>Người dùng đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Danh sách chặn chỉ áp dụng trên trình duyệt hiện tại và dùng tên hiển thị; chưa có tài khoản hoặc ID người dùng ổn định.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Bài viết, ảnh và video được đồng bộ riêng tư khi bạn đăng nhập cùng tài khoản. Các dữ liệu demo như bình luận, lượt thích, tin nhắn và một số cài đặt vẫn chỉ lưu trên trình duyệt hiện tại.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.28</small></div><span class="meta">2.28</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.29</small></div><span class="meta">2.29</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
  settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
