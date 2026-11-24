@@ -82,7 +82,7 @@ checks = {
     "integrity audit checks malformed local JSON": "malformedLocalStorageKeys" in source,
     "integrity report export is wired": "exportIntegrityReport()" in source and 'id="exportIntegrityReport"' in source,
     "integrity audit does not auto-delete media": "Không tự sửa hoặc xóa dữ liệu" in source,
-    "settings version reflects prototype 2.9": "SYNTRA Social Prototype 2.9" in source,
+    "settings version reflects prototype 2.10": "SYNTRA Social Prototype 2.10" in source,
     "cloud account UI is present": 'id="cloudSignUp"' in source and 'id="cloudSignIn"' in source,
     "cloud client bootstrap is referenced": 'type="module" src="./supabase-client.js"' in source,
     "Supabase client uses pinned version": "@supabase/supabase-js@2.119.2" in cloud_source,
@@ -93,7 +93,14 @@ checks = {
     "cloud posts are inserted on publish": "from('posts').insert({author_id:syntraCloudUser.id,body:textValue" in source,
     "posting requires cloud login": "Hãy đăng nhập trong Cài đặt để đăng bài đồng bộ" in source,
     "cloud posts are deleted remotely": "from('posts').delete().eq('id',p.id)" in source,
-    "media sync limitation is disclosed": "Đồng bộ ảnh/video sẽ được bổ sung" in source,
+    "private storage bucket is configured": "syntra-post-media" in source and "SYNTRA_MEDIA_BUCKET='syntra-post-media'" in source,
+    "media uploads use authenticated storage client": ".storage.from(SYNTRA_MEDIA_BUCKET).upload(path,item.file" in source,
+    "media metadata is inserted": "from('post_media').insert(mediaRows)" in source,
+    "cloud sync fetches media metadata": "from('post_media').select('id,post_id,owner_id,storage_path,media_type,mime_type,byte_size')" in source,
+    "remote media is downloaded on demand": ".storage.from(SYNTRA_MEDIA_BUCKET).download(remote.storage_path)" in source,
+    "cloud deletion removes media objects": ".storage.from(SYNTRA_MEDIA_BUCKET).remove(paths)" in source,
+    "media size validation remains enabled": "video tối đa 12 MB" in source and "Tổng dung lượng album tối đa 20 MB" in source,
+    "old media sync limitation is removed": "Đồng bộ ảnh/video sẽ được bổ sung" not in source,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
