@@ -605,7 +605,18 @@ GitHub Pages can host the static prototype. A real social network will require a
 - Added cross-device follow/unfollow for SYNTRA Cloud member profiles using the existing `public.follows` table.
 - Following a public profile creates an accepted relation immediately. Following a private but discoverable profile creates a pending request; the requester can cancel it.
 - Account settings show accepted follower/following counts and incoming pending requests. Profile owners can accept or reject requests.
-- Private profiles remain discoverable by username/display name so people can send a request, but the public profile page hides bio, avatar and posts. Private-content access for accepted followers is not part of this prototype yet.
+- Private profiles remain hidden from public discovery. If a visitor reaches a private account through an already visible public post, SYNTRA shows a limited private-profile screen and allows a pending follow request. Private bio, avatar and posts are not exposed. Private-content access for accepted followers is not part of this prototype yet.
 - Updated RLS: follow rows remain readable only by the two participants; only the profile owner can accept an incoming pending request; accepted relations can be created only for public/discoverable profiles. Pending requests do not expose private profile rows. Column-level UPDATE permission is limited to status and accepted_at.
 - Profile discovery now permits discoverable private profiles while the client requests only identity columns for those profiles. No service-role key is exposed.
 - Static regression checks cover follow state, private requests, request moderation and authentication guards. Real two-account and two-device tests are still required.
+
+
+## Prototype 2.25 — Cloud Notifications
+
+- The existing notification center now merges local/demo notices with notifications stored in Supabase and shows a combined unread badge.
+- Database triggers create notifications for new likes and comments on published public posts, follow requests, new public followers, and accepted follow requests.
+- Notifications are read only by their recipient under RLS. Authenticated clients can update only the `read_at` column on their own notification rows; direct client inserts are not granted.
+- Trigger logic runs from a non-exposed `private` schema with a fixed empty search path. It checks the authenticated actor and derives the recipient from the affected post or follow relation; self-notifications are skipped.
+- The client refreshes notifications after sign-in/account changes, when the notification panel opens, and when the app returns to the foreground. Read-all status is saved to Supabase across devices.
+- Private actor profiles are not exposed to notification readers; when profile visibility blocks actor lookup, the UI uses the neutral label “Thành viên SYNTRA”.
+- Static regression checks cover recipient scoping, badge aggregation, read state and the absence of direct client inserts. Runtime trigger delivery still needs a test using two real accounts and a public post.
