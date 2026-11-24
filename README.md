@@ -35,7 +35,7 @@ Mobile-first responsive front-end prototype.
 - Notifications
 - Real moderation/reporting system
 
-Demo posts created in this version are saved in browser local storage on the current device. They are not published or visible to other people.
+Demo posts created in this version are saved in browser local storage on the current device. They are not published or visible to other people. Core content remains local to the current browser. Image and video attachments are stored separately in IndexedDB on that device; they are not uploaded to a server.
 
 ## Roadmap
 1. Responsive front-end prototype — in progress; local demo features are available.
