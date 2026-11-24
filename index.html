@@ -29,6 +29,7 @@ main{min-width:0}.topbar{display:flex;align-items:center;gap:10px;margin:0 0 15p
 .footer{font-size:12px;color:var(--muted);padding:10px}
 .modal{display:none;position:fixed;inset:0;background:#0009;z-index:20;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.dialog{width:min(520px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 25px 70px #0007}.dialog h2{margin:0 0 14px}.dialog textarea{width:100%;min-height:130px;background:var(--bg);border:1px solid var(--border);border-radius:13px;color:var(--text);padding:12px;resize:vertical}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#282833;border:1px solid var(--border);border-radius:12px;padding:10px 15px;display:none;z-index:30}.toast.show{display:block}
 .empty{text-align:center;color:var(--muted);padding:28px}.feed-empty{display:grid;justify-items:center;gap:10px;min-height:210px;align-content:center;padding:30px 20px;text-align:center;background:linear-gradient(145deg,rgba(190,150,78,.055),transparent 65%),var(--surface);border:1px solid var(--border);border-radius:18px}.feed-empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:rgba(190,150,78,.12);color:var(--gold,#c9a15a);font-size:21px}.feed-empty h3{margin:2px 0 0;color:var(--text);font-size:17px}.feed-empty p{max-width:330px;margin:0;line-height:1.55;font-size:13px;color:var(--muted)}.feed-empty-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:5px}.feed-empty-actions button{min-height:42px;padding:0 15px;border-radius:12px}
+.feed-pagination{display:flex;justify-content:center;padding:8px 0 22px}.feed-pagination button{min-height:44px;min-width:180px;padding:10px 18px;border-radius:12px}.feed-pagination button:disabled{opacity:.65;cursor:wait}
 .profile-page{display:none;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:14px}
 .profile-page.show{display:block}.cover{height:145px;background:linear-gradient(125deg,#4a3921,#191919 60%,#9d7736);position:relative}
 .profile-top{padding:0 16px 16px}.profile-avatar{width:82px;height:82px;border-radius:50%;border:4px solid var(--surface);margin-top:-42px;background:linear-gradient(140deg,#e6c982,#9d7736);display:grid;place-items:center;font-size:28px;font-weight:800;overflow:hidden;position:relative}
@@ -496,7 +497,7 @@ body.composer-open{overflow:hidden;overscroll-behavior:none}
 /* Prototype 2.26 — cloud search */
 .cloud-search-results{margin:0 0 16px;padding:15px;background:var(--surface);border:1px solid var(--border);border-radius:16px}.cloud-search-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.cloud-search-heading h3{font-size:15px;margin:0}.cloud-search-heading small{font-size:12px;color:var(--muted)}.cloud-search-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cloud-search-member{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);text-align:left}.cloud-search-member .avatar{width:38px;height:38px}.cloud-search-member span:last-child{min-width:0}.cloud-search-member b,.cloud-search-member small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cloud-search-member small{color:var(--muted);font-size:11px}.cloud-search-post{padding:12px 0;border-top:1px solid var(--border)}.cloud-search-post:first-child{border-top:0}.cloud-search-post-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}.cloud-search-post-head button{background:none;border:0;padding:0;text-align:left;font-weight:700}.cloud-search-post-head small{color:var(--muted);font-size:11px}.cloud-search-post-body{width:100%;display:block;border:0;background:none;color:var(--text);text-align:left;padding:2px 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}.cloud-search-empty,.cloud-search-status{padding:10px 0;color:var(--muted);font-size:13px}@media(max-width:520px){.cloud-search-grid{grid-template-columns:1fr}.cloud-search-results{padding:12px}}
 </style>
-<style id="syntra-composer-draft-2-40">
+<style id="syntra-composer-draft-2-41">
 .composer-draft-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:7px 0 2px}
 .composer-draft-row #clearDraft{padding:5px 9px;font-size:12px;min-height:34px}
  .composer-draft-note{margin:2px 0 10px;opacity:.8}
@@ -852,6 +853,10 @@ let cloudBookmarkLoadPromise=null;
 let cloudBookmarkLoadUserId=null;
 let publicFeedSyncPromise=null;
 let publicFeedLastSyncAt=0;
+const PUBLIC_FEED_PAGE_SIZE=20;
+let publicFeedCursor=null;
+let publicFeedHasMore=true;
+let publicFeedLoadingMore=false;
 let cloudCurrentAvatarPath=null;
 let cloudAvatarPreviewUrl=null;
 const cloudAvatarUrls=new Map();
@@ -975,21 +980,61 @@ async function syncPublicFeed(silent=true){
  if(publicFeedSyncPromise)return publicFeedSyncPromise;
  if(Date.now()-publicFeedLastSyncAt<30000)return false;
  const task=(async()=>{
-  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('visibility','public').eq('status','published').order('created_at',{ascending:false}).limit(50);
+  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('visibility','public').eq('status','published').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(PUBLIC_FEED_PAGE_SIZE);
   if(error){console.warn('SYNTRA public feed failed:',error);if(!silent)toast('Chưa tải được bảng tin công khai.');return false}
-  const rows=data||[];if(syntraCloudUser){try{await refreshCloudFollowingIds(syntraCloudUser.id)}catch(followError){console.warn('SYNTRA cloud following list failed:',followError);cloudFollowingIds=new Set()}}else cloudFollowingIds=new Set();const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
+  const rows=data||[];
+  if(syntraCloudUser){try{await refreshCloudFollowingIds(syntraCloudUser.id)}catch(followError){console.warn('SYNTRA cloud following list failed:',followError);cloudFollowingIds=new Set()}}else cloudFollowingIds=new Set();
+  const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
   if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(profileResult.error){console.warn('SYNTRA public profiles failed:',profileResult.error);if(!silent)toast('Chưa tải được hồ sơ người đăng.');return false}profiles=profileResult.data||[]}
   const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
   const interactions=await loadCloudPostInteractions(rows,syncUserId);
   if((syntraCloudUser?.id||null)!==syncUserId)return false;
   const publicPosts=rows.map(row=>({...cloudPostFromRow(row,[],profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{})}));
-  posts=[...publicPosts,...posts.filter(post=>!post.publicCloud)];save();publicFeedLastSyncAt=Date.now();
+  posts=[...publicPosts,...posts.filter(post=>!post.publicCloud)];save();
+  publicFeedCursor=rows.length?{created_at:rows[rows.length-1].created_at,id:rows[rows.length-1].id}:null;
+  publicFeedHasMore=rows.length===PUBLIC_FEED_PAGE_SIZE;
+  publicFeedLastSyncAt=Date.now();
   if(active==='all')render();
   if(!silent)toast('Đã tải '+publicPosts.length+' bài viết công khai.');
   return true;
  })();
  publicFeedSyncPromise=task;
  try{return await task}finally{if(publicFeedSyncPromise===task)publicFeedSyncPromise=null}
+}
+async function loadMorePublicFeed(){
+ if(publicFeedLoadingMore||!publicFeedHasMore||!publicFeedCursor||!syntraSupabaseClient||navigator.onLine===false)return false;
+ publicFeedLoadingMore=true;
+ const syncUserId=syntraCloudUser?.id||null;
+ const button=feed.querySelector('#loadMorePublicFeed');
+ if(button){button.disabled=true;button.textContent='Đang tải…'}
+ try{
+  const cursor=publicFeedCursor;
+  const cursorFilter='created_at.lt.'+cursor.created_at+',and(created_at.eq.'+cursor.created_at+',id.lt.'+cursor.id+')';
+  const {data,error}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').eq('visibility','public').eq('status','published').or(cursorFilter).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(PUBLIC_FEED_PAGE_SIZE);
+  if(error)throw error;
+  const rows=data||[];
+  const authorIds=[...new Set(rows.map(row=>row.author_id).filter(Boolean))];let profiles=[];
+  if(authorIds.length){const profileResult=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(profileResult.error)throw profileResult.error;profiles=profileResult.data||[]}
+  const interactions=await loadCloudPostInteractions(rows,syncUserId);
+  if((syntraCloudUser?.id||null)!==syncUserId)return false;
+  const profileMap=new Map(profiles.map(profile=>[profile.id,profile]));
+  const existingIds=new Set(posts.filter(post=>post.publicCloud).map(post=>post.id));
+  const olderPosts=rows.map(row=>({...cloudPostFromRow(row,[],profileMap.get(row.author_id)||null),...(interactions.get(row.id)||{})})).filter(post=>!existingIds.has(post.id));
+  posts=[...posts.filter(post=>post.publicCloud),...olderPosts,...posts.filter(post=>!post.publicCloud)];
+  if(rows.length)publicFeedCursor={created_at:rows[rows.length-1].created_at,id:rows[rows.length-1].id};
+  publicFeedHasMore=rows.length===PUBLIC_FEED_PAGE_SIZE;
+  save();
+  if(active==='all')render();
+  if(!rows.length)toast('Đã tải hết bài viết công khai hiện có.');
+  return true;
+ }catch(error){
+  console.warn('SYNTRA public feed pagination failed:',error);
+  toast('Không tải thêm được bài viết. Hãy thử lại.');
+  return false;
+ }finally{
+  publicFeedLoadingMore=false;
+  if(active==='all')render();
+ }
 }
 async function loadCloudBookmarks(userId=syntraCloudUser?.id,silent=true){
  if(!syntraSupabaseClient||!userId)return false;
@@ -1170,6 +1215,7 @@ async function autoSyncCloudPosts(){
 async function setCloudSession(session){
  const previousId=syntraCloudUser&&syntraCloudUser.id;
  const nextUser=session&&session.user?session.user:null;
+ if(previousId!==(nextUser?.id||null)){publicFeedLastSyncAt=0;publicFeedCursor=null;publicFeedHasMore=true}
  if(previousId&&(!nextUser||previousId!==nextUser.id)){
   cloudMediaById.forEach((item,id)=>{mediaItems.delete(id);revokeMediaUrl(id)});
   cloudMediaById.clear();cloudLastSyncAt=0;
@@ -1767,7 +1813,7 @@ async function saveCloudProfileSettings(){
   if(!data)throw new Error('Không tìm thấy hồ sơ hoặc tài khoản không có quyền cập nhật.');
   if(!syntraCloudUser||syntraCloudUser.id!==userId)return;
   posts=posts.map(post=>post.authorId===userId?{...post,name:displayName}:post);save();
-  publicFeedLastSyncAt=0;
+  publicFeedLastSyncAt=0;publicFeedCursor=null;publicFeedHasMore=true;
   status.textContent='Đã lưu hồ sơ. Username: @'+data.username+'. Quyền hiển thị: '+(data.is_private?'Riêng tư (có thể tìm thấy để gửi yêu cầu theo dõi)':'Công khai')+'.';
   toast('Đã cập nhật hồ sơ SYNTRA Cloud.');
   await syncPublicFeed(true);
@@ -1792,7 +1838,7 @@ function renderSettings(){
  '</section><section class="settings-section"><h3>Người dùng demo đã chặn</h3>'+(blockedUsers.length?blockedUsers.map(name=>'<div class="settings-row"><div><b>'+esc(name)+'</b><small>Nội dung và tương tác đang bị ẩn trên thiết bị này</small></div><button class="settings-button" data-settings-unblock="'+esc(name)+'">Bỏ chặn</button></div>').join(''):'<p class="settings-note">Bạn chưa chặn hồ sơ nào.</p>')+'<p class="settings-note">Đây là danh sách chặn cục bộ cho nội dung demo. Danh sách tài khoản Cloud được quản lý riêng ở Trung tâm quyền riêng tư.</p></section><section class="settings-section"><h3>Giao diện</h3><div class="settings-row"><div><b>Giao diện gọn</b><small>Thu gọn một số khoảng cách (thử nghiệm)</small></div><input id="compactToggle" type="checkbox"></div><div class="settings-row"><div><b>Chủ đề</b><small>Hiện tại: tối charcoal và tím SYNTRA</small></div><span class="meta">Dark</span></div></section>'+
  '<section class="settings-section"><h3>Bộ nhớ ảnh và video</h3><p class="settings-note" id="mediaStorageStatus" aria-live="polite">Đang kiểm tra…</p><div class="settings-row"><div><b>Kiểm tra bộ nhớ media</b><small>Đối chiếu tệp đính kèm với bài viết; không tự xóa dữ liệu</small></div><button class="settings-button" id="refreshMediaStorage">Kiểm tra</button></div></section><section class="settings-section"><h3>Toàn vẹn dữ liệu</h3><p class="settings-note" id="integrityStatus" aria-live="polite">Kiểm tra ID bài viết, dữ liệu lưu cục bộ và liên kết ảnh/video. Không tự sửa hoặc xóa dữ liệu.</p><div class="settings-row"><div><b>Quét dữ liệu</b><small>Tìm bài viết lỗi, ID trùng và tệp đính kèm bất thường</small></div><button class="settings-button" id="runIntegrityAudit">Kiểm tra</button></div><div class="settings-row"><div><b>Báo cáo kiểm tra</b><small>Xuất danh sách vấn đề để lưu hoặc gửi hỗ trợ</small></div><button class="settings-button" id="exportIntegrityReport" disabled>Xuất báo cáo</button></div></section>'+'<section class="settings-section"><h3>Sao lưu và khôi phục</h3><p class="settings-note" id="backupStatus" aria-live="polite">Bản sao gồm dữ liệu demo và ảnh/video lưu trong trình duyệt. Giới hạn media: 20 MB mỗi bản sao.</p><div class="settings-row"><div><b>Xuất bản sao đầy đủ</b><small>Tạo tệp JSON gồm bài viết, hồ sơ, tin nhắn, cài đặt và media</small></div><button class="settings-button" id="exportData">Sao lưu</button></div><div class="settings-row"><div><b>Khôi phục từ tệp sao lưu</b><small>Thay thế dữ liệu hiện tại trên trình duyệt này</small></div><button class="settings-button" id="restoreDataButton">Chọn tệp</button><input id="restoreDataFile" type="file" accept=".json,application/json" hidden></div></section><section class="settings-section"><h3>Dữ liệu trên thiết bị</h3><div class="settings-row"><div><b>Đặt lại cài đặt</b><small>Chỉ khôi phục các tùy chọn</small></div><button class="settings-button" id="resetSettings">Đặt lại</button></div><p class="settings-note">Bài viết, ảnh và video được đồng bộ riêng tư khi bạn đăng nhập cùng tài khoản. Các dữ liệu demo như bình luận, lượt thích, tin nhắn và một số cài đặt vẫn chỉ lưu trên trình duyệt hiện tại.</p></section>'+
  '<section class="settings-section settings-danger"><h3>Khu vực dữ liệu</h3><div class="settings-row"><div><b>Xóa dữ liệu demo</b><small>Xóa bài viết, hồ sơ, tin nhắn, thông báo, theo dõi và media cục bộ. Không thể hoàn tác.</small></div><button class="settings-button danger" id="clearDemo">Xóa</button></div></section>'+
- '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.40</small></div><span class="meta">2.40</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
+ '<section class="settings-section"><h3>Thông tin</h3><div class="settings-row"><div><b>Phiên bản</b><small>SYNTRA Social Prototype 2.41</small></div><span class="meta">2.41</span></div><div class="settings-row"><div><b>Trạng thái</b><small>Tài khoản và bài viết riêng tư dùng SYNTRA Cloud; một số tính năng vẫn là dữ liệu demo cục bộ</small></div><span class="meta">Hybrid</span></div><div class="settings-row"><div><b>Mã nguồn</b><small>Repository GitHub chính thức</small></div><a class="settings-button" href="https://github.com/dea78799-dotcom/SYNTRA-Social" target="_blank" rel="noopener">GitHub</a></div></section>';
  settingsPage.querySelector('#settingsBack').onclick=()=>filter('all');
  settingsPage.querySelector('#cloudSignUp').onclick=handleCloudSignUp;
  settingsPage.querySelector('#cloudPasswordToggle').onclick=toggleCloudPassword;
@@ -1983,6 +2029,7 @@ function render(){
  list=sortDiscoveryPosts(list);
  feed.innerHTML=list.length?list.map(p=>'<article class="post"><div class="post-head"><button class="avatar" '+(p.publicCloud&&p.authorId?'data-public-profile="'+esc(p.authorId)+'"':'data-profile="'+esc(p.name)+'"')+' style="border:0">'+esc(p.name.slice(0,1).toUpperCase())+'</button><div><button class="user" '+(p.publicCloud&&p.authorId?'data-public-profile="'+esc(p.authorId)+'"':'data-profile="'+esc(p.name)+'"')+' style="border:0;background:none;padding:0">'+esc(p.name)+'</button><div class="meta">'+esc(p.tag||'@user · vừa xong')+'</div></div><div class="post-menu-wrap"><button type="button" class="more" data-post-menu="'+esc(p.id)+'" aria-label="Mở tùy chọn bài viết" aria-haspopup="true" aria-expanded="false">⋯</button><div class="post-menu" data-post-menu-panel="'+esc(p.id)+'" hidden>'+(p.name===localProfile.name?'<button type="button" data-post-menu-action="delete" data-post-id="'+esc(p.id)+'">'+synIcon('trash')+' Xóa bài viết</button>':'<button type="button" data-post-menu-action="report" data-post-id="'+esc(p.id)+'">'+synIcon('shield')+' Báo cáo bài viết</button>')+'</div></div></div><div class="post-text">'+formatPostText(p.text)+'</div>'+buildPostMedia(p)+'<div class="post-actions"><button class="'+(p.liked?'liked':'')+'" data-like="'+esc(p.id)+'">'+synIcon('heart')+' '+(p.liked?'Đã thích':'Thích')+' · '+p.likes+'</button><button data-open-post="'+esc(p.id)+'">'+synIcon('comment')+' Bình luận · '+(p.comments||[]).length+'</button><button data-save="'+esc(p.id)+'">'+synIcon('saved')+' '+(p.saved?'Đã lưu':'Lưu')+'</button><button data-share="'+esc(p.id)+'">'+synIcon('share')+' Chia sẻ</button></div>'+(p.comments&&p.comments.length?'<div class="meta" style="padding-top:8px">'+p.comments.slice(-2).map(c=>'<p><b>'+esc(c.name)+'</b>: '+esc(c.text)+'</p>').join('')+'</div>':'')+'</article>').join(''):(()=>{const searching=!!normalizedQuery;const titles={saved:'Chưa có bài viết đã lưu',following:'Bảng tin theo dõi đang trống',video:'Chưa có video',photos:'Chưa có ảnh',text:'Chưa có bài viết dạng văn bản',communities:'Chưa có bài viết cộng đồng'};const title=searching?'Không tìm thấy bài viết':(titles[active]||'Bảng tin đang chờ câu chuyện đầu tiên');const desc=searching?'Không tìm thấy nội dung phù hợp với “'+esc(q)+'”. Hãy thử từ khóa khác.':(active==='saved'?'Những bài viết bạn lưu sẽ xuất hiện tại đây.':active==='following'?'Bài viết từ những tài khoản bạn theo dõi sẽ xuất hiện tại đây.':'Hãy khám phá bảng tin hoặc chia sẻ nội dung đầu tiên của bạn.');return '<section class="feed-empty"><div class="feed-empty-icon" aria-hidden="true">'+(searching?'⌕':'✦')+'</div><h3>'+title+'</h3><p>'+desc+'</p><div class="feed-empty-actions">'+(searching?'<button type="button" class="secondary" data-empty-clear>Xóa tìm kiếm</button>':'<button type="button" class="primary" data-empty-create>Chia sẻ bài viết</button>')+'<button type="button" class="secondary" data-empty-home>Về bảng tin</button></div></section>'})() ;
  const emptyClear=feed.querySelector('[data-empty-clear]');if(emptyClear)emptyClear.onclick=()=>{document.getElementById('search').value='';render()};const emptyCreate=feed.querySelector('[data-empty-create]');if(emptyCreate)emptyCreate.onclick=()=>document.getElementById('openComposer').click();const emptyHome=feed.querySelector('[data-empty-home]');if(emptyHome)emptyHome.onclick=()=>filter('all');
+ if(active==='all'&&!normalizedQuery&&syntraSupabaseClient&&publicFeedHasMore){feed.insertAdjacentHTML('beforeend','<div class="feed-pagination"><button type="button" class="secondary" id="loadMorePublicFeed" '+(publicFeedLoadingMore?'disabled':'')+'>'+(publicFeedLoadingMore?'Đang tải…':'Tải thêm bài viết')+'</button></div>');const loadMoreButton=feed.querySelector('#loadMorePublicFeed');if(loadMoreButton)loadMoreButton.onclick=loadMorePublicFeed}
  hydratePostMedia(feed);
  if(active==='all')syncPublicFeed(true);
 }
