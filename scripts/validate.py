@@ -70,6 +70,12 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "named composer drafts use a separate versioned local collection with a 20-item cap": "NAMED_COMPOSER_DRAFTS_KEY='syntra_social_named_composer_drafts_v1'" in source and "MAX_NAMED_COMPOSER_DRAFTS=20" in source,
+    "named composer drafts support save open rename and delete": "function saveNamedComposerDraft()" in source and "function loadNamedComposerDraft()" in source and "function renameNamedComposerDraft()" in source and "function deleteNamedComposerDraft()" in source,
+    "named composer draft controls are wired and accessible": 'id="draftList"' in source and 'id="saveNamedDraft"' in source and 'id="loadNamedDraft"' in source and 'id="renameNamedDraft"' in source and 'id="deleteNamedDraft"' in source and 'aria-label="Quản lý nhiều bản nháp"' in source,
+    "named composer drafts validate records and handle storage failures": "function readNamedComposerDrafts()" in source and "catch(error){console.warn('SYNTRA named draft save failed:'" in source and "toLocaleLowerCase()" in source,
+    "named composer draft controls have responsive styling": ".composer-draft-manager-actions" in source and ".composer-draft-manager input" in source,
+    "prototype version reflects 2.40": "SYNTRA Social Prototype 2.40" in source and "syntra-composer-draft-2-40" in source,
     "composer drafts autosave text and post options locally": "COMPOSER_DRAFT_KEY='syntra_social_composer_draft_v1'" in source and "localStorage.setItem(COMPOSER_DRAFT_KEY" in source and "getElementById('postText').addEventListener('input',saveComposerDraft)" in source and "getElementById('postType').addEventListener('change',saveComposerDraft)" in source and "getElementById('postVisibility').addEventListener('change',saveComposerDraft)" in source,
     "composer drafts restore when the composer opens": "function restoreComposerDraft()" in source and "restoreComposerDraft();syncComposerViewport()" in source,
     "composer drafts can be explicitly cleared and clear after successful publishing": "getElementById('clearDraft').addEventListener('click',()=>clearComposerDraft(true))" in source and "save();clearComposerDraft(true);close();filter('all')" in source,
