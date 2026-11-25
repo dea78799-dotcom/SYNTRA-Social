@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static regression checks for SYNTRA Social 2.51 conflict-safe post editing."""
+"""Static regression checks for SYNTRA Social 2.52 conflict-safe post editing."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -7,7 +7,7 @@ INDEX = ROOT / "index.html"
 source = INDEX.read_text(encoding="utf-8")
 
 checks = {
-    "prototype version reflects 2.51": "SYNTRA Social Prototype 2.51" in source and '<span class="meta">2.51</span>' in source,
+    "prototype version reflects 2.52": "SYNTRA Social Prototype 2.52" in source and '<span class="meta">2.52</span>' in source,
     "Cloud post edit fetches the latest server version before writing": "select('id,body,updated_at')" in source,
     "preflight read is restricted to the current post and authenticated owner": ".eq('id',post.id).eq('author_id',syntraCloudUser.id).maybeSingle()" in source,
     "stale editor content is rejected before update": "if(current.body!==oldText)throw new Error(" in source,
