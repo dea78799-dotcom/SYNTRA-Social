@@ -10,7 +10,7 @@ source = INDEX.read_text(encoding="utf-8")
 
 checks = {
     "migration adds only the posts table to the existing Realtime publication": "alter publication supabase_realtime add table public.posts;" in sql and "drop publication" not in sql,
-    "Realtime listener subscribes only to public posts": ".on('postgres_changes',{event:'*',schema:'public',table:'posts'}" in source,
+    "Realtime listener subscribes only to public post inserts and updates": ".on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'}" in source and ".on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'}" in source and "event:'*',schema:'public',table:'posts'" not in source and "event:'DELETE',schema:'public',table:'posts'" not in source,
     "Realtime payloads trigger a guarded re-fetch rather than direct local writes": "queueCloudRealtimeRefresh()" in source and "await autoSyncCloudPosts()" in source,
     "Realtime refresh invalidates both feed and own-post sync timestamps": "publicFeedLastSyncAt=0;cloudLastSyncAt=0;" in source,
     "Realtime refresh waits for in-flight queries before fetching again": "activeOwnSync" in source and "activePublicSync" in source,
