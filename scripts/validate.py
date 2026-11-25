@@ -72,7 +72,7 @@ print("PASS: Supabase module syntax")
 checks = {
     "public feed refresh preserves previously paginated posts": "const currentPublicPosts=posts.filter(post=>post.publicCloud)" in source and "retainedOlderPosts=currentPublicPosts.filter(post=>!firstPageIds.has(post.id))" in source,
     "loaded public posts are revalidated and interactions reconciled in bounded batches": "async function reconcileLoadedPublicPosts" in source and "offset+=40" in source and ".in('id',batch).eq('visibility','public').eq('status','published')" in source and "loadCloudPostInteractions(rows,userId)" in source,
-    "realtime reconciliation failure schedules account-scoped recovery": "const reconcileOk=await reconcileLoadedPublicPosts(userId)" in source and "if(!reconcileOk){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry()}" in source,
+    "realtime reconciliation failure schedules account-scoped recovery": "const reconcileOk=await reconcileLoadedPublicPosts(userId)" in source and "if(!reconcileOk){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry();return}" in source,
     "bookmark refresh clears saved flags even when the bookmark set is empty": "posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)});" in source,
     "named composer drafts use a separate versioned local collection with a 20-item cap": "NAMED_COMPOSER_DRAFTS_KEY='syntra_social_named_composer_drafts_v1'" in source and "MAX_NAMED_COMPOSER_DRAFTS=20" in source,
     "named composer drafts support save open rename and delete": "function saveNamedComposerDraft()" in source and "function loadNamedComposerDraft()" in source and "function renameNamedComposerDraft()" in source and "function deleteNamedComposerDraft()" in source,
