@@ -3,7 +3,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MIGRATION = ROOT / "supabase/migrations/20261125090000_syntra_social_245_report_rate_limit_lock.sql"
+MIGRATION = ROOT / "supabase/migrations/20261125035845_syntra_social_245_report_rate_limit_lock.sql"
 sql = MIGRATION.read_text(encoding="utf-8").lower()
 
 checks = {
