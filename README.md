@@ -900,3 +900,12 @@ on conflict (user_id) do nothing;
 - The audit does not insert, update, delete, repair, or replay records. It exports Cloud findings in integrity report version 3.
 - A post not returned by the current authenticated query is labelled not visible / not returned, not definitively deleted. Cloud coverage is limited to posts currently loaded on the device; comments may be truncated at 1,000 rows per batch.
 - No database schema, migration, grants, or RLS policy changes were made.
+
+
+## Prototype 2.51 — Sync Recovery Engine
+
+- Automatic sync now treats public feed, own posts/media, notifications, and bookmarks as separate required results for a successful recovery cycle.
+- A notification or bookmark load failure can no longer be hidden by a successful public-feed refresh.
+- The public-feed 30-second debounce is bypassed for explicit recovery and session bootstrap, so a recent fetch is not misreported as a failed sync.
+- Session bootstrap now checks each dataset independently and schedules account-scoped recovery if any required read fails.
+- Recovery remains read-only. No offline write queue, automatic post replay, database migration, schema, grant, or RLS change was introduced.
