@@ -36,3 +36,5 @@ jobs:
         run: python scripts/test_offline_recovery.py
       - name: Validate Cloud data consistency engine
         run: python scripts/test_data_consistency.py
+      - name: Validate sync recovery engine
+        run: python scripts/test_sync_recovery.py
