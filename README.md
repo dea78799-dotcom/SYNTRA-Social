@@ -870,3 +870,13 @@ on conflict (user_id) do nothing;
 - Signed-in devices listen for INSERT/UPDATE events on posts, media, comments, and notifications, and INSERT events on likes and bookmarks. Realtime payloads are invalidation signals only; content is re-fetched through authenticated queries under existing RLS.
 - DELETE events remain excluded because they cannot be filtered by RLS like normal row changes. Deletes are reconciled by authenticated refresh/fallback sync, so removals may not appear instantly on another device.
 - Added regression checks for all publication tables, event scope, account cleanup, debounce, in-flight sync ordering, and fallback behavior. Live two-device and Android background/reconnect testing remains outstanding.
+
+
+## Prototype 2.48 — Conflict-safe Cloud post editing
+
+- Cloud post edits now read the current server row and compare its body with the version originally loaded by the editor before attempting a write.
+- The update is conditional on the exact server `updated_at` value read immediately before saving. If another device changes the post between the read and update, the conditional update returns no row and SYNTRA refuses to overwrite the newer version.
+- If the server body already differs when the editor starts saving, the edit is rejected and the user is asked to reload the page to receive the current version.
+- This is optimistic concurrency control for Cloud post edits; it does not implement automatic text merging. Local-only posts keep their existing save behavior.
+- No database migration, RLS policy, grant, or UI redesign was needed. The existing `posts.updated_at` trigger provides the version token.
+- Static regression checks cover the preflight comparison, account/owner scoping, conditional timestamp update, and both conflict paths. Simultaneous two-device editing still requires a manual live test.
