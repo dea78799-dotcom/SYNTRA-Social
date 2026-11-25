@@ -332,7 +332,7 @@ checks = {
     "notification badge combines local and cloud unread counts": "notices.filter(x=>!x.read).length+cloudNotifications.filter(x=>!x.read).length" in source,
     "notification center renders Cloud events and existing local notices": "const items=[...cloudNotifications,...notices]" in source and "SYNTRA Cloud" in source,
     "read all updates only recipient-owned read_at fields": ".from('notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',userId).is('read_at',null)" in source,
-    "cloud notifications refresh on account change and app focus": "await loadCloudNotifications(syntraCloudUser.id,true)" in source and "await loadCloudNotifications(syntraCloudUser.id,true)" in source,
+    "cloud notifications and bookmarks refresh on account change and app focus": "notificationSync=await loadCloudNotifications(sessionUserId,true)" in source and "bookmarkSync=await loadCloudBookmarks(sessionUserId,true)" in source and "window.addEventListener('focus'" in source,
     "notification writes are handled by database triggers, not client inserts": "from('notifications').insert" not in source and "async function loadCloudNotifications" in source,
     "cloud search queries only public discoverable profiles": "async function searchCloudContent" in source and ".eq('is_private',false).eq('is_discoverable',true)" in source,
     "cloud search queries published public posts only": ".eq('visibility','public').eq('status','published').ilike('body',pattern)" in source,
