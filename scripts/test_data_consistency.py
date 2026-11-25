@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static regression checks for SYNTRA Social 2.50 Cloud data consistency."""
+"""Static regression checks for SYNTRA Social 2.51 Cloud data consistency."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,7 +9,7 @@ end = source.index("async function auditDataIntegrity()", start)
 audit = source[start:end]
 
 checks = {
-    "prototype version is 2.50": "SYNTRA Social Prototype 2.50" in source and '<span class="meta">2.50</span>' in source,
+    "prototype version is 2.51": "SYNTRA Social Prototype 2.51" in source and '<span class="meta">2.51</span>' in source,
     "manual integrity audit invokes the Cloud consistency engine": "const cloudConsistency=await inspectCloudDataConsistency()" in source,
     "Cloud audit requires a signed-in account and online state": "!syntraSupabaseClient||!syntraCloudUser" in audit and "navigator.onLine===false" in audit,
     "Cloud audit scopes the result to the active account": "const userId=syntraCloudUser.id" in audit and "syntraCloudUser.id!==userId" in audit,
