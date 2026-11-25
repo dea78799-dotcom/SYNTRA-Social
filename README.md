@@ -845,3 +845,11 @@ on conflict (user_id) do nothing;
 - Distinguishes media references that have authenticated SYNTRA Cloud metadata from references with neither a local file nor known Cloud metadata, avoiding a false missing-file warning for remote-only media.
 - The exported integrity report is version 2 and includes detailed findings. The audit is manual and read-only: it does not repair, rename, upload, or delete files or Cloud objects.
 - Added regression checks for Blob metadata, empty/unreadable media, SHA-256 duplicate grouping, hashing limits, Cloud metadata distinction, report details, and the manual-only action. Browser and Android testing remains necessary with real posts and multiple accounts.
+
+## Prototype 2.44 maintenance audit
+
+- A full repository review found that the Owner moderation panel defined its delegated click handler but did not register it. The panel now binds one delegated listener to its stable content root, so MFA enrollment, TOTP verification, queue refresh, and report actions can receive clicks.
+- Removed an unused IndexedDB media writer, an obsolete report-action branch with no matching UI control, and a cleanup check for a viewer video element that does not exist in the current image-only viewer.
+- Media integrity reports now state that reference checks cover posts and Cloud metadata currently loaded on the device. Unreferenced local media is not automatically described as a confirmed orphan.
+- When Supabase is configured, local media cleanup is blocked until the public feed has been synchronized and all public-feed pages have been loaded. This avoids deleting cached media merely because its public post has not yet been paginated into the current view.
+- Static validation now checks the Owner event binding, dead-code removals, integrity scope, and cleanup coverage guard. Automated checks do not replace live Supabase/RLS verification or real-device testing.
