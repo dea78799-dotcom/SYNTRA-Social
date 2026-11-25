@@ -880,3 +880,13 @@ on conflict (user_id) do nothing;
 - This is optimistic concurrency control for Cloud post edits; it does not implement automatic text merging. Local-only posts keep their existing save behavior.
 - No database migration, RLS policy, grant, or UI redesign was needed. The existing `posts.updated_at` trigger provides the version token.
 - Static regression checks cover the preflight comparison, account/owner scoping, conditional timestamp update, and both conflict paths. Simultaneous two-device editing still requires a manual live test.
+
+
+## Prototype 2.49 — Offline recovery and bounded retry
+
+- Added a small device-local recovery marker containing only the signed-in user ID, retry count, and timestamps. It stores no credentials, post text, media, or queued write operations.
+- Losing network connectivity or moving the app into the background marks the current account as needing a refresh. When the device returns online/foreground, SYNTRA schedules a full authenticated refresh.
+- Failed recovery attempts use exponential backoff beginning at approximately 15 seconds, capped at 5 minutes, with small random jitter to avoid synchronized retry bursts.
+- Successful full recovery clears the marker. The marker is account-scoped and is not replayed under a different signed-in account.
+- Existing Realtime, manual sync, 30–60 minute fallback, and local composer drafts remain unchanged. No offline post publishing queue was added, so the client will not silently submit duplicate writes after reconnect.
+- Static regression checks cover account scoping, minimal persisted state, retry bounds, online/foreground triggers, success cleanup, and silent automatic retry. Android background suspension and real network interruption tests remain necessary.
