@@ -30,3 +30,5 @@ jobs:
         run: python scripts/test_report_rate_limit_migration.py
       - name: Validate Realtime multi-device sync
         run: python scripts/test_realtime_sync.py
+      - name: Validate conflict-safe post editing
+        run: python scripts/test_conflict_resolution.py
