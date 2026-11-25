@@ -890,3 +890,13 @@ on conflict (user_id) do nothing;
 - Successful full recovery clears the marker. The marker is account-scoped and is not replayed under a different signed-in account.
 - Existing Realtime, manual sync, 30–60 minute fallback, and local composer drafts remain unchanged. No offline post publishing queue was added, so the client will not silently submit duplicate writes after reconnect.
 - Static regression checks cover account scoping, minimal persisted state, retry bounds, online/foreground triggers, success cleanup, and silent automatic retry. Android background suspension and real network interruption tests remain necessary.
+
+
+## Prototype 2.50 — Data Consistency Engine
+
+- Expanded the existing manual integrity audit to compare locally loaded Cloud posts with authenticated Supabase rows.
+- Checks visible post ownership, post-media ownership, missing or locally unlinked media metadata, duplicate comment IDs, comments and likes whose parent is not visible in the audited result, and duplicate like pairs.
+- Queries are account-session scoped, use batches of 40 post IDs, and read only through the existing Supabase client and RLS policies.
+- The audit does not insert, update, delete, repair, or replay records. It exports Cloud findings in integrity report version 3.
+- A post not returned by the current authenticated query is labelled not visible / not returned, not definitively deleted. Cloud coverage is limited to posts currently loaded on the device; comments may be truncated at 1,000 rows per batch.
+- No database schema, migration, grants, or RLS policy changes were made.
