@@ -141,7 +141,7 @@ checks = {
     "cloud auto sync pauses while hidden or offline": "document.visibilityState==='hidden'" in source and "navigator.onLine===false" in source,
     "cloud auto sync resumes on focus visibility and reconnect": "runCloudAutoSyncNow()" in source,
     "cloud auto sync reports next scheduled time in settings": 'id="cloudAutoSyncStatus"' in source,
-    "cloud Realtime subscription is scoped to posts and uses RLS-backed re-fetch": ".on('postgres_changes',{event:'*',schema:'public',table:'posts'}" in source and "await autoSyncCloudPosts()" in source,
+    "cloud Realtime subscription is scoped to posts and uses RLS-backed re-fetch": ".on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'}" in source and ".on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'}" in source and "event:'*',schema:'public',table:'posts'" not in source and "await autoSyncCloudPosts()" in source,
     "cloud Realtime events debounce and wait for in-flight syncs": "flushCloudRealtimeRefresh()" in source and "activeOwnSync" in source and "activePublicSync" in source and "},650)" in source,
     "cloud Realtime subscriptions clean up and switch with account sessions": "removeChannel(channel)" in source and "startCloudRealtimeSync(syntraCloudUser.id)" in source and "stopCloudRealtimeSync()" in source,
     "cloud Realtime preserves offline and foreground fallback": "cloudRealtimeRefreshPending" in source and "cloudRealtimeStatus='fallback'" in source and "queueCloudRealtimeRefresh()" in source,
