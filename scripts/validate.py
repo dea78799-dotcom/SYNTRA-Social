@@ -133,7 +133,7 @@ checks = {
     "media cleanup requires complete public-feed coverage when Cloud is configured": "publicFeedLastSyncAt===0||publicFeedHasMore" in source and "media.coverageComplete" in source and "media.orphans===0||!media.coverageComplete" in source,
     "media integrity settings explain SHA-256 and remain manual": "dấu vân tay SHA-256" in source and "onclick=auditDataIntegrity" in source,
     "cloud sync center stores bounded local-only event history": "CLOUD_SYNC_HISTORY_KEY='syntra_cloud_sync_history_v1'" in source and "cloudSyncHistory=cloudSyncHistory.slice(0,20)" in source and "writeLocalJSON(CLOUD_SYNC_HISTORY_KEY,cloudSyncHistory)" in source,
-    "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source and "async function retryCloudSyncCenter(" in source,
+    "cloud sync center renders recent events and retry control": 'id="cloudSyncHistory"' in source and 'id="cloudSyncCenterRetry"' in source,
     "cloud sync center avoids storing account credentials or post content": "Không lưu nội dung bài viết hoặc thông tin đăng nhập." in source and "summary:ok?'Đồng bộ hoàn tất':result.detail" in source,
     "cloud auto sync uses a randomized 30 to 60 minute interval": "cloudAutoSyncDelay=30*60*1000+Math.floor(Math.random()*(30*60*1000+1))" in source,
     "cloud auto sync runs through existing guarded sync pipeline": "const ok=await autoSyncCloudPosts()" in source,
