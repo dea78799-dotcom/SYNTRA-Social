@@ -862,3 +862,11 @@ on conflict (user_id) do nothing;
 - Realtime refresh waits for already-running post/feed requests to settle, then fetches again so a newly committed change is not hidden behind an older in-flight request.
 - Realtime subscriptions are cleaned up and recreated on account changes. Existing 30–60 minute randomized fallback sync, manual sync, and foreground/reconnect sync remain.
 - Added static regression checks for publication scope, debounce, in-flight request ordering, session cleanup, and fallback behavior. Live multi-device and Android background/reconnect testing remains outstanding.
+
+
+## Prototype 2.47 — Expanded Realtime data synchronization
+
+- Expanded the existing Realtime publication to include `post_media`, `comments`, `likes`, `notifications`, and `post_bookmarks`, in addition to `posts`. All six tables were checked for enabled RLS, authenticated SELECT grants, and existing policies before the migration.
+- Signed-in devices listen for INSERT/UPDATE events on posts, media, comments, and notifications, and INSERT events on likes and bookmarks. Realtime payloads are invalidation signals only; content is re-fetched through authenticated queries under existing RLS.
+- DELETE events remain excluded because they cannot be filtered by RLS like normal row changes. Deletes are reconciled by authenticated refresh/fallback sync, so removals may not appear instantly on another device.
+- Added regression checks for all publication tables, event scope, account cleanup, debounce, in-flight sync ordering, and fallback behavior. Live two-device and Android background/reconnect testing remains outstanding.
