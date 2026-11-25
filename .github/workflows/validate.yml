@@ -32,3 +32,5 @@ jobs:
         run: python scripts/test_realtime_sync.py
       - name: Validate conflict-safe post editing
         run: python scripts/test_conflict_resolution.py
+      - name: Validate offline recovery
+        run: python scripts/test_offline_recovery.py
