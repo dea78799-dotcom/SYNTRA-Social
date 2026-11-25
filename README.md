@@ -909,3 +909,14 @@ on conflict (user_id) do nothing;
 - The public-feed 30-second debounce is bypassed for explicit recovery and session bootstrap, so a recent fetch is not misreported as a failed sync.
 - Session bootstrap now checks each dataset independently and schedules account-scoped recovery if any required read fails.
 - Recovery remains read-only. No offline write queue, automatic post replay, database migration, schema, grant, or RLS change was introduced.
+
+
+## Prototype 2.52 — Multi-device State Reconciliation
+
+- Public-feed refreshes now retain older public posts that were already loaded through pagination instead of replacing the full feed with only the first page.
+- Realtime reconciliation revalidates every currently loaded public Cloud post in batches of 40. Posts no longer returned as published and public are removed from the local public feed.
+- Likes and comments for the currently loaded public posts are refreshed through authenticated queries; results are applied only if the same account remains signed in.
+- Bookmark refresh now applies the complete saved-state snapshot even when the account has zero bookmarks, clearing stale “saved” indicators left by another device.
+- Realtime reconciliation failures preserve the account-scoped recovery marker and schedule the existing bounded retry.
+- No database migration, schema, grant, RLS policy, DELETE subscription, offline write queue, or UI redesign was added. DELETE-only changes still reconcile on explicit refresh, foreground/reconnect, or fallback sync.
+- Static regression tests cover pagination retention, bounded reconciliation, stale-account rejection, empty bookmark snapshots, and recovery scheduling. Real two-device and Android testing remains required.
