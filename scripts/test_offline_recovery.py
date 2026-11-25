@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Static regression checks for SYNTRA Social 2.50 offline recovery."""
+"""Static regression checks for SYNTRA Social 2.51 offline recovery."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 source = (ROOT / "index.html").read_text(encoding="utf-8")
 
 checks = {
-    "prototype version is 2.50": "SYNTRA Social Prototype 2.50" in source and '<span class="meta">2.50</span>' in source,
+    "prototype version is 2.51": "SYNTRA Social Prototype 2.51" in source and '<span class="meta">2.51</span>' in source,
     "recovery marker is stored locally under a dedicated key": "CLOUD_RECOVERY_KEY='syntra_cloud_recovery_v1'" in source and "localStorage.setItem(CLOUD_RECOVERY_KEY,JSON.stringify(cloudRecoveryState))" in source,
     "recovery marker contains account scope and retry metadata": "cloudRecoveryState={userId,attempts:0,updatedAt:Date.now()}" in source and "cloudRecoveryState.userId!==syntraCloudUser.id" in source,
     "recovery state does not store post content or credentials": "CLOUD_RECOVERY_KEY='syntra_cloud_recovery_v1'" in source and "password" not in source[source.index("function persistCloudRecovery"):source.index("function scheduleCloudRecoveryRetry")],
