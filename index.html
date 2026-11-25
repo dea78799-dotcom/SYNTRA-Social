@@ -1294,12 +1294,13 @@ async function loadCloudBookmarks(userId=syntraCloudUser?.id,silent=true){
   if(error){console.warn('SYNTRA cloud bookmarks failed:',error);if(!silent)toast('Không tải được danh sách bài đã lưu: '+error.message);return false}
   if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
   const ids=(bookmarkRows||[]).map(row=>row.post_id).filter(Boolean);
-  const savedIds=new Set(ids);
+  const savedIds=new Set();
   if(ids.length){
    const {data:rows,error:postError}=await syntraSupabaseClient.from('posts').select('id,author_id,body,visibility,status,created_at').in('id',ids).eq('visibility','public').eq('status','published');
    if(postError){console.warn('SYNTRA bookmarked posts failed:',postError);if(!silent)toast('Không tải được bài viết đã lưu: '+postError.message);return false}
    if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;
    const postRows=rows||[];
+   postRows.forEach(row=>savedIds.add(row.id));
    const authorIds=[...new Set(postRows.map(row=>row.author_id).filter(Boolean))];
    let profiles=[];
    if(authorIds.length){const result=await syntraSupabaseClient.from('profiles').select('id,username,display_name,is_private,is_discoverable').in('id',authorIds);if(result.error)throw result.error;profiles=result.data||[]}
