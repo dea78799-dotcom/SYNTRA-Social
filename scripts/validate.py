@@ -342,7 +342,7 @@ checks = {
     "cloud search result actions open public profiles and posts": "data-cloud-search-profile" in source and "data-cloud-search-post" in source and "openPostDetail(button.dataset.cloudSearchPost)" in source,
     "cloud bookmarks are loaded only for the signed-in user": "from('post_bookmarks').select('post_id,created_at').eq('user_id',userId)" in source and "function loadCloudBookmarks" in source,
     "cloud bookmarks load only published public posts": "in('id',ids).eq('visibility','public').eq('status','published')" in source,
-    "cloud bookmarks restore saved state across sessions": "post.saved=savedIds.has(post.id)" in source and "await loadCloudBookmarks(syntraCloudUser.id,true)" in source,
+    "cloud bookmarks restore saved state across sessions": "post.saved=savedIds.has(post.id)" in source and "bookmarkSync=await loadCloudBookmarks(sessionUserId,true)" in source,
     "cloud bookmark writes are scoped to the current user": "from('post_bookmarks').delete().eq('user_id',userId).eq('post_id',p.id)" in source and "from('post_bookmarks').insert({user_id:userId,post_id:p.id})" in source,
     "cloud bookmarks require sign-in and ignore stale account responses": "Đăng nhập SYNTRA Cloud để lưu bài viết giữa các thiết bị." in source and "syntraCloudUser.id!==userId" in source,
     "cloud bookmarks preserve prior saved state if refresh fails": source.index("posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)})") > source.index("const interactions=await loadCloudPostInteractions(postRows,userId)"),
