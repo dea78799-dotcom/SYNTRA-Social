@@ -28,3 +28,5 @@ jobs:
         run: python scripts/validate.py
       - name: Validate report rate-limit migration
         run: python scripts/test_report_rate_limit_migration.py
+      - name: Validate Realtime multi-device sync
+        run: python scripts/test_realtime_sync.py
