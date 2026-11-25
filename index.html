@@ -865,7 +865,7 @@ async function auditDataIntegrity(){
     cloudDuplicateLikePairs:cloudConsistency.duplicateRemoteLikePairs.length,
     cloudAuditQueryErrors:cloudConsistency.queryErrors.length
    },
-   scope:{postReferences:'Bài viết hiện đang tải trên thiết bị',cloudMetadata:'Metadata Cloud hiện đang tải',cloudConsistency:cloudConsistency.reason,cloudAccountScopedTo:syntraCloudUser?.id||null,commentQueryMayBeTruncated:cloudConsistency.commentQueryMayBeTruncated,publicFeedComplete:!syntraSupabaseClient||(publicFeedLastSyncAt>0&&!publicFeedHasMore)},
+   scope:{postReferences:'Bài viết hiện đang tải trên thiết bị',cloudMetadata:'Metadata Cloud hiện đang tải',cloudConsistency:cloudConsistency.reason,cloudAccountScope:'phiên đăng nhập hiện tại',commentQueryMayBeTruncated:cloudConsistency.commentQueryMayBeTruncated,publicFeedComplete:!syntraSupabaseClient||(publicFeedLastSyncAt>0&&!publicFeedHasMore)},
    details:{invalidPosts,duplicatePostIds,missingMediaIds,remoteMediaReferences,unreferencedMediaIds,invalidMedia,mediaMetadataMismatches,emptyMediaIds,unreadableMediaIds,duplicateMediaContent,hashSkippedMediaIds,malformedLocalStorageKeys:invalidStoredKeys,cloudConsistency}
   };
   lastIntegrityReport=report;
@@ -875,7 +875,7 @@ async function auditDataIntegrity(){
    const localIssues=x.invalidPosts+x.duplicatePostIds+x.missingMedia+x.invalidMedia+x.mediaMetadataMismatches+x.emptyMedia+x.unreadableMedia+x.duplicateMediaContent+x.malformedLocalStorageKeys;
    const cloudIssues=x.cloudPostsNotVisible+x.cloudPostAuthorMismatches+x.cloudMediaOwnerMismatches+x.cloudMediaMetadataMissing+x.cloudMediaNotLinkedLocally+x.cloudDuplicateCommentIds+x.cloudCommentsWithoutVisibleParent+x.cloudLikesWithoutVisibleParent+x.cloudDuplicateLikePairs;
    const issues=localIssues+cloudIssues;
-   output.textContent='Đã kiểm tra · '+x.posts+' bài viết · '+x.mediaFiles+' tệp media · '+issues+' vấn đề cần xem lại · '+x.duplicateMediaContent+' nhóm nội dung trùng · '+x.emptyMedia+' tệp rỗng · '+x.unreferencedLocalMedia+' tệp chưa được tham chiếu trong dữ liệu đã tải · '+x.remoteMediaReferences+' tệp chỉ có metadata Cloud. '+(x.cloudAuditChecked?'Cloud: đã đối chiếu '+x.cloudConsistencyCheckedPosts+' bài viết.': 'Cloud chưa được đối chiếu: '+cloudConsistency.reason)+ (issues===0?' Chưa phát hiện lỗi trong các mục đã kiểm tra.':' Có dữ liệu cần xem lại; báo cáo không tự thay đổi dữ liệu.')+(x.hashSupported?'':' · Trình duyệt không hỗ trợ SHA-256; đã bỏ qua kiểm tra trùng nội dung.');
+   output.textContent='Đã kiểm tra · '+x.posts+' bài viết · '+x.mediaFiles+' tệp media · '+issues+' vấn đề cần xem lại · '+x.duplicateMediaContent+' nhóm nội dung trùng · '+x.emptyMedia+' tệp rỗng · '+x.unreferencedLocalMedia+' tệp chưa được tham chiếu trong dữ liệu đã tải · '+x.remoteMediaReferences+' tệp chỉ có metadata Cloud. '+(x.cloudAuditChecked?(cloudConsistency.partial?'Cloud đã kiểm tra một phần · '+x.cloudConsistencyCheckedPosts+' bài viết.':'Cloud đã đối chiếu '+x.cloudConsistencyCheckedPosts+' bài viết.'): 'Cloud chưa được đối chiếu: '+cloudConsistency.reason)+ (issues===0?' Chưa phát hiện lỗi trong các mục đã kiểm tra.':' Có dữ liệu cần xem lại; báo cáo không tự thay đổi dữ liệu.')+(x.hashSupported?'':' · Trình duyệt không hỗ trợ SHA-256; đã bỏ qua kiểm tra trùng nội dung.');
   }
   return report;
  }catch(error){
