@@ -34,3 +34,5 @@ jobs:
         run: python scripts/test_conflict_resolution.py
       - name: Validate offline recovery
         run: python scripts/test_offline_recovery.py
+      - name: Validate Cloud data consistency engine
+        run: python scripts/test_data_consistency.py
