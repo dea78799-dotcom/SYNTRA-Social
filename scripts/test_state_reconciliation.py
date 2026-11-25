@@ -23,6 +23,7 @@ checks = {
     "public feed refresh retains previously paginated public posts": "const currentPublicPosts=posts.filter(post=>post.publicCloud)" in feed and "retainedOlderPosts=currentPublicPosts.filter(post=>!firstPageIds.has(post.id))" in feed,
     "bookmark state is reconciled outside the non-empty bookmark branch": saved_snapshot in bookmarks and bookmarks.index(saved_snapshot) > bookmarks.rfind("if(ids.length){"),
     "bookmark snapshot is applied before persistence": bookmarks.index(saved_snapshot) < bookmarks.index("save();"),
+    "saved-state snapshot contains only posts still visible as published public content": "const savedIds=new Set();" in bookmarks and "postRows.forEach(row=>savedIds.add(row.id));" in bookmarks,
     "loaded public posts are checked in batches of 40": "offset+=40" in reconcile and "ids.slice(offset,offset+40)" in reconcile,
     "only currently published public posts remain in loaded feed": ".in('id',batch).eq('visibility','public').eq('status','published')" in reconcile and "posts=posts.filter(post=>!(post.cloud&&post.publicCloud)||visibleIds.has(post.id))" in reconcile,
     "likes and comments are re-fetched through the existing authenticated client": "loadCloudPostInteractions(rows,userId)" in reconcile,
