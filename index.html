@@ -1233,8 +1233,10 @@ function startCloudRealtimeSync(userId){
  if(cloudRealtimeChannel&&cloudRealtimeUserId===userId)return;
  stopCloudRealtimeSync();
  cloudRealtimeUserId=userId;cloudRealtimeStatus='connecting';
+ const refreshPosts=()=>{if(syntraCloudUser?.id===userId)queueCloudRealtimeRefresh()};
  const channel=syntraSupabaseClient.channel('syntra-posts-'+userId)
-  .on('postgres_changes',{event:'*',schema:'public',table:'posts'},()=>{if(syntraCloudUser?.id===userId)queueCloudRealtimeRefresh()})
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'},refreshPosts)
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'},refreshPosts)
   .subscribe((status,error)=>{
    if(cloudRealtimeChannel!==channel)return;
    if(status==='SUBSCRIBED'){cloudRealtimeStatus='connected';renderCloudAutoSyncStatus()}
