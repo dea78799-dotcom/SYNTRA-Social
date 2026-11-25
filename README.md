@@ -853,3 +853,12 @@ on conflict (user_id) do nothing;
 - Media integrity reports now state that reference checks cover posts and Cloud metadata currently loaded on the device. Unreferenced local media is not automatically described as a confirmed orphan.
 - When Supabase is configured, local media cleanup is blocked until the public feed has been synchronized and all public-feed pages have been loaded. This avoids deleting cached media merely because its public post has not yet been paginated into the current view.
 - Static validation now checks the Owner event binding, dead-code removals, integrity scope, and cleanup coverage guard. Automated checks do not replace live Supabase/RLS verification or real-device testing.
+
+
+## Prototype 2.46 — Realtime multi-device post synchronization
+
+- Enabled only `public.posts` in the existing Supabase Realtime publication. The table's existing RLS policies continue to control which rows each signed-in account can read.
+- Signed-in clients listen for post changes. Events are used only to trigger a debounced re-fetch through authenticated Supabase queries; event payloads are not written directly into local post state.
+- Realtime refresh waits for already-running post/feed requests to settle, then fetches again so a newly committed change is not hidden behind an older in-flight request.
+- Realtime subscriptions are cleaned up and recreated on account changes. Existing 30–60 minute randomized fallback sync, manual sync, and foreground/reconnect sync remain.
+- Added static regression checks for publication scope, debounce, in-flight request ordering, session cleanup, and fallback behavior. Live multi-device and Android background/reconnect testing remains outstanding.
