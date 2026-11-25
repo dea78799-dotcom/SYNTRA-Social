@@ -858,7 +858,7 @@ on conflict (user_id) do nothing;
 ## Prototype 2.46 — Realtime multi-device post synchronization
 
 - Enabled only `public.posts` in the existing Supabase Realtime publication. The table's existing RLS policies continue to control which rows each signed-in account can read.
-- Signed-in clients listen for post changes. Events are used only to trigger a debounced re-fetch through authenticated Supabase queries; event payloads are not written directly into local post state.
+- Signed-in clients listen for post INSERT and UPDATE events only. Events are used only to trigger a debounced re-fetch through authenticated Supabase queries; event payloads are not written directly into local post state. DELETE events are intentionally excluded because Supabase does not apply RLS filtering to them like normal row changes; deletions are reconciled through authenticated refresh/fallback sync.
 - Realtime refresh waits for already-running post/feed requests to settle, then fetches again so a newly committed change is not hidden behind an older in-flight request.
 - Realtime subscriptions are cleaned up and recreated on account changes. Existing 30–60 minute randomized fallback sync, manual sync, and foreground/reconnect sync remain.
 - Added static regression checks for publication scope, debounce, in-flight request ordering, session cleanup, and fallback behavior. Live multi-device and Android background/reconnect testing remains outstanding.
