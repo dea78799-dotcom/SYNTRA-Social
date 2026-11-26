@@ -20,7 +20,7 @@ checks = {
     "recovery pending prevents healthy summary": "recoveryPending||hasFailure" in source,
     "monitor adds no polling loop": "setInterval(" not in source[source.index("function createCloudSyncIntegrityState"):source.index("function getCloudAvatarUrl")],
     "monitor adds no persistence": "localStorage.setItem" not in source[source.index("function createCloudSyncIntegrityState"):source.index("function getCloudAvatarUrl")],
-    "README documents 2.55": "Prototype 2.55 — Sync Integrity Monitor" in readme,
+    "README retains the original 2.54 monitor release note": "Prototype 2.54 — Sync Integrity Monitor" in readme,
     "validator includes monitor checks": "Sync Integrity Monitor is account-scoped" in validator,
 }
 failed = [name for name, passed in checks.items() if not passed]
