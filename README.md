@@ -2,7 +2,7 @@
 
 **A social platform for video, photos, posts, and communities.**
 
- > Status: **Prototype 2.36** — mobile-first hybrid prototype with Supabase authentication, cross-device social features, sync diagnostics, and an account security center. This remains a limited prototype, not a production-ready public social network.
+ > Status: **Prototype 2.56** — mobile-first hybrid prototype with Supabase authentication, cross-device social features, sync diagnostics, and an account security center. This remains a limited prototype, not a production-ready public social network.
 
 ## Vision
 SYNTRA Social is a social platform within the SYNTRA ecosystem, with a goal of bringing together:
@@ -945,3 +945,15 @@ on conflict (user_id) do nothing;
 - Cloud post editing preserves the editor draft when a concurrent server update is detected and displays the latest server body separately.
 - The user must explicitly adopt the latest Cloud version as the new comparison baseline, then press Save again to submit the preserved draft. The retry still uses a fresh preflight read and `updated_at` compare-and-swap; a second concurrent edit is detected again.
 - Account changes during read/write/recovery abort the stale UI operation. No draft is persisted, and no Supabase schema, migration, RLS, grants, trigger, or Realtime changes are made.
+
+
+## Prototype 2.56 — Background Sync Queue
+
+- Added a bounded in-memory background queue for read-only sync orchestration. It accepts at most six active/pending jobs and executes one job at a time.
+- Automatic refresh, manual Sync Center recovery, and Realtime refresh/reconciliation now use the queue. Session bootstrap remains a direct, generation-guarded sequence so initial sign-in is not delayed behind background work.
+- Duplicate jobs are coalesced by job type, signed-in account, and session generation. Every queued job captures the active account and generation; pending jobs are cancelled on account transitions, and active jobs stop at orchestration checkpoints when their session becomes stale.
+- Queue status is exposed as a small live status line in the existing Sync Center. Only bounded, in-memory status metadata is retained; no account IDs, post content, media, credentials, or task payloads are persisted.
+- Queue capacity is six jobs total, and the visible in-memory history is capped at twelve outcomes. If the queue is full, the new job is rejected and the existing account-scoped recovery mechanism is scheduled.
+- Retry timing remains owned by the existing bounded recovery scheduler; the queue does not add its own timer, polling loop, or retry storm.
+- The queue does not accept publishing, editing, deleting, likes, comments, or other write operations. No offline write replay, Supabase schema/migration, grants, RLS, or Realtime publication changes were introduced.
+- Static regression checks cover serialization, deduplication, bounded capacity, stale-session cancellation, integration points, and read-only scope. Android background suspension and real multi-device/network interruption tests remain required.
