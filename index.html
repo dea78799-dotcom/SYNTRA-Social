@@ -1527,7 +1527,7 @@ async function flushCloudRealtimeRefresh(){
  const userId=syntraCloudUser.id;
  cloudRealtimeRefreshPending=false;cloudRealtimeRefreshRunning=true;
  try{
-  await enqueueCloudSyncJob('realtime-refresh',userId,'Realtime · làm mới dữ liệu',async isCurrent=>{
+  const queued=await enqueueCloudSyncJob('realtime-refresh',userId,'Realtime · làm mới dữ liệu',async isCurrent=>{
    const activeOwnSync=cloudSyncPromise&&cloudSyncUserId===userId?cloudSyncPromise:null;
    const activePublicSync=publicFeedSyncPromise;
    if(activeOwnSync)await activeOwnSync.catch(()=>false);
@@ -1544,6 +1544,7 @@ async function flushCloudRealtimeRefresh(){
    clearCloudRecoveryPending(userId);
    return true;
   });
+  if(!queued&&syntraCloudUser?.id===userId){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry()}
  }catch(error){recordCloudDiagnostic('Đồng bộ thay đổi trực tiếp',false,error);if(syntraCloudUser?.id===userId){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry()}}
  finally{
   cloudRealtimeRefreshRunning=false;
