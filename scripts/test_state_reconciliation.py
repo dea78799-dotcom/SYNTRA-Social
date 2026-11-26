@@ -19,7 +19,7 @@ realtime = section("async function flushCloudRealtimeRefresh()", "function sched
 
 saved_snapshot = "posts.forEach(post=>{if(post.cloud&&post.publicCloud)post.saved=savedIds.has(post.id)});"
 checks = {
-    "application and README identify prototype 2.55": "SYNTRA Social Prototype 2.55" in source and "Prototype 2.55" in readme,
+    "application and README identify prototype 2.56": "SYNTRA Social Prototype 2.56" in source and "Prototype 2.55" in readme,
     "public feed refresh retains previously paginated public posts": "const currentPublicPosts=posts.filter(post=>post.publicCloud)" in feed and "retainedOlderPosts=currentPublicPosts.filter(post=>!firstPageIds.has(post.id))" in feed,
     "bookmark state is reconciled outside the non-empty bookmark branch": saved_snapshot in bookmarks and bookmarks.index(saved_snapshot) > bookmarks.rfind("if(ids.length){"),
     "bookmark snapshot is applied before persistence": bookmarks.index(saved_snapshot) < bookmarks.index("save();"),
