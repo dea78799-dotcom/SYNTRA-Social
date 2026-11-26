@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static regression tests for SYNTRA Social 2.52 sync recovery."""
+"""Static regression tests for SYNTRA Social 2.53 sync recovery."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +17,7 @@ session_sync = section("async function setCloudSession(", "function cloudAuthErr
 retry_sync = section("async function retryCloudSyncCenter(", "function recordCloudDiagnostic(")
 
 checks = {
-    "prototype version is 2.52": "SYNTRA Social Prototype 2.52" in source and '<span class="meta">2.52</span>' in source,
+    "prototype version is 2.53": "SYNTRA Social Prototype 2.53" in source and '<span class="meta">2.53</span>' in source,
     "auto sync checks notifications and bookmarks": "notificationsResult=await loadCloudNotifications(syncUserId,true)" in auto_sync and "bookmarksResult=await loadCloudBookmarks(syncUserId,true)" in auto_sync,
     "auto sync includes own posts and public feed in success criteria": "publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult" in auto_sync,
     "auto sync rejects results after account changes": "syntraCloudUser?.id!==syncUserId" in auto_sync,
