@@ -9,7 +9,7 @@ end = source.index("async function auditDataIntegrity()", start)
 audit = source[start:end]
 
 checks = {
-    "prototype version is 2.53": "SYNTRA Social Prototype 2.54" in source and '<span class="meta">2.54</span>' in source,
+    "prototype version is 2.55": "SYNTRA Social Prototype 2.55" in source and '<span class="meta">2.55</span>' in source,
     "manual integrity audit invokes the Cloud consistency engine": "const cloudConsistency=await inspectCloudDataConsistency()" in source,
     "Cloud audit requires a signed-in account and online state": "!syntraSupabaseClient||!syntraCloudUser" in audit and "navigator.onLine===false" in audit,
     "Cloud audit scopes the result to the active account": "const userId=syntraCloudUser.id" in audit and "syntraCloudUser.id!==userId" in audit,
