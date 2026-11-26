@@ -1614,7 +1614,7 @@ async function autoSyncCloudPosts(){
  ownPostsResult=Date.now()-cloudLastSyncAt<30000?true:await syncCloudPosts(true);
  if(syntraCloudUser?.id!==syncUserId)return false;
  if(!ownPostsResult)recordCloudSyncIntegrity({key:'media'},false,'Không tải được bài viết và metadata media của tài khoản.');
- return publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult;
+ return syntraCloudUser?.id===syncUserId&&publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult;
 }
 async function setCloudSession(session){
  const generation=++cloudSessionGeneration;
