@@ -20,7 +20,7 @@ checks = {
     "Realtime listens for notification inserts and updates": all(f".on('postgres_changes',{{event:'{event}',schema:'public',table:'notifications'}}" in source for event in ("INSERT", "UPDATE")),
     "Realtime listens for bookmark inserts": ".on('postgres_changes',{event:'INSERT',schema:'public',table:'post_bookmarks'}" in source,
     "Realtime does not subscribe to unfiltered wildcard or DELETE events": "event:'*'" not in source and "event:'DELETE'" not in source,
-    "Realtime events trigger a guarded re-fetch rather than direct local writes": "queueCloudRealtimeRefresh()" in source and "await autoSyncCloudPosts()" in source,
+    "Realtime events trigger a guarded re-fetch rather than direct local writes": "queueCloudRealtimeRefresh()" in source and "autoSyncCloudPosts(cloudSessionGeneration)" in source,
     "Realtime refresh invalidates both feed and own-post sync timestamps": "publicFeedLastSyncAt=0;cloudLastSyncAt=0;" in source,
     "Realtime refresh waits for in-flight queries before fetching again": "activeOwnSync" in source and "activePublicSync" in source,
     "Realtime refresh is debounced": "setTimeout(()=>{cloudRealtimeRefreshTimer=null;flushCloudRealtimeRefresh()},650)" in source,
