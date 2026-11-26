@@ -253,7 +253,7 @@ checks = {
     "private post media is resolved from authenticated cloud metadata": "const remote=cloudMediaById.get(id)" in source and "storage.from(SYNTRA_MEDIA_BUCKET).download(remote.storage_path)" in source,
     "public posts render shared like and comment controls": "data-like=\"'+esc(p.id)+'\"" in source and "loadCloudPostInteractions" in source,
     "public feed syncs when home feed renders": "if(active==='all')syncPublicFeed(true)" in source,
-    "public feed loads for signed-out visitors after cloud initialization": "await syncPublicFeed(true,true);" in source and "if(!syntraCloudUser)render();" in source,
+    "public feed loads for signed-out visitors after cloud initialization": "await syncPublicFeed(true,true);" in source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")] and "if(!isCurrent())return false;" in source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")] and "render();" in source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")],
     "public member profile route is implemented": "async function renderPublicProfile(authorId)" in source,
     "public profile handles RLS-hidden private accounts without fetching private content": "if(!profile)" in source and "if(!privateProfile)" in source and "const knownPost=posts.find(post=>post.authorId===id&&post.publicCloud)" in source,
     "public profile queries only published public posts for author": ".eq('author_id',id).eq('visibility','public').eq('status','published')" in source,
