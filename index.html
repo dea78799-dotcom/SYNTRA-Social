@@ -1174,6 +1174,7 @@ function enqueueCloudSyncJob(key,userId,label,runner){
  if(cloudSyncQueuePending.length+(cloudSyncQueueActive?1:0)>=CLOUD_SYNC_QUEUE_LIMIT){
   cloudSyncQueueHistory.unshift({at:Date.now(),label,status:'failed',statusLabel:'bị từ chối · hàng đợi đầy'});
   cloudSyncQueueHistory=cloudSyncQueueHistory.slice(0,12);
+  if(userId&&syntraCloudUser?.id===userId){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry()}
   renderCloudSyncQueueStatus();
   return Promise.resolve(false);
  }
