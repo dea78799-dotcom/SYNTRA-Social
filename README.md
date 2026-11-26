@@ -939,3 +939,9 @@ on conflict (user_id) do nothing;
 - Unknown datasets remain unconfirmed. Successful results older than 65 minutes are marked stale; a failed required dataset or pending recovery prevents a healthy overall status.
 - The monitor reuses existing diagnostic events and adds no Supabase requests, polling loop, Realtime subscription, database migration, schema, grants, or RLS changes.
 - It reports observed operation outcomes; it does not independently prove that every server record is present. Static checks do not replace real Android and two-device tests.
+
+## Prototype 2.55 — Conflict Recovery
+
+- Cloud post editing preserves the editor draft when a concurrent server update is detected and displays the latest server body separately.
+- The user must explicitly adopt the latest Cloud version as the new comparison baseline, then press Save again to submit the preserved draft. The retry still uses a fresh preflight read and `updated_at` compare-and-swap; a second concurrent edit is detected again.
+- Account changes during read/write/recovery abort the stale UI operation. No draft is persisted, and no Supabase schema, migration, RLS, grants, trigger, or Realtime changes are made.
