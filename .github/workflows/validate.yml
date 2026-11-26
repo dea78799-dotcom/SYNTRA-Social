@@ -42,3 +42,5 @@ jobs:
         run: python scripts/test_state_reconciliation.py
       - name: Validate session isolation guard
         run: python scripts/test_session_isolation.py
+      - name: Validate Sync Integrity Monitor
+        run: python scripts/test_sync_integrity.py
