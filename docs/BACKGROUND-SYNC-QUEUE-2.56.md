@@ -7,7 +7,8 @@ Prototype 2.56 introduces an in-memory, account-scoped queue for background read
 ## Queue behavior
 
 - Maximum six jobs total, counting the active job and pending jobs.
-- One job runs at a time.
+- One job runs at a time. Job lifecycle states are `pending`, `running`, `succeeded`, `failed`, and `cancelled`.
+- An unexpected task exception is recorded in existing diagnostics and schedules the existing account-scoped recovery backoff.
 - Duplicate jobs are coalesced by job key, account ID, and session generation.
 - Each job captures the session generation and account ID. Pending jobs are cancelled on account transitions. Active jobs are marked cancelled and must stop at the next orchestration checkpoint.
 - The queue exposes a small status line in the existing Sync Center.
