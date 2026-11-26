@@ -70,6 +70,14 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "session bootstrap uses generation invalidation": "let cloudSessionGeneration=0;" in source and "const generation=++cloudSessionGeneration;" in source,
+    "session bootstrap aborts after stale asynchronous operations": source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")].count("if(!isCurrent())return false;") >= 6,
+    "account switch clears account-specific state and avatar cache": all(token in source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")] for token in ["cloudNotifications=[]","cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();","cloudDeletionRequest=null","cloudAvatarUrls.clear();releaseCloudAvatarPreview();"]),
+    "private Cloud cache is removed on initial session restore": "posts=posts.filter(post=>!post.cloud||post.publicCloud);" in source,
+    "public interaction flags reset between accounts": "post.saved=false;post.liked=false" in source,
+    "following query checks account before shared state mutation": "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;cloudFollowingIds=new Set" in source,
+    "automatic sync checks session identity between datasets": source[source.index("async function autoSyncCloudPosts()"):source.index("async function setCloudSession(")].count("if(syntraCloudUser?.id!==syncUserId)return false;") >= 3,
+    "automatic sync recovery is session-generation scoped": "const generation=cloudSessionGeneration,userId=syntraCloudUser?.id||null;" in source and "generation!==cloudSessionGeneration" in source and "if(generation===cloudSessionGeneration&&userId===(syntraCloudUser?.id||null))" in source,
     "public feed refresh preserves previously paginated posts": "const currentPublicPosts=posts.filter(post=>post.publicCloud)" in source and "retainedOlderPosts=currentPublicPosts.filter(post=>!firstPageIds.has(post.id))" in source,
     "loaded public posts are revalidated and interactions reconciled in bounded batches": "async function reconcileLoadedPublicPosts" in source and "offset+=40" in source and ".in('id',batch).eq('visibility','public').eq('status','published')" in source and "loadCloudPostInteractions(rows,userId)" in source,
     "realtime reconciliation failure schedules account-scoped recovery": "const reconcileOk=await reconcileLoadedPublicPosts(userId)" in source and "if(!reconcileOk){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry();return}" in source,
