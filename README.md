@@ -920,3 +920,14 @@ on conflict (user_id) do nothing;
 - Realtime reconciliation failures preserve the account-scoped recovery marker and schedule the existing bounded retry.
 - No database migration, schema, grant, RLS policy, DELETE subscription, offline write queue, or UI redesign was added. DELETE-only changes still reconcile on explicit refresh, foreground/reconnect, or fallback sync.
 - Static regression tests cover pagination retention, bounded reconciliation, stale-account rejection, empty bookmark snapshots, and recovery scheduling. Real two-device and Android testing remains required.
+
+
+## Prototype 2.53 — Session Isolation Guard
+
+- Added a monotonically increasing in-memory session generation. Each session transition invalidates older asynchronous bootstrap work; stale bootstrap tasks stop after awaited operations and cannot start Realtime or schedule recovery for a newer account.
+- Account-scoped state is cleared immediately on identity changes: notifications, follows, blocks, deletion-request state, avatar object-URL caches, and avatar preview.
+- Cloud-only private posts are removed from the browser's loaded collection on every identity transition, including the first authenticated bootstrap after a page reload. Public Cloud posts remain, but viewer-specific liked and saved flags are reset before the new account loads its own state.
+- Following-list responses now verify that the same account is still active before mutating the shared following set.
+- Automatic sync captures both the session generation and account ID. A sync started for a previous session cannot mark the newly active account as failed or clear its recovery marker.
+- No credentials, tokens, local drafts, or local-only posts are cleared. No database migration, schema, grants, RLS policy, or new Realtime event subscription was added.
+- Static regression coverage checks generation invalidation, private-post cache isolation, account-specific state cleanup, stale follow response protection, and automatic recovery scoping. Real account-switch and multi-device testing is still required.
