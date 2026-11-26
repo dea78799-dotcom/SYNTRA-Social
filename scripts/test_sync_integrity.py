@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static regression tests for SYNTRA Social 2.54 Sync Integrity Monitor."""
+"""Static regression tests for SYNTRA Social 2.55 Sync Integrity Monitor."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,7 +8,7 @@ readme = (ROOT / "README.md").read_text(encoding="utf-8")
 validator = (ROOT / "scripts/validate.py").read_text(encoding="utf-8")
 
 checks = {
-    "prototype version is 2.54": "SYNTRA Social Prototype 2.54" in source and '<span class="meta">2.54</span>' in source,
+    "prototype version is 2.55": "SYNTRA Social Prototype 2.55" in source and '<span class="meta">2.55</span>' in source,
     "monitor is visible in existing sync center": 'id="cloudSyncIntegrity"' in source and "renderCloudSyncIntegrity()" in source,
     "monitor covers six diagnostic categories": all("key:'" + key + "'" in source for key in ["posts", "media", "notifications", "bookmarks", "interactions", "connection"]),
     "monitor is scoped to active account": "cloudSyncIntegrity.userId!==userId" in source and "cloudSyncIntegrity=createCloudSyncIntegrityState(nextId)" in source,
@@ -20,7 +20,7 @@ checks = {
     "recovery pending prevents healthy summary": "recoveryPending||hasFailure" in source,
     "monitor adds no polling loop": "setInterval(" not in source[source.index("function createCloudSyncIntegrityState"):source.index("function getCloudAvatarUrl")],
     "monitor adds no persistence": "localStorage.setItem" not in source[source.index("function createCloudSyncIntegrityState"):source.index("function getCloudAvatarUrl")],
-    "README documents 2.54": "Prototype 2.54 — Sync Integrity Monitor" in readme,
+    "README documents 2.55": "Prototype 2.55 — Sync Integrity Monitor" in readme,
     "validator includes monitor checks": "Sync Integrity Monitor is account-scoped" in validator,
 }
 failed = [name for name, passed in checks.items() if not passed]
@@ -28,4 +28,4 @@ for name, passed in checks.items():
     print(("PASS" if passed else "FAIL") + ": " + name)
 if failed:
     raise SystemExit("Sync integrity checks failed: " + ", ".join(failed))
-print("All SYNTRA Social 2.54 integrity-monitor checks passed.")
+print("All SYNTRA Social 2.55 integrity-monitor checks passed.")
