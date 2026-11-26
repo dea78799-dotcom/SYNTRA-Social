@@ -1618,6 +1618,9 @@ async function setCloudSession(session){
  }else{
   cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();
   cloudDeletionRequest=null;cloudNotifications=[];renderNoticeCount();
+  posts.forEach(post=>{if(post.cloud&&post.publicCloud){post.saved=false;post.liked=false}});
+  posts=posts.filter(post=>!post.cloud||post.publicCloud);
+  save();render();
   await syncPublicFeed(true,true);
   if(!isCurrent())return false;
   render();
