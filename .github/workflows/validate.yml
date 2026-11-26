@@ -40,3 +40,5 @@ jobs:
         run: python scripts/test_sync_recovery.py
       - name: Validate multi-device state reconciliation
         run: python scripts/test_state_reconciliation.py
+      - name: Validate session isolation guard
+        run: python scripts/test_session_isolation.py
