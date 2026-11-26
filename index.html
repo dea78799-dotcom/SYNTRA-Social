@@ -1094,7 +1094,7 @@ function scheduleCloudRecoveryRetry(){
  cloudRecoveryTimer=setTimeout(async()=>{cloudRecoveryTimer=null;if(!syntraCloudUser||cloudRecoveryState?.userId!==syntraCloudUser.id)return;const ok=await retryCloudSyncCenter(true);if(!ok&&cloudRecoveryState?.userId===syntraCloudUser.id){cloudRecoveryState.attempts=Math.min(20,(Number(cloudRecoveryState.attempts)||0)+1);cloudRecoveryState.updatedAt=Date.now();persistCloudRecovery();scheduleCloudRecoveryRetry()}},delay);
 }
 let cloudSyncHistory=readLocalJSON(CLOUD_SYNC_HISTORY_KEY,[]);
-let cloudSyncIntegrity=createCloudSyncIntegrityState(null);
+let cloudSyncIntegrity=null;
 const CLOUD_SYNC_INTEGRITY_MAX_AGE=65*60*1000;
 const CLOUD_SYNC_INTEGRITY_GROUPS=[
  {key:'posts',label:'Bảng tin công khai'},
@@ -1104,6 +1104,7 @@ const CLOUD_SYNC_INTEGRITY_GROUPS=[
  {key:'interactions',label:'Lượt thích & bình luận'},
  {key:'connection',label:'Kết nối Cloud'}
 ];
+cloudSyncIntegrity=createCloudSyncIntegrityState(null);
 function createCloudSyncIntegrityState(userId){
  const datasets={};
  CLOUD_SYNC_INTEGRITY_GROUPS.forEach(group=>{datasets[group.key]={at:0,ok:null,detail:'Chưa có kết quả trong phiên này.'}});
