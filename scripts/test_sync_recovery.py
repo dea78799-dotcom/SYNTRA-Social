@@ -11,7 +11,7 @@ def section(start, end):
     b = source.index(end, a)
     return source[a:b]
 
-auto_sync = section("async function autoSyncCloudPosts()", "async function setCloudSession(")
+auto_sync = section("async function autoSyncCloudPosts(expectedGeneration=cloudSessionGeneration)", "async function setCloudSession(")
 feed_sync = section("async function syncPublicFeed(", "async function loadMorePublicFeed(")
 session_sync = section("async function setCloudSession(", "function cloudAuthErrorMessage(")
 retry_sync = section("async function retryCloudSyncCenter(", "function recordCloudDiagnostic(")
@@ -20,7 +20,7 @@ checks = {
     "prototype version is 2.56": "SYNTRA Social Prototype 2.56" in source and '<span class="meta">2.56</span>' in source,
     "auto sync checks notifications and bookmarks": "notificationsResult=await loadCloudNotifications(syncUserId,true)" in auto_sync and "bookmarksResult=await loadCloudBookmarks(syncUserId,true)" in auto_sync,
     "auto sync includes own posts and public feed in success criteria": "publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult" in auto_sync,
-    "auto sync rejects results after account changes": "syntraCloudUser?.id!==syncUserId" in auto_sync,
+    "auto sync rejects results after account changes": "if(!isCurrent())return false;" in auto_sync,
     "forced feed sync bypasses debounce": "async function syncPublicFeed(silent=true,force=false)" in feed_sync and "if(!force&&Date.now()-publicFeedLastSyncAt<30000)return false" in feed_sync,
     "session bootstrap checks every required data set": all(token in session_sync for token in ["ownSync=await syncCloudPosts(true)", "notificationSync=await loadCloudNotifications(sessionUserId,true)", "publicSync=await syncPublicFeed(true,true)", "bookmarkSync=await loadCloudBookmarks(sessionUserId,true)"]),
     "session bootstrap schedules recovery on partial failure": "else{markCloudRecoveryPending(sessionUserId);scheduleCloudRecoveryRetry()}" in session_sync,
