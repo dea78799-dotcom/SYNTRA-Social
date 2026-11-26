@@ -8,7 +8,7 @@ readme = (ROOT / "README.md").read_text(encoding="utf-8")
 validator = (ROOT / "scripts/validate.py").read_text(encoding="utf-8")
 
 checks = {
-    "prototype version is 2.55": "SYNTRA Social Prototype 2.55" in source and '<span class="meta">2.55</span>' in source,
+    "prototype version is 2.56": "SYNTRA Social Prototype 2.56" in source and '<span class="meta">2.56</span>' in source,
     "monitor is visible in existing sync center": 'id="cloudSyncIntegrity"' in source and "renderCloudSyncIntegrity()" in source,
     "monitor covers six diagnostic categories": all("key:'" + key + "'" in source for key in ["posts", "media", "notifications", "bookmarks", "interactions", "connection"]),
     "monitor is scoped to active account": "cloudSyncIntegrity.userId!==userId" in source and "cloudSyncIntegrity=createCloudSyncIntegrityState(nextId)" in source,
@@ -28,4 +28,4 @@ for name, passed in checks.items():
     print(("PASS" if passed else "FAIL") + ": " + name)
 if failed:
     raise SystemExit("Sync integrity checks failed: " + ", ".join(failed))
-print("All SYNTRA Social 2.55 integrity-monitor checks passed.")
+print("All SYNTRA Social 2.56 integrity-monitor checks passed.")
