@@ -44,3 +44,5 @@ jobs:
         run: python scripts/test_session_isolation.py
       - name: Validate Sync Integrity Monitor
         run: python scripts/test_sync_integrity.py
+      - name: Validate background sync queue
+        run: python scripts/test_background_sync_queue.py
