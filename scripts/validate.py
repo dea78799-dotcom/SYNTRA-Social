@@ -70,6 +70,10 @@ if cloud_result.returncode:
 print("PASS: Supabase module syntax")
 
 checks = {
+    "Sync Integrity Monitor is account-scoped": "function createCloudSyncIntegrityState(userId)" in source and "cloudSyncIntegrity=createCloudSyncIntegrityState(nextId)" in source,
+    "Sync Integrity Monitor marks stale results and keeps unknown state unconfirmed": "CLOUD_SYNC_INTEGRITY_MAX_AGE=65*60*1000" in source and "Chưa xác nhận" in source,
+    "Sync Integrity Monitor reuses existing diagnostics": "recordCloudSyncIntegrity(category,ok,result.detail)" in source and "setInterval(" not in source[source.index("function createCloudSyncIntegrityState"):source.index("function getCloudAvatarUrl")],
+    "prototype version reflects 2.54": "SYNTRA Social Prototype 2.54" in source and '<span class="meta">2.54</span>' in source,
     "session bootstrap uses generation invalidation": "let cloudSessionGeneration=0;" in source and "const generation=++cloudSessionGeneration;" in source,
     "session bootstrap aborts after stale asynchronous operations": source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")].count("if(!isCurrent())return false;") >= 6,
     "account switch clears account-specific state and avatar cache": all(token in source[source.index("async function setCloudSession(session){"):source.index("function cloudAuthErrorMessage(")] for token in ["cloudNotifications=[]","cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();","cloudDeletionRequest=null","cloudAvatarUrls.clear();releaseCloudAvatarPreview();"]),
