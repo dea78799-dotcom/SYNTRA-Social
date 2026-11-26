@@ -28,7 +28,7 @@ checks = {
     "only currently published public posts remain in loaded feed": ".in('id',batch).eq('visibility','public').eq('status','published')" in reconcile and "posts=posts.filter(post=>!(post.cloud&&post.publicCloud)||visibleIds.has(post.id))" in reconcile,
     "likes and comments are re-fetched through the existing authenticated client": "loadCloudPostInteractions(rows,userId)" in reconcile,
     "account changes invalidate reconciliation before applying state": reconcile.count("syntraCloudUser?.id!==userId") >= 2 and "if(syntraCloudUser?.id!==userId)return false;" in reconcile,
-    "realtime refresh retries when state reconciliation fails": "const reconcileOk=await reconcileLoadedPublicPosts(userId)" in realtime and "if(!reconcileOk){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry();return}" in realtime,
+    "realtime refresh retries when state reconciliation fails": "const reconcileOk=await reconcileLoadedPublicPosts(userId)" in realtime and "if(!reconcileOk){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry();return false}" in realtime,
     "successful realtime reconciliation clears the matching recovery marker": "clearCloudRecoveryPending(userId)" in realtime,
     "CI executes the reconciliation regression suite": "python scripts/test_state_reconciliation.py" in workflow,
     "no DELETE realtime listener was introduced": ".on('postgres_changes',{event:'DELETE'" not in source,
