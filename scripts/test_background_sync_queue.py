@@ -15,6 +15,7 @@ checks = {
     "queue capacity is bounded to six jobs": "const CLOUD_SYNC_QUEUE_LIMIT=6;" in queue and "CLOUD_SYNC_QUEUE_LIMIT" in queue,
     "queue exposes pending running succeeded failed and cancelled states": all(token in queue for token in ["status:'pending'", "job.status='running'", "'succeeded'", "'failed'", "'cancelled'"]),
     "queue exceptions schedule the existing account recovery": "markCloudRecoveryPending(job.userId);scheduleCloudRecoveryRetry()" in queue,
+    "queue overflow schedules account-scoped recovery": "if(userId&&syntraCloudUser?.id===userId){markCloudRecoveryPending(userId);scheduleCloudRecoveryRetry()}" in queue,
     "queue executes only one job at a time": "if(cloudSyncQueueRunning)return;" in queue and "while(cloudSyncQueuePending.length)" in queue,
     "duplicate jobs are coalesced by key account and generation": "job.key===key&&job.userId===(userId||null)&&job.generation===generation" in queue,
     "queue rejects new jobs when capacity is reached": "cloudSyncQueuePending.length+(cloudSyncQueueActive?1:0)>=CLOUD_SYNC_QUEUE_LIMIT" in queue,
