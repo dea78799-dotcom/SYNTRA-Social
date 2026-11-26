@@ -17,7 +17,7 @@ auto_sync = section("async function autoSyncCloudPosts()", "async function setCl
 auto_runner = section("async function runCloudAutoSyncNow()", "async function autoSyncCloudPosts()")
 
 checks = {
-    "application and README identify prototype 2.55": "SYNTRA Social Prototype 2.55" in source and "Prototype 2.54" in readme,
+    "application and README identify prototype 2.55": "SYNTRA Social Prototype 2.55" in source and "Prototype 2.55" in readme,
     "each session bootstrap advances a generation": "let cloudSessionGeneration=0;" in source and "const generation=++cloudSessionGeneration;" in session,
     "session bootstrap stops after stale awaited operations": session.count("if(!isCurrent())return false;") >= 6,
     "session switch clears account-specific notifications and privacy state": "cloudNotifications=[]" in session and "cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();" in session and "cloudDeletionRequest=null" in session,
