@@ -1575,7 +1575,7 @@ async function setCloudSession(session){
  if(previousId!==nextId){
   stopCloudRealtimeSync();
   if(cloudAutoSyncTimer){clearTimeout(cloudAutoSyncTimer);cloudAutoSyncTimer=null}
-  cloudAutoSyncNextAt=0;cloudAutoSyncDelay=0;
+  cloudAutoSyncNextAt=0;cloudAutoSyncDelay=0;cloudAutoSyncPromise=null;
   cloudSyncCenterRunning=false;
   publicFeedSyncPromise=null;
   publicFeedLastSyncAt=0;publicFeedCursor=null;publicFeedHasMore=true;publicFeedLoadingMore=false;
