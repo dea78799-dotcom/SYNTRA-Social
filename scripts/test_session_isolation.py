@@ -27,6 +27,7 @@ checks = {
     "viewer-specific public-post likes and bookmarks reset between accounts": "post.saved=false;post.liked=false" in session,
     "following response cannot mutate state after account switch": "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in following and following.index("if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;") > following.index("await syntraSupabaseClient.from") and following.index("if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;") < following.index("cloudFollowingIds=new Set", following.index("await syntraSupabaseClient.from")),
     "automatic sync stops between account-scoped reads after switch": auto_sync.count("if(syntraCloudUser?.id!==syncUserId)return false;") >= 3,
+    "account switch releases the previous automatic-sync lock": "cloudAutoSyncPromise=null;" in session,
     "automatic sync recovery is bound to its original session generation": "const generation=cloudSessionGeneration,userId=syntraCloudUser?.id||null;" in auto_runner and "generation!==cloudSessionGeneration" in auto_runner and "userId!==(syntraCloudUser?.id||null)" in auto_runner,
     "old sessions cannot mark a newly active account for recovery": "if(generation===cloudSessionGeneration&&userId===(syntraCloudUser?.id||null))" in auto_runner,
     "local drafts and local-only posts are not globally cleared": "localStorage.clear()" not in session and "posts=posts.filter(post=>!post.cloud||post.publicCloud);" in session,
