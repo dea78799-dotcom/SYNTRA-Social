@@ -28,7 +28,7 @@ checks = {
     "Realtime errors retain scheduled sync fallback": "cloudRealtimeStatus='fallback'" in source and "scheduleCloudAutoSync()" in source,
     "Realtime pending changes resume after app returns online or foreground": "cloudRealtimeRefreshPending" in source and "queueCloudRealtimeRefresh()" in source,
     "Realtime status is exposed in existing sync status text": "Đồng bộ trực tiếp đang kết nối" in source and "Realtime tạm gián đoạn" in source,
-    "prototype version reflects 2.55": "SYNTRA Social Prototype 2.55" in source and '<span class="meta">2.55</span>' in source,
+    "prototype version reflects 2.56": "SYNTRA Social Prototype 2.56" in source and '<span class="meta">2.56</span>' in source,
 }
 
 failed = [name for name, ok in checks.items() if not ok]
