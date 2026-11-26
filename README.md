@@ -931,3 +931,11 @@ on conflict (user_id) do nothing;
 - Automatic sync captures both the session generation and account ID. A sync started for a previous session cannot mark the newly active account as failed or clear its recovery marker.
 - No credentials, tokens, local drafts, or local-only posts are cleared. No database migration, schema, grants, RLS policy, or new Realtime event subscription was added.
 - Static regression coverage checks generation invalidation, private-post cache isolation, account-specific state cleanup, stale follow response protection, and automatic recovery scoping. Real account-switch and multi-device testing is still required.
+
+## Prototype 2.54 — Sync Integrity Monitor
+
+- Added an in-memory status monitor to the existing Sync Center for the public feed, posts/media, notifications, bookmarks, interactions, and Cloud connection diagnostics.
+- Each result is associated with the active signed-in account and is cleared on account changes/sign-out. No diagnostic state is persisted beyond the page session.
+- Unknown datasets remain unconfirmed. Successful results older than 65 minutes are marked stale; a failed required dataset or pending recovery prevents a healthy overall status.
+- The monitor reuses existing diagnostic events and adds no Supabase requests, polling loop, Realtime subscription, database migration, schema, grants, or RLS changes.
+- It reports observed operation outcomes; it does not independently prove that every server record is present. Static checks do not replace real Android and two-device tests.
