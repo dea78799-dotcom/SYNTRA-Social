@@ -23,6 +23,7 @@ checks = {
     "session switch clears account-specific notifications and privacy state": "cloudNotifications=[]" in session and "cloudFollowingIds=new Set();cloudBlockRecords=[];cloudBlockedUserIds=new Set();" in session and "cloudDeletionRequest=null" in session,
     "session switch revokes cached avatar object URLs": "cloudAvatarUrls.forEach(url=>" in session and "cloudAvatarUrls.clear();" in session and "releaseCloudAvatarPreview();" in session,
     "private Cloud posts are removed even on initial account bootstrap": "posts=posts.filter(post=>!post.cloud||post.publicCloud);" in session,
+    "signed-out startup also removes persisted private Cloud posts": "posts=posts.filter(post=>!post.cloud||post.publicCloud);" in session[session.index("}else{"):],
     "viewer-specific public-post likes and bookmarks reset between accounts": "post.saved=false;post.liked=false" in session,
     "following response cannot mutate state after account switch": "if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;" in following and following.index("if(!syntraCloudUser||syntraCloudUser.id!==userId)return false;") < following.index("cloudFollowingIds=new Set"),
     "automatic sync stops between account-scoped reads after switch": auto_sync.count("if(syntraCloudUser?.id!==syncUserId)return false;") >= 3,
