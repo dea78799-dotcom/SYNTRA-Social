@@ -7,7 +7,7 @@ INDEX = ROOT / "index.html"
 source = INDEX.read_text(encoding="utf-8")
 
 checks = {
-    "prototype version reflects 2.55": "SYNTRA Social Prototype 2.55" in source and '<span class="meta">2.55</span>' in source,
+    "prototype version reflects 2.56": "SYNTRA Social Prototype 2.56" in source and '<span class="meta">2.56</span>' in source,
     "Cloud post edit fetches the latest server version before writing": "select('id,body,updated_at')" in source,
     "preflight read is restricted to the current post and authenticated owner": ".eq('id',post.id).eq('author_id',editUserId).maybeSingle()" in source,
     "stale editor content is rejected before update": "if(current.body!==oldText){showCloudPostConflictRecovery(" in source,
