@@ -91,7 +91,7 @@ checks = {
     "named composer draft controls are wired and accessible": 'id="draftList"' in source and 'id="saveNamedDraft"' in source and 'id="loadNamedDraft"' in source and 'id="renameNamedDraft"' in source and 'id="deleteNamedDraft"' in source and 'aria-label="Quản lý nhiều bản nháp"' in source,
     "named composer drafts validate records and handle storage failures": "function readNamedComposerDrafts()" in source and "catch(error){console.warn('SYNTRA named draft save failed:'" in source and "toLocaleLowerCase()" in source,
     "named composer draft controls have responsive styling": ".composer-draft-manager-actions" in source and ".composer-draft-manager input" in source,
-    "prototype version reflects 2.53": "SYNTRA Social Prototype 2.53" in source and "syntra-composer-draft-2-42" in source,
+    "prototype version reflects 2.54": "SYNTRA Social Prototype 2.54" in source and "syntra-composer-draft-2-42" in source,
     "Cloud consistency audit is included in the manual integrity scan": "async function inspectCloudDataConsistency()" in source and "const cloudConsistency=await inspectCloudDataConsistency()" in source,
     "Cloud consistency queries use the signed-in Supabase client and bounded batches": "const userId=syntraCloudUser.id" in source and "offset+=40" in source and ".from('posts').select('id,author_id,visibility,status,updated_at').in('id',batch)" in source,
     "Cloud consistency checks posts, media, comments, and likes": all(token in source for token in ["from('post_media').select('id,post_id,owner_id,storage_path,mime_type,byte_size')","from('comments').select('id,post_id,author_id')","from('likes').select('post_id,user_id')","mediaOwnerMismatches","missingRemoteMediaMetadata","duplicateRemoteLikePairs"]),
