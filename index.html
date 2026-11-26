@@ -1150,20 +1150,20 @@ function renderCloudSyncQueueStatus(){
  const root=document.getElementById('cloudSyncQueueStatus');if(!root)return;
  const pending=cloudSyncQueuePending.length,active=cloudSyncQueueActive;
  const last=cloudSyncQueueHistory[0];
- root.textContent=active?'Hàng đợi nền: đang chạy '+active.label+(pending?' · '+pending+' tác vụ chờ':'')+'.':pending?'Hàng đợi nền: '+pending+' tác vụ đang chờ.':last?'Hàng đợi nền: tác vụ gần nhất '+last.label+' · '+last.status+'.':'Hàng đợi nền: sẵn sàng.';
+ root.textContent=active?'Hàng đợi nền: đang chạy '+active.label+(pending?' · '+pending+' tác vụ chờ':'')+'.':pending?'Hàng đợi nền: '+pending+' tác vụ đang chờ.':last?'Hàng đợi nền: tác vụ gần nhất '+last.label+' · '+last.statusLabel+'.':'Hàng đợi nền: sẵn sàng.';
 }
 function isCloudSyncQueueJobCurrent(job){
  return !job.cancelled&&job.generation===cloudSessionGeneration&&(job.userId||null)===(syntraCloudUser?.id||null);
 }
-function settleCloudSyncQueueJob(job,ok,status){
- job.status=status;
- cloudSyncQueueHistory.unshift({at:Date.now(),label:job.label,status});
+function settleCloudSyncQueueJob(job,ok,state,statusLabel){
+ job.status=state;
+ cloudSyncQueueHistory.unshift({at:Date.now(),label:job.label,status:state,statusLabel});
  cloudSyncQueueHistory=cloudSyncQueueHistory.slice(0,12);
  job.resolve(!!ok);
  renderCloudSyncQueueStatus();
 }
 function cancelPendingCloudSyncJobs(){
- cloudSyncQueuePending.splice(0).forEach(job=>{job.cancelled=true;settleCloudSyncQueueJob(job,false,'đã hủy')});
+ cloudSyncQueuePending.splice(0).forEach(job=>{job.cancelled=true;settleCloudSyncQueueJob(job,false,'cancelled','đã hủy')});
  if(cloudSyncQueueActive)cloudSyncQueueActive.cancelled=true;
  renderCloudSyncQueueStatus();
 }
@@ -1172,7 +1172,7 @@ function enqueueCloudSyncJob(key,userId,label,runner){
  const existing=[cloudSyncQueueActive,...cloudSyncQueuePending].find(job=>job&&job.key===key&&job.userId===(userId||null)&&job.generation===generation&&!job.cancelled);
  if(existing)return existing.promise;
  if(cloudSyncQueuePending.length+(cloudSyncQueueActive?1:0)>=CLOUD_SYNC_QUEUE_LIMIT){
-  cloudSyncQueueHistory.unshift({at:Date.now(),label,status:'bị từ chối · hàng đợi đầy'});
+  cloudSyncQueueHistory.unshift({at:Date.now(),label,status:'failed',statusLabel:'bị từ chối · hàng đợi đầy'});
   cloudSyncQueueHistory=cloudSyncQueueHistory.slice(0,12);
   renderCloudSyncQueueStatus();
   return Promise.resolve(false);
@@ -1191,16 +1191,19 @@ async function drainCloudSyncQueue(){
  try{
   while(cloudSyncQueuePending.length){
    const job=cloudSyncQueuePending.shift();
-   if(!isCloudSyncQueueJobCurrent(job)){settleCloudSyncQueueJob(job,false,'đã hủy · phiên cũ');continue}
+   if(!isCloudSyncQueueJobCurrent(job)){settleCloudSyncQueueJob(job,false,'cancelled','đã hủy · phiên cũ');continue}
    cloudSyncQueueActive=job;job.status='running';renderCloudSyncQueueStatus();
    let ok=false;
    try{
     ok=!!(await job.runner(()=>isCloudSyncQueueJobCurrent(job)));
-    if(!isCloudSyncQueueJobCurrent(job)){settleCloudSyncQueueJob(job,false,'đã hủy · đổi tài khoản');}
-    else settleCloudSyncQueueJob(job,ok,ok?'hoàn tất':'thất bại');
+    if(!isCloudSyncQueueJobCurrent(job)){settleCloudSyncQueueJob(job,false,'cancelled','đã hủy · đổi tài khoản');}
+    else settleCloudSyncQueueJob(job,ok,ok?'succeeded':'failed',ok?'hoàn tất':'thất bại');
    }catch(error){
-    if(isCloudSyncQueueJobCurrent(job)){recordCloudDiagnostic('Tác vụ hàng đợi đồng bộ',false,error);settleCloudSyncQueueJob(job,false,'thất bại')}
-    else settleCloudSyncQueueJob(job,false,'đã hủy · đổi tài khoản');
+    if(isCloudSyncQueueJobCurrent(job)){
+    recordCloudDiagnostic('Tác vụ hàng đợi đồng bộ',false,error);
+    if(job.userId){markCloudRecoveryPending(job.userId);scheduleCloudRecoveryRetry()}
+    settleCloudSyncQueueJob(job,false,'failed','thất bại');
+   }else settleCloudSyncQueueJob(job,false,'cancelled','đã hủy · đổi tài khoản');
    }finally{cloudSyncQueueActive=null;renderCloudSyncQueueStatus()}
   }
  }finally{
