@@ -1603,13 +1603,18 @@ async function autoSyncCloudPosts(){
  const publicResult=await syncPublicFeed(true,true);
  if(!syncUserId)return publicResult;
  if(syntraCloudUser?.id!==syncUserId)return false;
+ recordCloudSyncIntegrity({key:'posts'},publicResult,publicResult?'Bảng tin đã được tải.':'Không tải được bảng tin công khai.');
  let notificationsResult=false,bookmarksResult=false,ownPostsResult=false;
  try{notificationsResult=await loadCloudNotifications(syncUserId,true)}catch(error){recordCloudDiagnostic('Tải thông báo',false,error)}
  if(syntraCloudUser?.id!==syncUserId)return false;
+ recordCloudSyncIntegrity({key:'notifications'},notificationsResult,notificationsResult?'Thông báo đã được tải.':'Không tải được thông báo.');
  try{bookmarksResult=await loadCloudBookmarks(syncUserId,true)}catch(error){recordCloudDiagnostic('Tải bài đã lưu',false,error)}
  if(syntraCloudUser?.id!==syncUserId)return false;
+ recordCloudSyncIntegrity({key:'bookmarks'},bookmarksResult,bookmarksResult?'Bài đã lưu đã được tải.':'Không tải được bài đã lưu.');
  ownPostsResult=Date.now()-cloudLastSyncAt<30000?true:await syncCloudPosts(true);
- return syntraCloudUser?.id===syncUserId&&publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult;
+ if(syntraCloudUser?.id!==syncUserId)return false;
+ if(!ownPostsResult)recordCloudSyncIntegrity({key:'media'},false,'Không tải được bài viết và metadata media của tài khoản.');
+ return publicResult&&notificationsResult&&bookmarksResult&&ownPostsResult;
 }
 async function setCloudSession(session){
  const generation=++cloudSessionGeneration;
